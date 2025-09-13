@@ -13,6 +13,10 @@ The repository is organized into the following subdirectories:
 ```bash
 graphics
    ├── assn1/
+   │   ├── src/         # assn1 source code
+   │   ├── docs/        # assn1 documents
+   │   ├── build/       # assn1 outputs
+   │   └── README.md    # assn1 description
    ├── assn2/
    ├── assn3/
    ├── assn4/
