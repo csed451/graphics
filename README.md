@@ -5,7 +5,7 @@ This repository is for team assignments in the CSED451: Computer Graphics (Fall 
 ## Team Information
 - **Team Name**: Endgame_Duo
 - **Members**:
-  - 20200120 SeonHo CHA
+  - 20200120 SunHo CHA
   - 20200703 SoonHo KIM
 
 ## Repository Structure
