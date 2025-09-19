@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "globals.h"
 
 template <typename T>
 class ObjectPool {
@@ -12,8 +13,11 @@ public:
         for (size_t i = 0; i < size; ++i) {
             pool.push_back(new T());
             available.push_back(pool.back());
+            pool.back()->set_isActive(true);
         }
     }
+
+    const std::vector<T*>& get_pool() const { return pool; }
 
     T* acquire() {
         if (available.empty()) 
@@ -32,13 +36,15 @@ public:
     void update(float deltaTime) {
         for (auto obj : pool)
             if (obj->get_isActive())
-                obj->update(deltaTime);
+                if (is_outside_window(obj->get_pos()))
+                    release(obj);
+                else
+                    obj->update(deltaTime);
     }
 
-    void draw() {
+    void draw() const {
         for (auto obj : pool)
-            if (obj->get_isActive())
-                obj->draw();
+            obj->draw();
     }
 
     ~ObjectPool() {

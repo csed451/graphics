@@ -33,18 +33,6 @@ glm::mat4 Object::get_finalMatrix() const {
     return parent ? parent->get_modelMatrix() * modelMatrix : modelMatrix;
 }
 
-void Object::set_modelMatrix(glm::mat4 m) {
-    modelMatrix = m;
-}
-
-void Object::set_center(glm::vec3 v) {
-    center = v;
-}
-
-void Object::set_local(bool b) {
-    isLocal = b;
-}
-
 void Object::set_parent(Object* _parent) {
     if (_parent) {
         modelMatrix = glm::inverse(_parent->get_modelMatrix()) * modelMatrix;
@@ -118,10 +106,12 @@ void Object::scale_world(glm::vec3 v) {
 }
 
 void Object::draw() const {
-    glPushMatrix();
-    glLoadMatrixf(glm::value_ptr(get_finalMatrix()));
+    if (isActive && isVisible) {
+        glPushMatrix();
+        glLoadMatrixf(glm::value_ptr(get_finalMatrix()));
 
-    draw_shape();
+        draw_shape();
 
-    glPopMatrix();
+        glPopMatrix();
+    }
 }

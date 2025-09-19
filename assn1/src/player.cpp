@@ -1,4 +1,7 @@
+#include "globals.h"
 #include "player.h"
+
+
 
 void Player::draw_shape() const {
     glBegin(GL_TRIANGLES);
@@ -10,7 +13,33 @@ void Player::draw_shape() const {
 }
 
 
+void Player::update(float deltaTime) {
+    if (!get_isActive())
+        return; 
+    translate(velocity * direction * deltaTime);
+    if (is_outside_window(get_pos()))
+        translate(- velocity * direction * deltaTime);
+
+    if (heart <= 0)
+        set_isActive(false);
+    leftCanon.update(deltaTime);
+    rightCanon.update(deltaTime);
+    attackPool.update(deltaTime);
+}
+
+void Player::draw() const {
+    Object::draw();
+    leftCanon.draw();
+    rightCanon.draw();
+    attackPool.draw();
+}
+
+
 void Player::shoot() {
-    Attack* a = attackPool.acquire();
-    a->init(get_pos());
+    int curTime = glutGet(GLUT_ELAPSED_TIME);
+    if (1000.0f / rps < curTime - lastShootTime) {
+        Attack* a = attackPool.acquire();
+        a->init(get_pos(), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
+        lastShootTime = curTime;
+    }
 }
