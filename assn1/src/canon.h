@@ -1,19 +1,25 @@
 
 #include "object.h"
+#include "objectPool.h"
+#include "attack.h"
 
 
 class Canon : public Object {
+private:
+    ObjectPool<Attack> attackPool;
+    float rps = 5;
+    float lastShootTime = glutGet(GLUT_ELAPSED_TIME);
 public:
-    Canon(glm::vec3 _pos=glm::vec3(), GLfloat _angle=0, glm::vec3 _axis=glm::vec3(1,0,0), glm::vec3 _size=glm::vec3(1), glm::vec3 _center=glm::vec3(0, -0.5, 0)) : Object(_pos, _angle, _axis, _size, _center) {};
+    Canon(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=glm::vec3(0, -0.5, 0)) : Object(_pos, _angle, _axis, _size, _center), attackPool(50) {};
 
-    void draw_shape() const override {
-        glColor3f(0.5, 0.5, 0.5);
-        glBegin(GL_QUADS);
-            glVertex3f(-0.2, -0.5, 0);
-            glVertex3f(0.2, -0.5, 0);
-            glVertex3f(0.2, 0.5, 0);
-            glVertex3f(-0.2, 0.5, 0);
-        glEnd();
-    }
-    void update(float deltaTime){ rotate_local(1, glm::vec3(0,0,1));}
+    void draw_shape() const override;
+    void draw() const;
+    void update(float deltaTime);
+
+    void set_rps(float r) { rps = r; }
+
+    ObjectPool<Attack>& get_attackPool() { return attackPool; }
+
+    void shoot();
+
 };

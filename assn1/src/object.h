@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "globals.h"
 
 class Object {
 private:
@@ -15,7 +16,7 @@ private:
     bool isVisible = true;
     float hitboxRadius = 1;
 public:
-    Object(glm::vec3 _pos=glm::vec3(), GLfloat _angle=0, glm::vec3 _axis=glm::vec3(1,0,0), glm::vec3 _size=glm::vec3(1), glm::vec3 _center=glm::vec3());
+    Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
     /* getter */
     glm::mat4 get_modelMatrix() const { return modelMatrix; }
     glm::vec3 get_center() const { return center; }
@@ -39,7 +40,7 @@ public:
     void set_isVisible(bool b) { isVisible = b; }
     void set_hitboxRadius(float r) { hitboxRadius = r; }
 
-    void init(glm::vec3 _pos=glm::vec3(), GLfloat _angle=0, glm::vec3 _axis=glm::vec3(1,0,0), glm::vec3 _size=glm::vec3(1), glm::vec3 _center=glm::vec3());
+    void init(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
 
     void translate(glm::vec3 v);
     void rotate(GLfloat angle, glm::vec3 axis);
@@ -52,8 +53,11 @@ public:
     void translate_world(glm::vec3 v);
     void rotate_world(GLfloat angle, glm::vec3 axis);
     void scale_world(glm::vec3 v);
+
     
     void update(float deltaTime) {};
     void draw() const;
     virtual void draw_shape() const = 0;
+
+    bool check_collision(Object* other);
 };

@@ -49,8 +49,8 @@ void Object::set_parent(Object* _parent) {
 void Object::init(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center) {
     modelMatrix = glm::mat4(1.0f);
     translate_world(_pos);
-    scale_local(_size);
     rotate_local(_angle, _axis);
+    scale_local(_size);
 }
 
 void Object::translate(glm::vec3 v) {
@@ -105,6 +105,7 @@ void Object::scale_world(glm::vec3 v) {
     modelMatrix = mS * modelMatrix;
 }
 
+
 void Object::draw() const {
     if (isActive && isVisible) {
         glPushMatrix();
@@ -114,4 +115,9 @@ void Object::draw() const {
 
         glPopMatrix();
     }
+}
+
+bool Object::check_collision(Object* other) {
+    float distance = glm::distance(get_pos(), other->get_pos());
+    return distance <= get_hitboxRadius() + other->get_hitboxRadius(); 
 }
