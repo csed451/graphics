@@ -62,7 +62,7 @@ void myReshape (int w, int h) {
     glViewport (0, 0, w, h);    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -1.0, 1.0);
+    glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -50.0, 50.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -88,7 +88,7 @@ void update(void) {
     // player->update(deltaTime, enemy->get_bulletPool()); 로 수정해야 함
     player->update(deltaTime, enemy->get_bulletPool());
     enemy->update(deltaTime, player);
-    rotate_camera(1, RIGHT);
+    // rotate_camera(1, RIGHT);
 
     if (enemy->is_destroyed() || !player->get_isActive()) 
     gameState = GameState::GameOver;
