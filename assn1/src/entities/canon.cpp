@@ -23,7 +23,6 @@ void Canon::draw() const {
     attackPool.draw();
 }
 
-
 void Canon::shoot() {
     int curTime = glutGet(GLUT_ELAPSED_TIME);
 

@@ -48,8 +48,7 @@ int main(int argc, char** argv) {
 }
 
 void myReshape (int w, int h) {
-    glViewport (0, 0, w, h);
-    
+    glViewport (0, 0, w, h);    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -1.0, 1.0);
@@ -68,11 +67,8 @@ void update(void) {
     float deltaTime = (curTime - prevTime) / 1000.0f;
     prevTime = curTime;
 
-
-    // player->update(deltaTime, enemy->get_bulletPool()); 로 수정해야 함
     player->update(deltaTime);
     enemy->update(deltaTime, player);
-
 }
 
 void display (void) {

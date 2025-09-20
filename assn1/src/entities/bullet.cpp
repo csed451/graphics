@@ -1,4 +1,3 @@
-
 #include "bullet.h"
 
 void Bullet::draw_shape() const {

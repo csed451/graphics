@@ -105,7 +105,6 @@ void Object::scale_world(glm::vec3 v) {
     modelMatrix = mS * modelMatrix;
 }
 
-
 void Object::draw() const {
     if (isActive && isVisible) {
         glPushMatrix();

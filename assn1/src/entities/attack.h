@@ -12,6 +12,5 @@ public:
     void draw_shape() const override;
     void update(float deltaTime);
 
-
     void set_velocity(glm::vec3 v) { velocity = v; }
 };

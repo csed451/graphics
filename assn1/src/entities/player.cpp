@@ -1,8 +1,6 @@
 #include "globals.h"
 #include "player.h"
 
-
-
 void Player::draw_shape() const {
     glColor3f(0, 1, 1);
     glBegin(GL_TRIANGLES);
@@ -26,7 +24,6 @@ void Player::draw_shape() const {
         glEnd();
     }
 }
-
 
 void Player::update(float deltaTime) {
     if (!get_isActive())

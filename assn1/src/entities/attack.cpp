@@ -1,4 +1,3 @@
-
 #include "attack.h"
 
 void Attack::draw_shape() const {
