@@ -2,13 +2,13 @@
 #include "player.h"
 
 void Player::draw_shape() const {
-    glColor3f(0, 1, 1);
+    glColor4f(0, 1, 1, isRecovery ? 0.2 : 1);
     glBegin(GL_TRIANGLES);
         glVertex3f(0, 1, 0);
         glVertex3f(-1, -1, 0);
         glVertex3f(1, -1, 0);
     glEnd();
-    if(!isShooting && direction != glm::vec3()) {
+    if(!isShooting && !isRecovery && direction != ZERO) {
         glColor3f(1, 0, 0);
         glBegin(GL_QUADS);
             glVertex3f(-1.2, -1.8, 0);
@@ -25,11 +25,13 @@ void Player::draw_shape() const {
     }
 }
 
-void Player::update(float deltaTime) {
+
+void Player::update(float deltaTime, ObjectPool<Bullet>& pool) {
     if (!get_isActive())
         return; 
+
     glm::vec3 move = velocity * direction * deltaTime;
-    move *= (isShooting ? 0.5 : 1);
+    move *= (isShooting || isRecovery ? 0.5 : 1);
     translate(move);
     if (is_outside_window(get_pos()))
         translate(-move);
@@ -37,18 +39,40 @@ void Player::update(float deltaTime) {
     if (heart <= 0)
         set_isActive(false);
 
-    if (isShooting) {
+    if (isShooting && ! isRecovery) {
         leftCanon.shoot();
         rightCanon.shoot();
     }
     leftCanon.update(deltaTime);
     rightCanon.update(deltaTime);
+
+
+    if (isRecovery) {
+        recoveryCooldown -= deltaTime;
+        if (recoveryCooldown <= 0)
+            isRecovery = false; 
+    }
+    else {
+        for (auto& bullet : pool.get_pool()) {
+            if (bullet->get_isActive()) {
+                if (check_collision(bullet)) {
+                    heart -= 1;
+                    hearts[heart].set_isActive(false);
+                    pool.release(bullet);
+                    isRecovery = true;
+                    recoveryCooldown = recoveryInterval;
+                }
+            }
+        }
+    }
+
 }
 
 void Player::draw() const {
     Object::draw();
     leftCanon.draw();
     rightCanon.draw();
+    for (auto& h : hearts) h.draw();
 }
 
 void Player::reset() {

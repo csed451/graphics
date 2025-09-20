@@ -8,8 +8,8 @@
 class Canon : public Object {
 private:
     ObjectPool<Attack> attackPool;
-    float rps = 5;
-    float lastShootTime = glutGet(GLUT_ELAPSED_TIME);
+    float shootInterval = 0.2;
+    float shootCooldown = shootInterval;
 public:
     Canon(glm::vec3 _pos = ZERO, 
           GLfloat _angle = 0, 
@@ -21,8 +21,6 @@ public:
     void draw_shape() const override;
     void draw() const;
     void update(float deltaTime);
-
-    void set_rps(float r) { rps = r; }
 
     ObjectPool<Attack>& get_attackPool() { return attackPool; }
 

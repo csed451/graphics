@@ -33,6 +33,11 @@ int main(int argc, char** argv) {
     glutInitWindowSize(600, 600);
     glutInitWindowPosition(100,100);
     glutCreateWindow("Bullet Hell shooter");
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
     /* connect call back function */
@@ -80,11 +85,13 @@ void update(void) {
     if (gameState == GameState::GameOver)
         return;
 
-    player->update(deltaTime);
+    // player->update(deltaTime, enemy->get_bulletPool()); 로 수정해야 함
+    player->update(deltaTime, enemy->get_bulletPool());
     enemy->update(deltaTime, player);
+    rotate_camera(1, RIGHT);
 
     if (enemy->is_destroyed() || !player->get_isActive()) 
-        gameState = GameState::GameOver;
+    gameState = GameState::GameOver;
 }
 
 void display (void) {
