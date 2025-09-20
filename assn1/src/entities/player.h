@@ -30,11 +30,13 @@ public:
     void draw_shape() const override;
     void update(float deltaTime);
     void draw() const;
-
+    void reset();
+    
     std::vector<Canon*> get_canons() { return {&leftCanon, &rightCanon}; }
     glm::vec3 get_direction() { return direction; }
-
+    
     void set_velocity(float v) { velocity = v; }
     void set_direction(glm::vec3 v) { direction = v; }
     void set_isShooting(bool b) { isShooting = b; }
+    
 };

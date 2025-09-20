@@ -50,3 +50,17 @@ void Player::draw() const {
     leftCanon.draw();
     rightCanon.draw();
 }
+
+void Player::reset() {
+    for (auto &canon : get_canons()) {
+        auto &ap = canon->get_attackPool();
+        for (auto &a : ap.get_pool()) 
+            ap.release(a);
+    }
+    
+    isShooting = false;
+    direction = ZERO;
+    heart = 10;    
+    set_isActive(true);
+    set_isVisible(true);
+}

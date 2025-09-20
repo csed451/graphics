@@ -13,7 +13,13 @@ void key_down(unsigned char key, int x, int y);
 void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
+void reset_game();
+static void draw_ending_message(const char* line1, const char* line2, int w, int h);
+static void draw_game_over_overlay(const char* msg);
+void cleanup();
 
+enum class GameState { Playing, GameOver, Exiting };
+GameState gameState = GameState::Playing;
 
 int prevTime = 0;
 Player* player = nullptr;
@@ -39,9 +45,9 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     enemy = new Enemy();
-    enemy->init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
     player = new Player();
-    player->init(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
+
+    reset_game();
 
     /* start loop */
     glutMainLoop();
@@ -67,8 +73,18 @@ void update(void) {
     float deltaTime = (curTime - prevTime) / 1000.0f;
     prevTime = curTime;
 
+    if (gameState == GameState::Exiting) {
+        cleanup(); 
+        std::exit(0);
+    }    
+    if (gameState == GameState::GameOver)
+        return;
+
     player->update(deltaTime);
     enemy->update(deltaTime, player);
+
+    if (enemy->is_destroyed() || !player->get_isActive()) 
+        gameState = GameState::GameOver;
 }
 
 void display (void) {
@@ -76,13 +92,29 @@ void display (void) {
     player->draw();
     enemy->draw();
     enemy->get_bulletPool().draw();
+
+    if (gameState == GameState::GameOver) {
+        const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
+        draw_game_over_overlay(msg);
+    }
+    
     glutSwapBuffers();
 }
 
 void key_down(unsigned char key, int x, int y) {
+    if (gameState == GameState::GameOver) {
+        if (key == 'r' || key == 'R') 
+            reset_game();
+        else if (key == 'q' || key == 'Q' || key == 27) 
+            gameState = GameState::Exiting;
+        return;
+    }
     switch (key) {
-        case ' ':
-            player->set_isShooting(true);
+        case ' ': 
+            player->set_isShooting(true); 
+            break;
+        case 27: // ESC
+            gameState = GameState::Exiting;
             break;
     }
 }
@@ -134,3 +166,81 @@ void special_key_up(int key, int x, int y) {
     }
 }
 
+void reset_game() {
+    prevTime = glutGet(GLUT_ELAPSED_TIME);
+
+    // Enemy / Player re initialization
+    enemy->init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
+    enemy->reset();
+
+    player->init(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
+    player->reset();    
+    
+    gameState = GameState::Playing;
+    glutPostRedisplay();
+}
+
+static void draw_ending_message(const char* line1, const char* line2, int w, int h) {
+    auto textWidth = [&](const char* s) -> int {
+        return glutBitmapLength(GLUT_BITMAP_HELVETICA_18,
+                                reinterpret_cast<const unsigned char*>(s));
+    };
+    auto drawText = [&](float x, float y, const char* s) {
+        glRasterPos2f(x, y);
+        while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *s++);
+    };
+
+    int width1 = textWidth(line1);
+    int width2 = textWidth(line2);
+
+    const float fontH = 18.0f;
+    const float gap   = 10.0f;
+
+    float line1Y = h * 0.5f + (fontH * 0.5f + gap * 0.5f);
+    float line2Y = h * 0.5f - (fontH * 0.5f + gap * 0.5f);
+    float line1X = (w - width1) * 0.5f;
+    float line2X = (w - width2) * 0.5f;
+
+    glColor3f(1,1,1);
+    drawText(line1X, line1Y, line1);
+    drawText(line2X, line2Y, line2);
+}
+
+static void draw_game_over_overlay(const char* msg) {
+    int w = glutGet(GLUT_WINDOW_WIDTH);
+    int h = glutGet(GLUT_WINDOW_HEIGHT);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, w, 0, h, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glDisable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Translucent gray background
+    glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
+    glBegin(GL_QUADS);
+        glVertex2f(0,0);
+        glVertex2f(w,0);
+        glVertex2f(w,h);
+        glVertex2f(0,h);
+    glEnd();
+
+    draw_ending_message(msg, "Press R to Restart / Q to Quit", w, h);
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void cleanup() {
+    if (enemy) { delete enemy; enemy = nullptr; }
+    if (player){ delete player; player = nullptr; }
+}

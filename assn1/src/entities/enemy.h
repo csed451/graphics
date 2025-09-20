@@ -39,7 +39,8 @@ public:
     bool is_destroyed() const;
     
     ObjectPool<Bullet>& get_bulletPool() { return bulletPool; }
-
+    
     void shoot();
+    void reset();
 };
     

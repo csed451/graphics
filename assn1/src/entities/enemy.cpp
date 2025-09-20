@@ -162,3 +162,15 @@ void Enemy::shoot(){
         bullet->set_direction(dir); 
     }
 }
+
+void Enemy::reset(){
+    for (auto &b : bulletPool.get_pool()) 
+        bulletPool.release(b);
+
+    heart = ENEMY_MAX_HEART;
+    shootCooldown = shootInterval;
+    counter = true;
+    moveDir = 1.0f;
+    set_isActive(true);
+    set_isVisible(true);  
+}
