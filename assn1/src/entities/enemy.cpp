@@ -1,6 +1,6 @@
 #include "globals.h"
 #include "enemy.h"
-
+#include <iostream>
 
 void Enemy::draw_shape() const {
     glColor3f(0.8, 0.1, 0.1);
@@ -12,23 +12,27 @@ void Enemy::draw_shape() const {
     glEnd();
 }
 
-void Enemy::update(float deltaTime, ObjectPool<Attack>& attacks) {
-    for (auto& attack : attacks.get_pool()) {
-        if (attack->get_isActive()) {
-            float distance = glm::distance(this->get_pos(), attack->get_pos());
-            float collision_threshold = this->get_hitboxRadius() + attack->get_hitboxRadius();
+void Enemy::update(float deltaTime, Player* player) {
+    for (auto& canon : player->get_canons()){
+        ObjectPool<Attack> & pool = canon->get_attackPool();
+        for (auto& attack : pool.get_pool()) {
+            if (attack->get_isActive()) {
+                float distance = glm::distance(this->get_pos(), attack->get_pos());
+                float collision_threshold = this->get_hitboxRadius() + attack->get_hitboxRadius();
 
-            if (distance < collision_threshold) {
-                this->take_damage(10); 
-                attacks.release(attack); 
+                if (distance < collision_threshold) {
+                    this->take_damage(10); 
+                    pool.release(attack); 
+                }
             }
         }
     }
     
-    shoot();
 
     shootCooldown -= deltaTime;
+    
     if(shootCooldown <= 0){
+        shoot();
         shootCooldown = shootInterval;
     }
     bulletPool.update(deltaTime);
@@ -53,7 +57,7 @@ void Enemy::draw_health_bar() const{
     glMatrixMode(GL_PROJECTION);
     glPushMatrix(); 
     glLoadIdentity();
-    gluOrtho2D(0, w, 0, h);
+    glOrtho(0, w, 0, h, -1.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix(); 

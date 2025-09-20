@@ -4,6 +4,7 @@
 #include "objectPool.h"
 #include "bullet.h"
 #include "attack.h"
+#include "player.h"
 
 const int ENEMY_MAX_HEART = 100;
 
@@ -24,7 +25,7 @@ class Enemy : public Object{
         };
 
         void draw_shape() const override;
-        void update(float deltaTime, ObjectPool<Attack>& attacks);
+        void update(float deltaTime, Player* player);
         void draw() const;
         
         

@@ -1,5 +1,6 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <iostream>
 
 constexpr float ORTHO_LEFT = -50;
 constexpr float ORTHO_RIGHT = 50;

@@ -1,7 +1,6 @@
 #include "globals.h"
 #include "canon.h"
 
-
 void Canon::draw_shape() const {
     glColor3f(0.5, 0.5, 0.5);
     glBegin(GL_QUADS);
@@ -27,6 +26,7 @@ void Canon::draw() const {
 
 void Canon::shoot() {
     int curTime = glutGet(GLUT_ELAPSED_TIME);
+
     if (1000.0f / rps < curTime - lastShootTime) {
         Attack* a = attackPool.acquire();
         a->init(get_pos(), glm::degrees(glm::angle(get_quat())), glm::axis(get_quat()), glm::vec3(1));

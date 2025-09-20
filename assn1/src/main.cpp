@@ -15,7 +15,7 @@ void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
 
 
-int prevTime = glutGet(GLUT_ELAPSED_TIME);
+int prevTime = 0;
 Player* player = nullptr;
 Enemy* enemy = nullptr;
 
@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
     glutInitWindowSize(600, 600);
     glutInitWindowPosition(100,100);
     glutCreateWindow("Bullet Hell shooter");
+    prevTime = glutGet(GLUT_ELAPSED_TIME);
 
     /* connect call back function */
     glutReshapeFunc(myReshape);

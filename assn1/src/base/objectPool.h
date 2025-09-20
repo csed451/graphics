@@ -13,7 +13,7 @@ public:
         for (size_t i = 0; i < size; ++i) {
             pool.push_back(new T());
             available.push_back(pool.back());
-            pool.back()->set_isActive(true);
+            pool.back()->set_isActive(false);
         }
     }
 
