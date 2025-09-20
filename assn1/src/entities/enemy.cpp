@@ -3,16 +3,60 @@
 #include <iostream>
 
 void Enemy::draw_shape() const {
-    glColor3f(0.8, 0.1, 0.1);
-    glBegin(GL_QUADS);
-        glVertex3f(-1, -1, 0);
-        glVertex3f(1, -1, 0);
-        glVertex3f(1, 1, 0);
-        glVertex3f(-1, 1, 0);
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_LINE_BIT);
+    glDisable(GL_CULL_FACE);
+
+    const float outerR = 1.4f;      
+    const float midR   = 0.1f;      
+    const float coreR  = 0.40f;     
+
+    // 1. outer octagon
+    glColor3f(0.85f, 0.15f, 0.15f);
+    glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(0.0f, 0.0f);
+        for (int i = 0; i <= 8; ++i) {
+            float a = (float)i / 8 * TWO_PI;
+            glVertex2f(std::cos(a) * outerR, std::sin(a) * outerR);
+        }
     glEnd();
+
+    // 2. middle rotated square
+    glColor3f(1.0f, 0.35f, 0.15f);
+    glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(0,0);
+        for (int i=0;i<=4;++i){
+            float a = (45.0f + i*90.0f) * DEG2RAD;
+            glVertex2f(std::cos(a)*midR, std::sin(a)*midR);
+        }
+    glEnd();
+
+    // 3. core
+    glColor3f(1.0f, 0.8f, 0.2f);
+    glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(0,0);
+        for (int i=0;i<=24;++i){
+            float a = (float)i/24 * TWO_PI;
+            glVertex2f(std::cos(a)*coreR, std::sin(a)*coreR);
+        }
+    glEnd();
+
+    glPopAttrib();
 }
 
 void Enemy::update(float deltaTime, Player* player) {
+    // 이 여부에 따라서 Map이 멈추는 것처럼 표현 가능
+    // if (!get_isActive()) return; 
+
+    translate(glm::vec3(moveDir * moveSpeed * deltaTime, 0, 0));
+    float x = get_pos().x;
+    if (x > moveLimit) {
+        translate(glm::vec3(moveLimit - x, 0, 0));
+        moveDir = -1.0f;
+    } else if (x < -moveLimit) {
+        translate(glm::vec3(-moveLimit - x, 0, 0));
+        moveDir = 1.0f;
+    }
+    
     for (auto& canon : player->get_canons()){
         ObjectPool<Attack> & pool = canon->get_attackPool();
         for (auto& attack : pool.get_pool()) {
@@ -26,21 +70,19 @@ void Enemy::update(float deltaTime, Player* player) {
                 }
             }
         }
-    }
-    
-
-    shootCooldown -= deltaTime;
-    
-    if(shootCooldown <= 0){
-        shoot();
-        shootCooldown = shootInterval;
-    }
-    bulletPool.update(deltaTime);
+    }    
 
     if(is_destroyed()){
         set_isActive(false);
         set_isVisible(false);
     }
+
+    shootCooldown -= deltaTime;
+    if(shootCooldown <= 0 && !is_destroyed()){
+        shoot();
+        shootCooldown = shootInterval;
+    }
+    bulletPool.update(deltaTime);
 }
 
 void Enemy::draw() const {
@@ -107,13 +149,16 @@ bool Enemy::is_destroyed() const{
 void Enemy::shoot(){
     const int num_bullets = 20; 
     const float angle_step = 360.0f / num_bullets; 
-
+    const float angle_offset = 9.0f;
+    
+    counter = !counter;
     for (int i = 0; i < num_bullets; ++i) {
-        float angle = glm::radians(i * angle_step); 
+        float angle = glm::radians(i * angle_step + counter * angle_offset); 
         glm::vec3 dir = glm::vec3(cos(angle), sin(angle), 0); 
         
         Bullet* bullet = bulletPool.acquire();
         bullet->init(get_pos(), 0, glm::vec3(1,0,0), glm::vec3(1,1,1));
+        bullet->set_counter(counter);
         bullet->set_direction(dir); 
     }
 }

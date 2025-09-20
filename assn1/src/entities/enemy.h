@@ -15,6 +15,12 @@ private:
 
     float shootInterval = 2.0f; 
     float shootCooldown = shootInterval; 
+
+    bool counter = true;
+
+    float moveDir = 1.0f;          
+    float moveSpeed = 4.0f;        
+    float moveLimit = 30.0f;
 public:
     Enemy(glm::vec3 _pos=glm::vec3(), 
             GLfloat _angle=0, 

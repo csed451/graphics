@@ -4,8 +4,9 @@
 
 class Bullet : public Object {
 private:
-    glm::vec3 direction = glm::vec3(0, -1, 0);
     float velocity = 20.0f;
+    glm::vec3 direction = glm::vec3(0, -1, 0);
+    mutable bool counter = false; 
 public:
     Bullet(glm::vec3 _pos=glm::vec3(), 
            GLfloat _angle=0, 
@@ -17,5 +18,6 @@ public:
     void draw_shape() const override;
     void update(float deltaTime);
 
-    void set_direction(glm::vec3 dir) { direction = dir;}
+    void set_direction(glm::vec3 dir) { direction = dir; }
+    void set_counter(bool c) { counter = c; }
 };

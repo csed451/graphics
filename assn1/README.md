@@ -7,7 +7,7 @@ g++ main.cpp base/object.cpp entities/player.cpp entities/canon.cpp entities/att
 
 # Using WildCard
 g++ main.cpp base/*.cpp entities/*.cpp -o main \
-    -I. -Ibase -Ientities -I../../include \        
+    -I. -Ibase -Ientities -I../../include \
     -lGL -lGLEW -lglut
 ```
 
