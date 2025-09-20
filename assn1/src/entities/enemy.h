@@ -18,11 +18,11 @@ class Enemy : public Object{
 
     public:
         Enemy(glm::vec3 _pos=glm::vec3(), 
-                GLfloat _angle=0, 
-                glm::vec3 _axis=glm::vec3(1,0,0), 
-                glm::vec3 _size=glm::vec3(1), 
-                glm::vec3 _center=glm::vec3()) : Object(_pos, _angle, _axis, _size, _center), bulletPool(200) {
-        };
+              GLfloat _angle=0, 
+              glm::vec3 _axis=glm::vec3(1,0,0), 
+              glm::vec3 _size=glm::vec3(1), 
+              glm::vec3 _center=glm::vec3()) 
+            : Object(_pos, _angle, _axis, _size, _center), bulletPool(200) {};
 
         void draw_shape() const override;
         void update(float deltaTime, Player* player);
