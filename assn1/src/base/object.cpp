@@ -109,7 +109,8 @@ void Object::scale_world(glm::vec3 v) {
 void Object::draw() const {
     if (isActive && isVisible) {
         glPushMatrix();
-        glLoadMatrixf(glm::value_ptr(get_finalMatrix()));
+        glm::mat4 mvp = CAMERA_METRIX * get_finalMatrix();
+        glLoadMatrixf(glm::value_ptr(mvp));
 
         draw_shape();
 

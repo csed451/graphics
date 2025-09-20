@@ -16,6 +16,8 @@ void Canon::update(float deltaTime) {
         return; 
     // rotate_local(1, glm::vec3(0,0,1));
     attackPool.update(deltaTime);
+
+    shootCooldown -= deltaTime;
 }
 
 void Canon::draw() const {
@@ -25,11 +27,9 @@ void Canon::draw() const {
 
 
 void Canon::shoot() {
-    int curTime = glutGet(GLUT_ELAPSED_TIME);
-
-    if (1000.0f / rps < curTime - lastShootTime) {
+    if (shootCooldown <= 0) {
         Attack* a = attackPool.acquire();
         a->init(get_pos(), glm::degrees(glm::angle(get_quat())), glm::axis(get_quat()), glm::vec3(1));
-        lastShootTime = curTime;
+        shootCooldown = shootInterval;
     }
 }
