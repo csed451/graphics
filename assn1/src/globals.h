@@ -21,12 +21,15 @@ inline const glm::vec3 RIGHT = glm::vec3(1, 0, 0);
 inline const glm::vec3 LEFT = glm::vec3(-1, 0, 0);
 inline const glm::vec3 ZERO = glm::vec3(0, 0, 0);
 
-inline glm::mat4 CAMERA_METRIX = glm::mat4(1);
+inline glm::mat4 CAMERA_MATRIX = glm::mat4(1);
+inline glm::vec3 CAMERA_POS = glm::vec3(0, 0, 50);
+inline glm::vec3 CAMERA_TARGET = glm::vec3(0, 0, 0);
+inline glm::vec3 CAMERA_UP_DIRECTION = glm::vec3(0, 1, 0);
+
 
 inline bool is_outside_window(glm::vec3 pos) {
     return pos.x > ORTHO_RIGHT || pos.x < ORTHO_LEFT|| pos.y > ORTHO_TOP || pos.y < ORTHO_BOTTOM;
 }
-
-inline void rotate_camera(GLfloat angle, glm::vec3 axis) {
-    CAMERA_METRIX = glm::rotate(CAMERA_METRIX, glm::radians(angle), axis);
+inline void update_camera() {
+    CAMERA_MATRIX = glm::lookAt(CAMERA_POS, CAMERA_TARGET, CAMERA_UP_DIRECTION);
 }

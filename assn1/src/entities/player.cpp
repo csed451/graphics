@@ -2,13 +2,13 @@
 #include "player.h"
 
 void Player::draw_shape() const {
-    glColor4f(0, 1, 1, isRecovery ? 0.2 : 1);
+    glColor4f(0, 1, 0, isRecovery ? 0.2 : 1);
     glBegin(GL_TRIANGLES);
         glVertex3f(0, 1, 0);
         glVertex3f(-1, -1, 0);
         glVertex3f(1, -1, 0);
     glEnd();
-    if(!isShooting && !isRecovery && direction != ZERO) {
+    if(!isShooting && !isRecovery && direction != ZERO || isAccelerating) {
         glColor3f(1, 0, 0);
         glBegin(GL_QUADS);
             glVertex3f(-1.2, -1.8, 0);
@@ -84,7 +84,7 @@ void Player::reset() {
     
     isShooting = false;
     direction = ZERO;
-    heart = 10;    
+    heart = 3;    
     set_isActive(true);
     set_isVisible(true);
 }

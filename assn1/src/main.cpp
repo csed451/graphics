@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "globals.h"
 #include "object.h"
@@ -17,6 +18,7 @@ void reset_game();
 static void draw_ending_message(const char* line1, const char* line2, int w, int h);
 static void draw_game_over_overlay(const char* msg);
 void cleanup();
+void draw_stars();
 
 enum class GameState { Playing, GameOver, Exiting };
 GameState gameState = GameState::Playing;
@@ -61,8 +63,8 @@ int main(int argc, char** argv) {
 void myReshape (int w, int h) {
     glViewport (0, 0, w, h);    
     glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -50.0, 50.0);
+    glLoadMatrixf(glm::value_ptr(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f)));
+    update_camera();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
@@ -82,20 +84,55 @@ void update(void) {
         cleanup(); 
         std::exit(0);
     }    
-    if (gameState == GameState::GameOver)
+    if (gameState == GameState::GameOver) {
+        if (CAMERA_POS.z > 10) {
+            CAMERA_POS.z -= (100 - 10)/100.0f;
+            CAMERA_POS.y -= (10)/100.0f;
+            update_camera();
+        }
+        else {
+            if (enemy->is_destroyed()) {
+                static float speed = 0.01f;
+                static float cameraSpeed = 0.05f;
+                CAMERA_POS.y += cameraSpeed;
+                CAMERA_TARGET = player->get_pos();
+                player->translate(UP * speed);
+                speed += 0.0001;
+                if (speed > 0.05) {
+                    speed += 0.001;
+                    cameraSpeed += 0.001;
+                    player->set_isAccelerating(true);
+                }
+                update_camera();
+            }
+            
+        }
         return;
+    }
 
     // player->update(deltaTime, enemy->get_bulletPool()); 로 수정해야 함
     player->update(deltaTime, enemy->get_bulletPool());
     enemy->update(deltaTime, player);
-    // rotate_camera(1, RIGHT);
 
-    if (enemy->is_destroyed() || !player->get_isActive()) 
-    gameState = GameState::GameOver;
+    if (enemy->is_destroyed() || !player->get_isActive()) {
+        gameState = GameState::GameOver;
+        glm::vec3 pos = ZERO;
+        if (enemy->is_destroyed()) {
+            pos = player->get_pos();
+        }
+        else {
+            pos = enemy->get_pos();
+        }
+        CAMERA_TARGET.x = pos.x;
+        CAMERA_TARGET.y = pos.y + 5;
+        CAMERA_POS.x = pos.x;
+    }
 }
 
 void display (void) {
-    glClear (GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     player->draw();
     enemy->draw();
     enemy->get_bulletPool().draw();
@@ -103,6 +140,7 @@ void display (void) {
     if (gameState == GameState::GameOver) {
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over_overlay(msg);
+        draw_stars();
     }
     
     glutSwapBuffers();
@@ -250,4 +288,23 @@ static void draw_game_over_overlay(const char* msg) {
 void cleanup() {
     if (enemy) { delete enemy; enemy = nullptr; }
     if (player){ delete player; player = nullptr; }
+}
+
+void draw_stars() {
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadMatrixf(glm::value_ptr(CAMERA_MATRIX));
+
+    srand(42);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < 10000; ++i) {
+        int x = rand() % 1000 - 500;
+        int y = rand() % 1000 - 500;
+        int z = rand() % 1000 - 500;
+        glColor3f(1.0f, 1.0f, 1.0f); // 흰색 별
+        glVertex3f(x, y, z);
+    }
+    glEnd();
+
+    glPopMatrix();
 }

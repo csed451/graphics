@@ -16,11 +16,12 @@ private:
     
     bool isShooting = false;
     bool isRecovery = false;
+    bool isAccelerating = false;
 
     float recoveryInterval = 3;
     float recoveryCooldown = 0;
 
-    int heart = 10;
+    int heart = 3;
     std::vector<Heart> hearts;
 public:
     Player(glm::vec3 _pos=ZERO, 
@@ -50,5 +51,5 @@ public:
     void set_direction(glm::vec3 v) { direction = v; }
     void set_isShooting(bool b) { isShooting = b; }
     void set_isRecovery(bool b) { isRecovery = b; }
-
+    void set_isAccelerating(bool b) { isAccelerating = b; }
 };
