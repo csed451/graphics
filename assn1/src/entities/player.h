@@ -22,7 +22,7 @@ private:
     bool isRecovery = false;
     bool isAccelerating = false;
 
-    float recoveryInterval = 3;
+    const float recoveryInterval = 3;
     float recoveryCooldown = 0;
 
     std::vector<Heart> hearts;

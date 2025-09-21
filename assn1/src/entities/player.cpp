@@ -89,6 +89,7 @@ void Player::reset() {
     velocity = 15;    
     isShooting = false;
     isRecovery = false;
+    isAccelerating = false;
     recoveryCooldown = 0;
     
     for (auto& h : hearts) h.set_isActive(true);
