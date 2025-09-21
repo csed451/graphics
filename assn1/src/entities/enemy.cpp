@@ -33,6 +33,8 @@ void Enemy::update(float deltaTime, Player* player) {
     if(is_destroyed()){
         set_isActive(false);
         set_isVisible(false);
+        for (auto &b : bulletPool.get_pool()) 
+            b->set_isVisible(false);
     }
 
     shootCooldown -= deltaTime;
