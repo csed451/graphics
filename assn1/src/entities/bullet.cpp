@@ -1,39 +1,45 @@
 #include "bullet.h"
 
+void Bullet::init_vertices(){
+    for(int i=0; i <= segments; ++i){
+        float a = (float)i / segments * TWO_PI;
+        float ca = std::cos(a); // cosine of angle a
+        float sa = std::sin(a); // sine of angle a
+        outlineVertices.push_back(ca * (r + outline));
+        outlineVertices.push_back(sa * (r + outline));
+        outlineVertices.push_back(ca * r);
+        outlineVertices.push_back(sa * r);
+    }
+
+    coreVertices.push_back(0.0f); 
+    coreVertices.push_back(0.0f);    
+    for (int i=0;i<=segments;++i){
+        float a = (float)i / segments * TWO_PI;        
+        coreVertices.push_back(std::cos(a)*r);
+        coreVertices.push_back(std::sin(a)*r);
+    }
+}
+
 void Bullet::draw_shape() const {
     glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);    
     glDisable(GL_CULL_FACE);
-
-    const float r = 1.6f;          
-    const float outline = 0.6f;    
-    const int segments = 48;
-
-    // 외곽 링 색상 번갈아 적용
-    if (counter) 
-        glColor3f(0.0f, 0.68f, 1.0f); 
-    else 
-        glColor3f(1.0f, 0.32f, 0.0f);         
+    glEnableClientState(GL_VERTEX_ARRAY);
     
-    glBegin(GL_TRIANGLE_STRIP);
-    for (int i = 0; i <= segments; ++i) {
-        float a = (float)i / segments * TWO_PI;
-        float ca = std::cos(a);
-        float sa = std::sin(a);
-        glVertex2f(ca * (r + outline), sa * (r + outline)); 
-        glVertex2f(ca * r, sa * r);             
-    }
-    glEnd();
+    if (counter) 
+        glColor3f(0.0f, 0.68f, 1.0f);
+    else 
+        glColor3f(1.0f, 0.32f, 0.0f);
+    
+    // outline Vertices
+    glVertexPointer(2, GL_FLOAT, 0, outlineVertices.data());
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, outlineVertices.size() / 2);
 
-    // 내부 흰색 원
+    // core Vertices
     glColor3f(1,1,1);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(0,0);
-        for (int i=0;i<=segments;++i){
-            float a = (float)i / segments * TWO_PI;
-            glVertex2f(std::cos(a)*r, std::sin(a)*r);
-        }
-    glEnd();
-
+    glVertexPointer(2, GL_FLOAT, 0, coreVertices.data());
+    glDrawArrays(GL_TRIANGLE_FAN, 0, coreVertices.size() / 2);
+    
+    glDisableClientState(GL_VERTEX_ARRAY);
     glPopAttrib();
 }
 

@@ -10,7 +10,6 @@ enum class GameState { Playing, GameOver, Exiting };
 GameState gameState = GameState::Playing;
 Player* player = nullptr;
 Enemy* enemy = nullptr;
-std::vector<Star> stars;
 int prevTime = 0;
 
 
@@ -27,7 +26,7 @@ void reset_game();
 
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
 static void draw_game_over(const char* msg);
-void draw_stars();
+static void draw_stars();
 
 
 int main(int argc, char** argv) {
@@ -74,9 +73,7 @@ void reshape (int w, int h) {
 void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-    
+   
     player->draw();
 
     if (gameState == GameState::GameOver) {
@@ -292,7 +289,7 @@ static void draw_game_over(const char* msg) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void draw_stars() {
+static void draw_stars() {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadMatrixf(glm::value_ptr(cameraMatrix));

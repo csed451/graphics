@@ -82,13 +82,15 @@ void Player::reset() {
     for (auto &canon : get_canons()) {
         auto &ap = canon->get_attackPool();
         for (auto &a : ap.get_pool()) 
-            ap.release(a);
+            if(a->get_isActive())
+                ap.release(a);
     }
     
     direction = ZERO;
     velocity = 15;    
     isShooting = false;
     isRecovery = false;
+    isAccelerating = false;
     recoveryCooldown = 0;
     
     for (auto& h : hearts) h.set_isActive(true);

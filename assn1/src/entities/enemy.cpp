@@ -4,6 +4,26 @@
 #include "enemy.h"
 #include "player.h"
 
+void Enemy::init_vertices() {
+    // outer octagon Vertices
+    outerVertices.push_back(0.0f); 
+    outerVertices.push_back(0.0f);
+    for (int i = 0; i <= 8; ++i) {
+        float a = (float)i / 8 * TWO_PI;
+        outerVertices.push_back(std::cos(a) * outerR);
+        outerVertices.push_back(std::sin(a) * outerR);
+    }
+
+    // core Vertices
+    innerVertices.push_back(0.0f); 
+    innerVertices.push_back(0.0f);
+    for (int i = 0; i <= 24; ++i){
+        float a = (float)i/24 * TWO_PI;
+        innerVertices.push_back(std::cos(a)*coreR);
+        innerVertices.push_back(std::sin(a)*coreR);
+    }
+}
+
 void Enemy::update(float deltaTime, Player* player) {
     translate(glm::vec3(moveDir * moveSpeed * deltaTime, 0, 0));
     float x = get_pos().x;
@@ -34,7 +54,8 @@ void Enemy::update(float deltaTime, Player* player) {
         set_isActive(false);
         set_isVisible(false);
         for (auto &b : bulletPool.get_pool()) 
-            b->set_isVisible(false);
+            if(b->get_isActive())
+                bulletPool.release(b);
     }
 
     shootCooldown -= deltaTime;
@@ -46,43 +67,21 @@ void Enemy::update(float deltaTime, Player* player) {
 }
 
 void Enemy::draw_shape() const {
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_LINE_BIT);
+    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
     glDisable(GL_CULL_FACE);
+    glEnableClientState(GL_VERTEX_ARRAY);
 
-    const float outerR = 1.4f;      
-    const float midR   = 0.1f;      
-    const float coreR  = 0.40f;     
-
-    // 1. outer octagon
+    // outer octagon
     glColor3f(0.85f, 0.15f, 0.15f);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(0.0f, 0.0f);
-        for (int i = 0; i <= 8; ++i) {
-            float a = (float)i / 8 * TWO_PI;
-            glVertex2f(std::cos(a) * outerR, std::sin(a) * outerR);
-        }
-    glEnd();
+    glVertexPointer(2, GL_FLOAT, 0, outerVertices.data());
+    glDrawArrays(GL_TRIANGLE_FAN, 0, outerVertices.size() / 2);
 
-    // 2. middle rotated square
-    glColor3f(1.0f, 0.35f, 0.15f);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(0,0);
-        for (int i=0;i<=4;++i){
-            float a = (45.0f + i*90.0f) * DEG2RAD;
-            glVertex2f(std::cos(a)*midR, std::sin(a)*midR);
-        }
-    glEnd();
-
-    // 3. core
+    // core Vertices
     glColor3f(1.0f, 0.8f, 0.2f);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(0,0);
-        for (int i=0;i<=24;++i){
-            float a = (float)i/24 * TWO_PI;
-            glVertex2f(std::cos(a)*coreR, std::sin(a)*coreR);
-        }
-    glEnd();
+    glVertexPointer(2, GL_FLOAT, 0, innerVertices.data());
+    glDrawArrays(GL_TRIANGLE_FAN, 0, innerVertices.size() / 2);
 
+    glDisableClientState(GL_VERTEX_ARRAY);
     glPopAttrib();
 }
 
@@ -157,10 +156,6 @@ void Enemy::shoot(){
 
 void Enemy::reset(){
     init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
-
-    for (auto &b : bulletPool.get_pool()) 
-        bulletPool.release(b);
-
     heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
     moveDir = 1.0f;
