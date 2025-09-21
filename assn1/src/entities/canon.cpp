@@ -1,4 +1,3 @@
-#include "globals.h"
 #include "canon.h"
 
 void Canon::draw_shape() const {
@@ -14,9 +13,7 @@ void Canon::draw_shape() const {
 void Canon::update(float deltaTime) {
     if (!get_isActive())
         return; 
-    // rotate_local(1, glm::vec3(0,0,1));
     attackPool.update(deltaTime);
-
     shootCooldown -= deltaTime;
 }
 

@@ -4,12 +4,13 @@
 
 class Heart : public Object {
 public:
-    Heart(glm::vec3 _pos=ZERO, 
+    Heart(
+        glm::vec3 _pos=ZERO, 
         GLfloat _angle=0, 
-        glm::vec3 _axis=UP,  
+        glm::vec3 _axis=UP, 
         glm::vec3 _size=glm::vec3(1), 
-        glm::vec3 _center=ZERO) 
-        : Object(_pos, _angle, _axis, _size, _center) {};
+        glm::vec3 _center=ZERO
+    ) : Object(_pos, _angle, _axis, _size, _center) {};
 
     void draw_shape() const override {
         glColor3f(1, 0, 0);

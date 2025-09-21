@@ -11,7 +11,6 @@ void Attack::draw_shape() const {
 }
 
 void Attack::update(float deltaTime) {
-    if (!get_isActive())
-        return;
-    translate(velocity * deltaTime);
+    if (get_isActive())
+        translate(velocity * deltaTime);
 }

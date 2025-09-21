@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "globals.h"
 
 template <typename T>
 class ObjectPool {

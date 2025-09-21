@@ -5,10 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
-#define ENEMY_MAX_HEART 100
-#define PLAYER_MAX_HEART 5
-
-#define NUM_STARS 200
 
 struct Star {
     glm::vec3 pos;
@@ -21,7 +17,10 @@ constexpr float ORTHO_RIGHT = 50;
 constexpr float ORTHO_TOP = 50;
 constexpr float ORTHO_BOTTOM = -50;
 
+constexpr float MAX_COORD = 50;
 constexpr int FPS = 60;
+
+constexpr int NUM_STARS = 200;
 
 constexpr float TWO_PI  = 6.2831853f;
 constexpr float DEG2RAD = 0.017453292f;
@@ -32,12 +31,15 @@ inline const glm::vec3 RIGHT = glm::vec3(1, 0, 0);
 inline const glm::vec3 LEFT = glm::vec3(-1, 0, 0);
 inline const glm::vec3 ZERO = glm::vec3(0, 0, 0);
 
-inline glm::mat4 CAMERA_METRIX = glm::mat4(1);
+inline glm::mat4 cameraMatrix = glm::mat4(1);
+inline glm::vec3 cameraPos = glm::vec3(0, 0, MAX_COORD);
+inline glm::vec3 cameraTarget = ZERO;
+inline glm::vec3 cameraUpDirection = UP;
+
 
 inline bool is_outside_window(glm::vec3 pos) {
-    return pos.x > ORTHO_RIGHT || pos.x < ORTHO_LEFT|| pos.y > ORTHO_TOP || pos.y < ORTHO_BOTTOM;
+    return pos.x > MAX_COORD || pos.x < -MAX_COORD || pos.y > MAX_COORD  || pos.y < -MAX_COORD;
 }
-
-inline void rotate_camera(GLfloat angle, glm::vec3 axis) {
-    CAMERA_METRIX = glm::rotate(CAMERA_METRIX, glm::radians(angle), axis);
+inline void update_camera() {
+    cameraMatrix = glm::lookAt(cameraPos, cameraTarget, cameraUpDirection);
 }
