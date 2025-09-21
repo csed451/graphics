@@ -36,7 +36,6 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center), bulletPool(200) {
-        init(_pos, _angle, _axis, _size, _center);
         set_hitboxRadius(outerR);
         init_vertices();
     };
