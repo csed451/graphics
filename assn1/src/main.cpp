@@ -23,7 +23,6 @@ void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
 
-void init_stars();
 void reset_game();
 
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
@@ -34,7 +33,7 @@ void draw_stars();
 int main(int argc, char** argv) {
     /* initial window setup */
     glutInit (&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(600, 600);
     glutInitWindowPosition(100,100);
     glutCreateWindow("Bullet Hell shooter");
@@ -51,7 +50,6 @@ int main(int argc, char** argv) {
     glutSpecialUpFunc(special_key_up);
     glutTimerFunc(0, timer, 0);
 
-    init_stars();
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
@@ -80,24 +78,13 @@ void display (void) {
 
     
     player->draw();
-    enemy->draw();
 
     if (gameState == GameState::GameOver) {
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
         draw_stars();
     } else {
-        // glPushMatrix();
-        // glm::mat4 mvp = cameraMatrix;
-        // glLoadMatrixf(glm::value_ptr(mvp));
-        // for (const auto& star : stars) {
-        //     glPushMatrix();
-        //     glTranslatef(star.pos.x, star.pos.y, star.pos.z);
-        //     glColor3f(star.color.r, star.color.g, star.color.b);
-        //     glutSolidSphere(star.size, 8, 8);
-        //     glPopMatrix();
-        // }
-        // glPopMatrix();
+        enemy->draw();
     }
     
     glutSwapBuffers();
@@ -125,33 +112,21 @@ void update(void) {
             update_camera();
         }
         else {
-            if (enemy->is_destroyed()) {
-                static float speed = 0.01f;
-                static float cameraSpeed = 0.05f;
-                cameraPos.y += cameraSpeed;
-                cameraTarget = player->get_pos();
-                player->translate(UP * speed);
-                speed += 0.0001;
-                if (speed > 0.05) {
-                    speed += 0.001;
-                    cameraSpeed += 0.001;
-                    player->set_isAccelerating(true);
-                }
-                update_camera();
+            static float speed = 0.01f;
+            static float cameraSpeed = 0.05f;
+            cameraPos.y += cameraSpeed;
+            cameraTarget = player->get_pos();
+            player->translate(UP * speed);
+            speed += 0.0001;
+            if (speed > 0.05) {
+                speed += 0.001;
+                cameraSpeed += 0.001;
+                player->set_isAccelerating(true);
             }
+            update_camera();
             
         }
         return;
-    }
-
-    // Update stars
-    const float STAR_SCROLL_SPEED = 10.0f;
-    for (auto& star : stars) {
-        star.pos.y -= STAR_SCROLL_SPEED * deltaTime;
-        if (star.pos.y < ORTHO_BOTTOM) {
-            star.pos.y = ORTHO_TOP;
-            star.pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
-        }
     }
     
     player->update(deltaTime, enemy);
@@ -159,13 +134,8 @@ void update(void) {
 
     if (enemy->is_destroyed() || !player->get_isActive()) {
         gameState = GameState::GameOver;
-        glm::vec3 pos = ZERO;
-        if (enemy->is_destroyed()) {
-            pos = player->get_pos();
-        }
-        else {
-            pos = enemy->get_pos();
-        }
+        /* set camera pos for animation */
+        glm::vec3 pos = player->get_pos();
         cameraTarget.x = pos.x;
         cameraTarget.y = pos.y + 5;
         cameraPos.x = pos.x;
@@ -180,17 +150,22 @@ void key_down(unsigned char key, int x, int y) {
             gameState = GameState::Exiting;
         return;
     }
-    switch (key) {
-        case ' ': 
-            player->set_isShooting(true); 
-            break;
-        case 27: // ESC
-            gameState = GameState::Exiting;
-            break;
+    else {
+        switch (key) {
+            case ' ': 
+                player->set_isShooting(true); 
+                break;
+            case 27: // ESC
+                gameState = GameState::Exiting;
+                break;
+        }
     }
 }
 
 void special_key_down(int key, int x, int y) {
+    if (gameState == GameState::GameOver)
+        return;
+
     switch (key) {
         case GLUT_KEY_UP:
             player->set_direction(UP);
@@ -208,6 +183,9 @@ void special_key_down(int key, int x, int y) {
 }
 
 void key_up(unsigned char key, int x, int y) {
+    if (gameState == GameState::GameOver)
+        return;
+
     switch (key) {
         case ' ':
             player->set_isShooting(false);
@@ -216,6 +194,9 @@ void key_up(unsigned char key, int x, int y) {
 }
 
 void special_key_up(int key, int x, int y) {
+    if (gameState == GameState::GameOver)
+        return;
+
     glm::vec3 direction = player->get_direction();
     switch (key) {
         case GLUT_KEY_UP:
@@ -237,28 +218,16 @@ void special_key_up(int key, int x, int y) {
     }
 }
 
-void init_stars() {
-    stars.resize(NUM_STARS);
-    for (int i = 0; i < NUM_STARS; ++i) {
-        stars[i].pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
-        stars[i].pos.y = (rand() / (float)RAND_MAX) * (ORTHO_TOP - ORTHO_BOTTOM) + ORTHO_BOTTOM;
-        stars[i].pos.z = (rand() / (float)RAND_MAX) * -100.0f - 5.0f; 
-        
-        if (rand() % 5 == 0) 
-            stars[i].color = glm::vec3(1.0f, 1.0f, 0.0f);
-        else 
-            stars[i].color = glm::vec3(1.0f, 1.0f, 1.0f);
-
-        stars[i].size = (rand() / (float)RAND_MAX) * 0.3f + 0.1f;
-    }
-}
-
 void reset_game() {
+    init_camera();
+
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
-    enemy->reset();
-    player->reset();        
     gameState = GameState::Playing;
+
+    enemy->reset();
+    player->reset();
+
 
     glutPostRedisplay();
 }
@@ -329,15 +298,32 @@ void draw_stars() {
     glLoadMatrixf(glm::value_ptr(cameraMatrix));
 
     srand(42);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < 100000; ++i) {
-        int x = rand() % 1000 - 500;
-        int y = rand() % 1000 - 500;
-        int z = rand() % 1000 - 500;
-        glColor3f(1.0f, 1.0f, 1.0f); // 흰색 별
-        glVertex3f(x, y, z);
+    std::vector<float> vertices;
+    for (int i = 0; i < 1000000; ++i) {
+        vertices.push_back(rand() % 1000 - 500);
+        vertices.push_back(rand() % 1000 - 500);
+        vertices.push_back(rand() % 1000 - 500);
     }
-    glEnd();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glVertexPointer(3, GL_FLOAT, 0, vertices.data());
+    glDrawArrays(GL_POINTS, 0, 1000000);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    // glBegin(GL_POINTS);
+    // for (int i = 0; i < 1000000; ++i) {
+    //     int x = rand() % 1000 - 500;
+    //     int y = rand() % 1000 - 500;
+    //     int z = rand() % 1000 - 500;
+    //     glColor3f(1.0f, 1.0f, 1.0f); // 흰색 별
+    //     glVertex3f(x, y, z);
+    // }
+    // glEnd();
+
+    glTranslatef(-15, 500, 20);
+    glColor3f(1,0,0);
+    glutSolidSphere(5, 8, 8);
 
     glPopMatrix();
 }

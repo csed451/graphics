@@ -35,7 +35,6 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center), leftCanon(), rightCanon() {
-        init(_pos, _angle, _axis, _size, _center);
         leftCanon.init(glm::vec3(-0.8, 0.2, 0));
         rightCanon.init(glm::vec3(0.8, 0.2, 0));
         leftCanon.set_parent(this);

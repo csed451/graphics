@@ -2,9 +2,7 @@
 
 Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center)
 : modelMatrix(glm::mat4(1.0f)), center(_center), isLocal(true), parent(nullptr) {
-    translate_world(_pos);
-    scale_local(_size);
-    rotate_local(_angle, _axis);
+    init(_pos, _angle, _axis, _size, _center);
 }
 
 glm::vec3 Object::get_pos() const {

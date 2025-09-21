@@ -77,7 +77,7 @@ void Player::draw() const {
 }
 
 void Player::reset() {
-    init(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
+    init(ZERO, 0, UP, glm::vec3(2,2,2));
     
     for (auto &canon : get_canons()) {
         auto &ap = canon->get_attackPool();

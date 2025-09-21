@@ -12,11 +12,6 @@ struct Star {
     float size;
 };
 
-constexpr float ORTHO_LEFT = -50;
-constexpr float ORTHO_RIGHT = 50;
-constexpr float ORTHO_TOP = 50;
-constexpr float ORTHO_BOTTOM = -50;
-
 constexpr float MAX_COORD = 50;
 constexpr int FPS = 60;
 
@@ -42,4 +37,11 @@ inline bool is_outside_window(glm::vec3 pos) {
 }
 inline void update_camera() {
     cameraMatrix = glm::lookAt(cameraPos, cameraTarget, cameraUpDirection);
+}
+inline void init_camera() {
+    cameraMatrix = glm::mat4(1);
+    cameraPos = glm::vec3(0, 0, MAX_COORD);
+    cameraTarget = ZERO;
+    cameraUpDirection = UP;
+    update_camera();
 }
