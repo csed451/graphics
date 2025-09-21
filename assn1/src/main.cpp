@@ -12,6 +12,8 @@ Player* player = nullptr;
 Enemy* enemy = nullptr;
 int prevTime = 0;
 
+std::vector<float> starVertices;
+
 
 void reshape (int w, int h);
 void display (void);
@@ -27,6 +29,7 @@ void reset_game();
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
 static void draw_game_over(const char* msg);
 static void draw_stars();
+static void init_stars();
 
 
 int main(int argc, char** argv) {
@@ -131,6 +134,7 @@ void update(void) {
 
     if (enemy->is_destroyed() || !player->get_isActive()) {
         gameState = GameState::GameOver;
+        init_stars();
         /* set camera pos for animation */
         glm::vec3 pos = player->get_pos();
         cameraTarget.x = pos.x;
@@ -294,26 +298,18 @@ static void draw_stars() {
     glPushMatrix();
     glLoadMatrixf(glm::value_ptr(cameraMatrix));
 
-    srand(42);
-    std::vector<float> vertices;
-    for (int i = 0; i < 1000000; ++i) {
-        vertices.push_back(rand() % 1000 - 500);
-        vertices.push_back(rand() % 1000 - 500);
-        vertices.push_back(rand() % 1000 - 500);
-    }
+    glColor3f(1.0f, 1.0f, 1.0f);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glVertexPointer(3, GL_FLOAT, 0, vertices.data());
-    glDrawArrays(GL_POINTS, 0, 1000000);
+    glVertexPointer(3, GL_FLOAT, 0, starVertices.data());
+    glDrawArrays(GL_POINTS, 0, starVertices.size() / 3);
     glDisableClientState(GL_VERTEX_ARRAY);
 
     // glBegin(GL_POINTS);
-    // for (int i = 0; i < 1000000; ++i) {
-    //     int x = rand() % 1000 - 500;
-    //     int y = rand() % 1000 - 500;
-    //     int z = rand() % 1000 - 500;
-    //     glColor3f(1.0f, 1.0f, 1.0f); // 흰색 별
+    // for (size_t i = 0; i < starVertices.size(); i += 3) {
+    //     float x = starVertices[i];
+    //     float y = starVertices[i + 1];
+    //     float z = starVertices[i + 2];
     //     glVertex3f(x, y, z);
     // }
     // glEnd();
@@ -323,4 +319,13 @@ static void draw_stars() {
     glutSolidSphere(5, 8, 8);
 
     glPopMatrix();
+}
+
+void init_stars() {
+    srand(42);
+    for (int i = 0; i < 10000000; ++i) {
+        starVertices.push_back(rand() % 1000 - 500);
+        starVertices.push_back(rand() % 1000 - 500);
+        starVertices.push_back(rand() % 1000 - 500);
+    }
 }
