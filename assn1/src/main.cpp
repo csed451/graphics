@@ -10,7 +10,6 @@ enum class GameState { Playing, GameOver, Exiting };
 GameState gameState = GameState::Playing;
 Player* player = nullptr;
 Enemy* enemy = nullptr;
-std::vector<Star> stars;
 int prevTime = 0;
 
 
@@ -23,12 +22,11 @@ void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
 
-void init_stars();
 void reset_game();
 
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
 static void draw_game_over(const char* msg);
-void draw_stars();
+static void draw_stars();
 
 
 int main(int argc, char** argv) {
@@ -51,7 +49,6 @@ int main(int argc, char** argv) {
     glutSpecialUpFunc(special_key_up);
     glutTimerFunc(0, timer, 0);
 
-    init_stars();
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
@@ -76,9 +73,7 @@ void reshape (int w, int h) {
 void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-    
+   
     player->draw();
     enemy->draw();
 
@@ -86,18 +81,6 @@ void display (void) {
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
         draw_stars();
-    } else {
-        // glPushMatrix();
-        // glm::mat4 mvp = cameraMatrix;
-        // glLoadMatrixf(glm::value_ptr(mvp));
-        // for (const auto& star : stars) {
-        //     glPushMatrix();
-        //     glTranslatef(star.pos.x, star.pos.y, star.pos.z);
-        //     glColor3f(star.color.r, star.color.g, star.color.b);
-        //     glutSolidSphere(star.size, 8, 8);
-        //     glPopMatrix();
-        // }
-        // glPopMatrix();
     }
     
     glutSwapBuffers();
@@ -142,16 +125,6 @@ void update(void) {
             
         }
         return;
-    }
-
-    // Update stars
-    const float STAR_SCROLL_SPEED = 10.0f;
-    for (auto& star : stars) {
-        star.pos.y -= STAR_SCROLL_SPEED * deltaTime;
-        if (star.pos.y < ORTHO_BOTTOM) {
-            star.pos.y = ORTHO_TOP;
-            star.pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
-        }
     }
     
     player->update(deltaTime, enemy);
@@ -237,22 +210,6 @@ void special_key_up(int key, int x, int y) {
     }
 }
 
-void init_stars() {
-    stars.resize(NUM_STARS);
-    for (int i = 0; i < NUM_STARS; ++i) {
-        stars[i].pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
-        stars[i].pos.y = (rand() / (float)RAND_MAX) * (ORTHO_TOP - ORTHO_BOTTOM) + ORTHO_BOTTOM;
-        stars[i].pos.z = (rand() / (float)RAND_MAX) * -100.0f - 5.0f; 
-        
-        if (rand() % 5 == 0) 
-            stars[i].color = glm::vec3(1.0f, 1.0f, 0.0f);
-        else 
-            stars[i].color = glm::vec3(1.0f, 1.0f, 1.0f);
-
-        stars[i].size = (rand() / (float)RAND_MAX) * 0.3f + 0.1f;
-    }
-}
-
 void reset_game() {
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
@@ -323,7 +280,7 @@ static void draw_game_over(const char* msg) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void draw_stars() {
+static void draw_stars() {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadMatrixf(glm::value_ptr(cameraMatrix));

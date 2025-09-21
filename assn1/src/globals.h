@@ -6,12 +6,6 @@
 #include <iostream>
 
 
-struct Star {
-    glm::vec3 pos;
-    glm::vec3 color;
-    float size;
-};
-
 constexpr float ORTHO_LEFT = -50;
 constexpr float ORTHO_RIGHT = 50;
 constexpr float ORTHO_TOP = 50;
@@ -19,8 +13,6 @@ constexpr float ORTHO_BOTTOM = -50;
 
 constexpr float MAX_COORD = 50;
 constexpr int FPS = 60;
-
-constexpr int NUM_STARS = 200;
 
 constexpr float TWO_PI  = 6.2831853f;
 constexpr float DEG2RAD = 0.017453292f;
