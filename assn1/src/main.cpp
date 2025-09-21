@@ -1,29 +1,30 @@
 #include <iostream>
 
 #include "globals.h"
-#include "object.h"
 #include "player.h"
 #include "enemy.h"
 
-void myReshape (int w, int h);
+enum class GameState { Playing, GameOver, Exiting };
+
+GameState gameState = GameState::Playing;
+Player* player = nullptr;
+Enemy* enemy = nullptr;
+int prevTime = 0;
+
+
+void reshape (int w, int h);
+void display (void);
 void timer(int value);
 void update(void);
-void display (void);
 void key_down(unsigned char key, int x, int y);
 void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
+
 void reset_game();
+void cleanup();
 static void draw_ending_message(const char* line1, const char* line2, int w, int h);
 static void draw_game_over_overlay(const char* msg);
-void cleanup();
-
-enum class GameState { Playing, GameOver, Exiting };
-GameState gameState = GameState::Playing;
-
-int prevTime = 0;
-Player* player = nullptr;
-Enemy* enemy = nullptr;
 
 
 int main(int argc, char** argv) {
@@ -37,11 +38,8 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
-    prevTime = glutGet(GLUT_ELAPSED_TIME);
-
     /* connect call back function */
-    glutReshapeFunc(myReshape);
+    glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutKeyboardFunc(key_down);
     glutSpecialFunc(special_key_down); 
@@ -49,16 +47,16 @@ int main(int argc, char** argv) {
     glutSpecialUpFunc(special_key_up);
     glutTimerFunc(0, timer, 0);
 
+    prevTime = glutGet(GLUT_ELAPSED_TIME);
     enemy = new Enemy();
     player = new Player();
-
     reset_game();
 
     /* start loop */
     glutMainLoop();
 }
 
-void myReshape (int w, int h) {
+void reshape (int w, int h) {
     glViewport (0, 0, w, h);    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -73,6 +71,19 @@ void timer(int value) {
     glutTimerFunc(1000 / FPS, timer, 0);
 }
 
+void display (void) {
+    glClear (GL_COLOR_BUFFER_BIT);
+
+    player->draw();
+    enemy->draw();
+    if (gameState == GameState::GameOver) {
+        const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
+        draw_game_over_overlay(msg);
+    }
+    
+    glutSwapBuffers();
+}
+
 void update(void) {
     int curTime = glutGet(GLUT_ELAPSED_TIME);
     float deltaTime = (curTime - prevTime) / 1000.0f;
@@ -85,28 +96,15 @@ void update(void) {
     if (gameState == GameState::GameOver)
         return;
 
-    // player->update(deltaTime, enemy->get_bulletPool()); 로 수정해야 함
     player->update(deltaTime, enemy->get_bulletPool());
     enemy->update(deltaTime, player);
     // rotate_camera(1, RIGHT);
 
     if (enemy->is_destroyed() || !player->get_isActive()) 
-    gameState = GameState::GameOver;
+        gameState = GameState::GameOver;
 }
 
-void display (void) {
-    glClear (GL_COLOR_BUFFER_BIT);
-    player->draw();
-    enemy->draw();
-    enemy->get_bulletPool().draw();
 
-    if (gameState == GameState::GameOver) {
-        const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
-        draw_game_over_overlay(msg);
-    }
-    
-    glutSwapBuffers();
-}
 
 void key_down(unsigned char key, int x, int y) {
     if (gameState == GameState::GameOver) {
@@ -176,7 +174,6 @@ void special_key_up(int key, int x, int y) {
 void reset_game() {
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
-    // Enemy / Player re initialization
     enemy->init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
     enemy->reset();
 
