@@ -1,5 +1,6 @@
 #include "globals.h"
 #include "player.h"
+#include "enemy.h"
 
 void Player::draw_shape() const {
     glColor4f(0, 1, 1, isRecovery ? 0.2 : 1);
@@ -26,7 +27,7 @@ void Player::draw_shape() const {
 }
 
 
-void Player::update(float deltaTime, ObjectPool<Bullet>& pool) {
+void Player::update(float deltaTime, Enemy *enemy) {
     if (!get_isActive())
         return; 
 
@@ -53,6 +54,7 @@ void Player::update(float deltaTime, ObjectPool<Bullet>& pool) {
             isRecovery = false; 
     }
     else {
+        ObjectPool<Bullet> & pool = enemy->get_bulletPool();
         for (auto& bullet : pool.get_pool()) {
             if (bullet->get_isActive()) {
                 if (check_collision(bullet)) {

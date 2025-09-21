@@ -23,6 +23,7 @@ void special_key_up(int key, int x, int y);
 
 void reset_game();
 void cleanup();
+
 static void draw_ending_message(const char* line1, const char* line2, int w, int h);
 static void draw_game_over_overlay(const char* msg);
 
@@ -53,6 +54,9 @@ int main(int argc, char** argv) {
 
     /* start loop */
     glutMainLoop();
+
+    delete enemy;
+    delete player;
 }
 
 void reshape (int w, int h) {
@@ -95,7 +99,7 @@ void update(void) {
     if (gameState == GameState::GameOver)
         return;
 
-    player->update(deltaTime, enemy->get_bulletPool());
+    player->update(deltaTime, enemy);
     enemy->update(deltaTime, player);
     // rotate_camera(1, RIGHT);
 
@@ -178,6 +182,11 @@ void reset_game() {
     glutPostRedisplay();
 }
 
+void cleanup() {
+    if (enemy) { delete enemy; enemy = nullptr; }
+    if (player){ delete player; player = nullptr; }
+}
+
 static void draw_ending_message(const char* line1, const char* line2, int w, int h) {
     auto textWidth = [&](const char* s) -> int {
         return glutBitmapLength(GLUT_BITMAP_HELVETICA_18,
@@ -238,7 +247,3 @@ static void draw_game_over_overlay(const char* msg) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void cleanup() {
-    if (enemy) { delete enemy; enemy = nullptr; }
-    if (player){ delete player; player = nullptr; }
-}

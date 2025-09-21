@@ -1,6 +1,8 @@
+#include <iostream>
+
 #include "globals.h"
 #include "enemy.h"
-#include <iostream>
+#include "player.h"
 
 void Enemy::draw_shape() const {
     glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_LINE_BIT);
@@ -165,7 +167,7 @@ void Enemy::shoot(){
 
 void Enemy::reset(){
     init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
-    
+
     for (auto &b : bulletPool.get_pool()) 
         bulletPool.release(b);
 

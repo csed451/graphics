@@ -1,10 +1,12 @@
 #pragma once
 
+#include <vector>
+
 #include "object.h"
 #include "canon.h"
-#include "bullet.h"
 #include "heart.h"
-#include <vector>
+
+class Enemy;
 
 class Player : public Object {
 private:
@@ -20,8 +22,8 @@ private:
     float recoveryInterval = 3;
     float recoveryCooldown = 0;
 
-    int heart = 10;
     std::vector<Heart> hearts;
+    int heart = 10;
 public:
     Player(glm::vec3 _pos=ZERO, 
            GLfloat _angle=0,
@@ -39,11 +41,6 @@ public:
         }
     };
 
-    void draw_shape() const override;
-    void update(float deltaTime, ObjectPool<Bullet>& pool);
-    void draw() const;
-    void reset();
-    
     std::vector<Canon*> get_canons() { return {&leftCanon, &rightCanon}; }
     glm::vec3 get_direction() { return direction; }
     
@@ -52,4 +49,10 @@ public:
     void set_isShooting(bool b) { isShooting = b; }
     void set_isRecovery(bool b) { isRecovery = b; }
 
+    void update(float deltaTime, Enemy *enemy);
+
+    void draw() const;
+    void draw_shape() const override;
+
+    void reset();
 };
