@@ -49,4 +49,4 @@ Game Over:
 
 ### 4. Notes
 Ensure OpenGL, GLEW, and GLUT development packages are installed.
-For additional details, refer to the [main project README](../../README.md).
+For additional details, refer to the [main project README](../README.md).
