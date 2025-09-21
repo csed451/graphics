@@ -6,6 +6,8 @@
 #include "canon.h"
 #include "heart.h"
 
+const int PLAYER_MAX_HEART = 5;
+
 class Enemy;
 
 class Player : public Object {
@@ -13,8 +15,8 @@ private:
     Canon leftCanon;
     Canon rightCanon;
     
-    float velocity = 15;
     glm::vec3 direction = ZERO;
+    float velocity = 15;
     
     bool isShooting = false;
     bool isRecovery = false;
@@ -23,7 +25,7 @@ private:
     float recoveryCooldown = 0;
 
     std::vector<Heart> hearts;
-    int heart = 10;
+    int heart = PLAYER_MAX_HEART;
 public:
     Player(glm::vec3 _pos=ZERO, 
            GLfloat _angle=0,
@@ -32,10 +34,12 @@ public:
            glm::vec3 _center=ZERO) 
         : Object(_pos, _angle, _axis, _size, _center), leftCanon(), rightCanon() {
         init(_pos, _angle, _axis, _size, _center);
+
         leftCanon.init(glm::vec3(-0.8, 0.2, 0));
         rightCanon.init(glm::vec3(0.8, 0.2, 0));
         leftCanon.set_parent(this);
         rightCanon.set_parent(this);
+
         for (int i = 1; i <= heart; i++) {
             hearts.emplace_back().init(glm::vec3(ORTHO_LEFT + i * 5, ORTHO_BOTTOM + 5, 0), 0, UP, glm::vec3(2));
         }

@@ -26,7 +26,6 @@ void Player::draw_shape() const {
     }
 }
 
-
 void Player::update(float deltaTime, Enemy *enemy) {
     if (!get_isActive())
         return; 
@@ -63,6 +62,7 @@ void Player::update(float deltaTime, Enemy *enemy) {
                     pool.release(bullet);
                     isRecovery = true;
                     recoveryCooldown = recoveryInterval;
+                    break;
                 }
             }
         }
@@ -86,9 +86,15 @@ void Player::reset() {
             ap.release(a);
     }
     
-    isShooting = false;
     direction = ZERO;
-    heart = 10;    
+    velocity = 15;    
+    isShooting = false;
+    isRecovery = false;
+    recoveryCooldown = 0;
+    
+    for (auto& h : hearts) h.set_isActive(true);
+    heart = PLAYER_MAX_HEART;        
+
     set_isActive(true);
     set_isVisible(true);
 }
