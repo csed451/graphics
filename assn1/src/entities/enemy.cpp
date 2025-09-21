@@ -4,6 +4,45 @@
 #include "enemy.h"
 #include "player.h"
 
+void Enemy::update(float deltaTime, Player* player) {
+    translate(glm::vec3(moveDir * moveSpeed * deltaTime, 0, 0));
+    float x = get_pos().x;
+    if (x > moveLimit) {
+        translate(glm::vec3(moveLimit - x, 0, 0));
+        moveDir = -1.0f;
+    } else if (x < -moveLimit) {
+        translate(glm::vec3(-moveLimit - x, 0, 0));
+        moveDir = 1.0f;
+    }
+    
+    for (auto& canon : player->get_canons()){
+        ObjectPool<Attack> & pool = canon->get_attackPool();
+        for (auto& attack : pool.get_pool()) {
+            if (attack->get_isActive()) {
+                float distance = glm::distance(this->get_pos(), attack->get_pos());
+                float collision_threshold = this->get_hitboxRadius() + attack->get_hitboxRadius();
+
+                if (distance < collision_threshold) {
+                    this->take_damage(10); 
+                    pool.release(attack); 
+                }
+            }
+        }
+    }    
+
+    if(is_destroyed()){
+        set_isActive(false);
+        set_isVisible(false);
+    }
+
+    shootCooldown -= deltaTime;
+    if(shootCooldown <= 0 && !is_destroyed()){
+        shoot();
+        shootCooldown = shootInterval;
+    }
+    bulletPool.update(deltaTime);
+}
+
 void Enemy::draw_shape() const {
     glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_LINE_BIT);
     glDisable(GL_CULL_FACE);
@@ -43,48 +82,6 @@ void Enemy::draw_shape() const {
     glEnd();
 
     glPopAttrib();
-}
-
-void Enemy::update(float deltaTime, Player* player) {
-    // 이 여부에 따라서 Map이 멈추는 것처럼 표현 가능
-    // if (!get_isActive()) return; 
-
-    translate(glm::vec3(moveDir * moveSpeed * deltaTime, 0, 0));
-    float x = get_pos().x;
-    if (x > moveLimit) {
-        translate(glm::vec3(moveLimit - x, 0, 0));
-        moveDir = -1.0f;
-    } else if (x < -moveLimit) {
-        translate(glm::vec3(-moveLimit - x, 0, 0));
-        moveDir = 1.0f;
-    }
-    
-    for (auto& canon : player->get_canons()){
-        ObjectPool<Attack> & pool = canon->get_attackPool();
-        for (auto& attack : pool.get_pool()) {
-            if (attack->get_isActive()) {
-                float distance = glm::distance(this->get_pos(), attack->get_pos());
-                float collision_threshold = this->get_hitboxRadius() + attack->get_hitboxRadius();
-
-                if (distance < collision_threshold) {
-                    this->take_damage(10); 
-                    pool.release(attack); 
-                }
-            }
-        }
-    }    
-
-    if(is_destroyed()){
-        set_isActive(false);
-        set_isVisible(false);
-    }
-
-    shootCooldown -= deltaTime;
-    if(shootCooldown <= 0 && !is_destroyed()){
-        shoot();
-        shootCooldown = shootInterval;
-    }
-    bulletPool.update(deltaTime);
 }
 
 void Enemy::draw() const {
@@ -139,15 +136,6 @@ void Enemy::draw_health_bar() const{
     glPopMatrix();
 }
 
-void Enemy::take_damage(int damage){
-    heart -= damage;
-    if (heart < 0) heart = 0;
-}
-
-bool Enemy::is_destroyed() const{ 
-    return heart <= 0;
-}
-
 void Enemy::shoot(){
     const int num_bullets = 20; 
     const float angle_step = 360.0f / num_bullets; 
@@ -173,8 +161,8 @@ void Enemy::reset(){
 
     heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
-    counter = true;
     moveDir = 1.0f;
+    counter = true;
     set_isActive(true);
     set_isVisible(true);  
 }

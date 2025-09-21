@@ -4,9 +4,9 @@
 
 class Bullet : public Object {
 private:
-    float velocity = 20.0f;
-    glm::vec3 direction = glm::vec3(0, -1, 0);
+    glm::vec3 direction = DOWN;
     mutable bool counter = false; 
+    float velocity = 20.0f;
 public:
     Bullet(glm::vec3 _pos=glm::vec3(), 
            GLfloat _angle=0, 
