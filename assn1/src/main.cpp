@@ -77,17 +77,7 @@ void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glPushMatrix();
-    glm::mat4 mvp = cameraMatrix;
-    glLoadMatrixf(glm::value_ptr(mvp));
-    for (const auto& star : stars) {
-        glPushMatrix();
-        glTranslatef(star.pos.x, star.pos.y, star.pos.z);
-        glColor3f(star.color.r, star.color.g, star.color.b);
-        glutSolidSphere(star.size, 8, 8);
-        glPopMatrix();
-    }
-    glPopMatrix();
+
     
     player->draw();
     enemy->draw();
@@ -96,6 +86,18 @@ void display (void) {
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
         draw_stars();
+    } else {
+        // glPushMatrix();
+        // glm::mat4 mvp = cameraMatrix;
+        // glLoadMatrixf(glm::value_ptr(mvp));
+        // for (const auto& star : stars) {
+        //     glPushMatrix();
+        //     glTranslatef(star.pos.x, star.pos.y, star.pos.z);
+        //     glColor3f(star.color.r, star.color.g, star.color.b);
+        //     glutSolidSphere(star.size, 8, 8);
+        //     glPopMatrix();
+        // }
+        // glPopMatrix();
     }
     
     glutSwapBuffers();
