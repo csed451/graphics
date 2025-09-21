@@ -1,4 +1,3 @@
-#include "globals.h"
 #include "player.h"
 
 void Player::draw_shape() const {

@@ -38,7 +38,6 @@ void Bullet::draw_shape() const {
 }
 
 void Bullet::update(float deltaTime) {
-    if (!get_isActive())
-        return;
-    translate(velocity * direction * deltaTime);
+    if (get_isActive())
+        translate(velocity * direction * deltaTime);
 }

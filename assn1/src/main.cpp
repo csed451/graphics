@@ -6,7 +6,7 @@
 #include "player.h"
 #include "enemy.h"
 
-void myReshape (int w, int h);
+void reshape (int w, int h);
 void timer(int value);
 void update(void);
 void display (void);
@@ -19,9 +19,6 @@ static void draw_ending_message(const char* line1, const char* line2, int w, int
 static void draw_game_over_overlay(const char* msg);
 void cleanup();
 void draw_stars();
-
-enum class GameState { Playing, GameOver, Exiting };
-GameState gameState = GameState::Playing;
 
 int prevTime = 0;
 Player* player = nullptr;
@@ -43,7 +40,7 @@ int main(int argc, char** argv) {
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
     /* connect call back function */
-    glutReshapeFunc(myReshape);
+    glutReshapeFunc(reshape);
     glutDisplayFunc(display);
     glutKeyboardFunc(key_down);
     glutSpecialFunc(special_key_down); 
@@ -60,7 +57,7 @@ int main(int argc, char** argv) {
     glutMainLoop();
 }
 
-void myReshape (int w, int h) {
+void reshape (int w, int h) {
     glViewport (0, 0, w, h);    
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(glm::value_ptr(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f)));
@@ -72,7 +69,7 @@ void myReshape (int w, int h) {
 void timer(int value) {
     update();
     glutPostRedisplay();
-    glutTimerFunc(1000 / FPS, timer, 0);
+    glutTimerFunc(1000.0f / FPS, timer, 0);
 }
 
 void update(void) {
@@ -85,17 +82,17 @@ void update(void) {
         std::exit(0);
     }    
     if (gameState == GameState::GameOver) {
-        if (CAMERA_POS.z > 10) {
-            CAMERA_POS.z -= (100 - 10)/100.0f;
-            CAMERA_POS.y -= (10)/100.0f;
+        if (cameraPos.z > 10) {
+            cameraPos.z -= (100 - 10)/100.0f;
+            cameraPos.y -= (10)/100.0f;
             update_camera();
         }
         else {
             if (enemy->is_destroyed()) {
                 static float speed = 0.01f;
                 static float cameraSpeed = 0.05f;
-                CAMERA_POS.y += cameraSpeed;
-                CAMERA_TARGET = player->get_pos();
+                cameraPos.y += cameraSpeed;
+                cameraTarget = player->get_pos();
                 player->translate(UP * speed);
                 speed += 0.0001;
                 if (speed > 0.05) {
@@ -123,9 +120,9 @@ void update(void) {
         else {
             pos = enemy->get_pos();
         }
-        CAMERA_TARGET.x = pos.x;
-        CAMERA_TARGET.y = pos.y + 5;
-        CAMERA_POS.x = pos.x;
+        cameraTarget.x = pos.x;
+        cameraTarget.y = pos.y + 5;
+        cameraPos.x = pos.x;
     }
 }
 
@@ -293,11 +290,11 @@ void cleanup() {
 void draw_stars() {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
-    glLoadMatrixf(glm::value_ptr(CAMERA_MATRIX));
+    glLoadMatrixf(glm::value_ptr(cameraMatrix));
 
     srand(42);
     glBegin(GL_POINTS);
-    for (int i = 0; i < 10000; ++i) {
+    for (int i = 0; i < 100000; ++i) {
         int x = rand() % 1000 - 500;
         int y = rand() % 1000 - 500;
         int z = rand() % 1000 - 500;

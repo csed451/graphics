@@ -65,7 +65,7 @@ void Enemy::update(float deltaTime, Player* player) {
                 float collision_threshold = this->get_hitboxRadius() + attack->get_hitboxRadius();
 
                 if (distance < collision_threshold) {
-                    this->take_damage(10); 
+                    this->take_damage(attack->get_damage()); 
                     pool.release(attack); 
                 }
             }
