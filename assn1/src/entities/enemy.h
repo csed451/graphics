@@ -3,15 +3,16 @@
 #include "object.h"
 #include "objectPool.h"
 #include "bullet.h"
-#include "attack.h"
 #include "player.h"
+#include "attack.h"
 
 const int ENEMY_MAX_HEART = 100;
 
 class Enemy : public Object{
 private:
-    int heart = ENEMY_MAX_HEART;
     ObjectPool<Bullet> bulletPool;
+    
+    int heart = ENEMY_MAX_HEART;
 
     float shootInterval = 2.0f; 
     float shootCooldown = shootInterval; 
@@ -27,7 +28,9 @@ public:
             glm::vec3 _axis=glm::vec3(1,0,0), 
             glm::vec3 _size=glm::vec3(1), 
             glm::vec3 _center=glm::vec3()) 
-        : Object(_pos, _angle, _axis, _size, _center), bulletPool(200) {};
+        : Object(_pos, _angle, _axis, _size, _center), bulletPool(200) {
+            init(_pos, _angle, _axis, _size, _center);
+        };
 
     void draw_shape() const override;
     void update(float deltaTime, Player* player);

@@ -48,9 +48,8 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
-    enemy = new Enemy();
-    player = new Player();
-    reset_game();
+    enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
+    player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
 
     /* start loop */
     glutMainLoop();
@@ -65,12 +64,6 @@ void reshape (int w, int h) {
     glLoadIdentity();
 }
 
-void timer(int value) {
-    update();
-    glutPostRedisplay();
-    glutTimerFunc(1000 / FPS, timer, 0);
-}
-
 void display (void) {
     glClear (GL_COLOR_BUFFER_BIT);
 
@@ -82,6 +75,12 @@ void display (void) {
     }
     
     glutSwapBuffers();
+}
+
+void timer(int value) {
+    update();
+    glutPostRedisplay();
+    glutTimerFunc(1000 / FPS, timer, 0);
 }
 
 void update(void) {
@@ -103,8 +102,6 @@ void update(void) {
     if (enemy->is_destroyed() || !player->get_isActive()) 
         gameState = GameState::GameOver;
 }
-
-
 
 void key_down(unsigned char key, int x, int y) {
     if (gameState == GameState::GameOver) {
@@ -174,13 +171,10 @@ void special_key_up(int key, int x, int y) {
 void reset_game() {
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
-    enemy->init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
     enemy->reset();
-
-    player->init(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
-    player->reset();    
-    
+    player->reset();        
     gameState = GameState::Playing;
+
     glutPostRedisplay();
 }
 

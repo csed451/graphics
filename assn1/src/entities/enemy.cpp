@@ -164,6 +164,8 @@ void Enemy::shoot(){
 }
 
 void Enemy::reset(){
+    init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
+    
     for (auto &b : bulletPool.get_pool()) 
         bulletPool.release(b);
 
