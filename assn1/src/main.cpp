@@ -14,6 +14,13 @@ int prevTime = 0;
 
 std::vector<float> starVertices;
 
+constexpr float PLAYER_INITIAL_SPEED = 0.01f;
+constexpr float CAMERA_INITIAL_SPEED = 0.05f;
+
+
+float playerSpeed = PLAYER_INITIAL_SPEED;
+float cameraSpeed = CAMERA_INITIAL_SPEED;
+
 
 void reshape (int w, int h);
 void display (void);
@@ -53,8 +60,8 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
-    enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
-    player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
+    enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2));
+    player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
     glutMainLoop();
     
@@ -80,9 +87,9 @@ void display (void) {
     player->draw();
 
     if (gameState == GameState::GameOver) {
+        draw_stars();
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
-        draw_stars();
     } else {
         enemy->draw();
     }
@@ -109,23 +116,19 @@ void update(void) {
         if (cameraPos.z > 10) {
             cameraPos.z -= (100 - 10)/100.0f;
             cameraPos.y -= (10)/100.0f;
-            update_camera();
         }
-        else {
-            static float speed = 0.01f;
-            static float cameraSpeed = 0.05f;
+        else if (cameraPos.y <= 450) {
             cameraPos.y += cameraSpeed;
             cameraTarget = player->get_pos();
-            player->translate(UP * speed);
-            speed += 0.0001;
-            if (speed > 0.05) {
-                speed += 0.001;
+            player->translate(UP * playerSpeed);
+            playerSpeed += 0.0001;
+            if (playerSpeed > 0.05) {
+                playerSpeed += 0.001;
                 cameraSpeed += 0.001;
                 player->set_isAccelerating(true);
             }
-            update_camera();
-            
         }
+        update_camera();
         return;
     }
     
@@ -135,11 +138,25 @@ void update(void) {
     if (enemy->is_destroyed() || !player->get_isActive()) {
         gameState = GameState::GameOver;
         init_stars();
+        player->set_isActive(true);
+        player->set_isRecovery(false);
+
+        for (auto& canon : player->get_canons()){
+            ObjectPool<Attack> & pool = canon->get_attackPool();
+            for (auto& attack : pool.get_pool())
+                if (attack->get_isActive())
+                    pool.release(attack); 
+        }
+ 
         /* set camera pos for animation */
         glm::vec3 pos = player->get_pos();
         cameraTarget.x = pos.x;
         cameraTarget.y = pos.y + 5;
         cameraPos.x = pos.x;
+        update_camera();
+
+        playerSpeed = PLAYER_INITIAL_SPEED;
+        cameraSpeed = CAMERA_INITIAL_SPEED;
     }
 }
 
@@ -249,8 +266,8 @@ static void draw_ending_msg(const char* line1, const char* line2, int w, int h) 
     const float fontH = 18.0f;
     const float gap   = 10.0f;
 
-    float line1Y = h * 0.5f + (fontH * 0.5f + gap * 0.5f);
-    float line2Y = h * 0.5f - (fontH * 0.5f + gap * 0.5f);
+    float line1Y = h * 0.8f + (fontH * 0.5f + gap * 0.5f);
+    float line2Y = h * 0.8f - (fontH * 0.5f + gap * 0.5f);
     float line1X = (w - width1) * 0.5f;
     float line2X = (w - width2) * 0.5f;
 
@@ -276,14 +293,14 @@ static void draw_game_over(const char* msg) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Translucent gray background
-    glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
-    glBegin(GL_QUADS);
-        glVertex2f(0,0);
-        glVertex2f(w,0);
-        glVertex2f(w,h);
-        glVertex2f(0,h);
-    glEnd();
+    // // Translucent gray background
+    // glColor4f(0.0f, 0.0f, 0.0f, 0.55f);
+    // glBegin(GL_QUADS);
+    //     glVertex2f(0,0);
+    //     glVertex2f(w,0);
+    //     glVertex2f(w,h);
+    //     glVertex2f(0,h);
+    // glEnd();
 
     draw_ending_msg(msg, "Press R to Restart / Q to Quit", w, h);
 
@@ -314,16 +331,17 @@ static void draw_stars() {
     // }
     // glEnd();
 
-    glTranslatef(-15, 500, 20);
+    glTranslatef(-60, 620, 20);
     glColor3f(1,0,0);
-    glutSolidSphere(5, 8, 8);
+    glutSolidSphere(100, 64, 64);
 
     glPopMatrix();
 }
 
-void init_stars() {
+
+static void init_stars() {
     srand(42);
-    for (int i = 0; i < 10000000; ++i) {
+    for (int i = 0; i < 100000; ++i) {
         starVertices.push_back(rand() % 1000 - 500);
         starVertices.push_back(rand() % 1000 - 500);
         starVertices.push_back(rand() % 1000 - 500);

@@ -55,7 +55,7 @@ void Enemy::update(float deltaTime, Player* player) {
         set_isVisible(false);
         for (auto &b : bulletPool.get_pool()) 
             if(b->get_isActive())
-                bulletPool.release(b);
+                b->set_isActive(false);
     }
 
     shootCooldown -= deltaTime;
@@ -148,14 +148,19 @@ void Enemy::shoot(){
         glm::vec3 dir = glm::vec3(cos(angle), sin(angle), 0); 
         
         Bullet* bullet = bulletPool.acquire();
-        bullet->init(get_pos(), 0, glm::vec3(1,0,0), glm::vec3(1,1,1));
+        bullet->init(get_pos(), 0, RIGHT, glm::vec3(1));
         bullet->set_counter(counter);
         bullet->set_direction(dir); 
     }
 }
 
 void Enemy::reset(){
-    init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
+    init(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2));
+
+    for (auto &b : bulletPool.get_pool()) 
+        if(b->get_isActive())
+            bulletPool.release(b);
+
     heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
     moveDir = 1.0f;
