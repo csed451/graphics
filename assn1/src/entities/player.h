@@ -6,8 +6,6 @@
 #include "canon.h"
 #include "heart.h"
 
-const int PLAYER_MAX_HEART = 5;
-
 class Enemy;
 
 class Player : public Object {

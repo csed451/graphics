@@ -5,6 +5,17 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
+#define ENEMY_MAX_HEART 100
+#define PLAYER_MAX_HEART 5
+
+#define NUM_STARS 200
+
+struct Star {
+    glm::vec3 pos;
+    glm::vec3 color;
+    float size;
+};
+
 constexpr float ORTHO_LEFT = -50;
 constexpr float ORTHO_RIGHT = 50;
 constexpr float ORTHO_TOP = 50;

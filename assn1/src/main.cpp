@@ -9,6 +9,7 @@ enum class GameState { Playing, GameOver, Exiting };
 GameState gameState = GameState::Playing;
 Player* player = nullptr;
 Enemy* enemy = nullptr;
+std::vector<Star> stars;
 int prevTime = 0;
 
 
@@ -21,6 +22,7 @@ void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
 
+void init_stars();
 void reset_game();
 
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
@@ -47,6 +49,7 @@ int main(int argc, char** argv) {
     glutSpecialUpFunc(special_key_up);
     glutTimerFunc(0, timer, 0);
 
+    init_stars();
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
@@ -70,6 +73,18 @@ void reshape (int w, int h) {
 
 void display (void) {
     glClear (GL_COLOR_BUFFER_BIT);
+
+    glPushMatrix();
+    glm::mat4 mvp = CAMERA_METRIX;
+    glLoadMatrixf(glm::value_ptr(mvp));
+    for (const auto& star : stars) {
+        glPushMatrix();
+        glTranslatef(star.pos.x, star.pos.y, star.pos.z);
+        glColor3f(star.color.r, star.color.g, star.color.b);
+        glutSolidSphere(star.size, 8, 8);
+        glPopMatrix();
+    }
+    glPopMatrix();
 
     player->draw();
     enemy->draw();
@@ -99,9 +114,18 @@ void update(void) {
     if (gameState == GameState::GameOver)
         return;
 
+    // Update stars
+    const float STAR_SCROLL_SPEED = 10.0f;
+    for (auto& star : stars) {
+        star.pos.y -= STAR_SCROLL_SPEED * deltaTime;
+        if (star.pos.y < ORTHO_BOTTOM) {
+            star.pos.y = ORTHO_TOP;
+            star.pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
+        }
+    }
+    
     player->update(deltaTime, enemy);
     enemy->update(deltaTime, player);
-    // rotate_camera(1, RIGHT);
 
     if (enemy->is_destroyed() || !player->get_isActive()) 
         gameState = GameState::GameOver;
@@ -169,6 +193,22 @@ void special_key_up(int key, int x, int y) {
             if (direction == RIGHT)
                 player->set_direction(ZERO);
             break;
+    }
+}
+
+void init_stars() {
+    stars.resize(NUM_STARS);
+    for (int i = 0; i < NUM_STARS; ++i) {
+        stars[i].pos.x = (rand() / (float)RAND_MAX) * (ORTHO_RIGHT - ORTHO_LEFT) + ORTHO_LEFT;
+        stars[i].pos.y = (rand() / (float)RAND_MAX) * (ORTHO_TOP - ORTHO_BOTTOM) + ORTHO_BOTTOM;
+        stars[i].pos.z = (rand() / (float)RAND_MAX) * -100.0f - 5.0f; 
+        
+        if (rand() % 5 == 0) 
+            stars[i].color = glm::vec3(1.0f, 1.0f, 0.0f);
+        else 
+            stars[i].color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        stars[i].size = (rand() / (float)RAND_MAX) * 0.3f + 0.1f;
     }
 }
 

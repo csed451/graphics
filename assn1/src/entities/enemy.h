@@ -4,8 +4,6 @@
 #include "objectPool.h"
 #include "bullet.h"
 
-const int ENEMY_MAX_HEART = 100;
-
 class Player;
 class Enemy : public Object{
 private:
