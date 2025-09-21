@@ -22,10 +22,9 @@ void key_up(unsigned char key, int x, int y);
 void special_key_up(int key, int x, int y);
 
 void reset_game();
-void cleanup();
 
-static void draw_ending_message(const char* line1, const char* line2, int w, int h);
-static void draw_game_over_overlay(const char* msg);
+static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
+static void draw_game_over(const char* msg);
 
 
 int main(int argc, char** argv) {
@@ -52,11 +51,12 @@ int main(int argc, char** argv) {
     enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2,2,2));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2,2,2));
 
-    /* start loop */
     glutMainLoop();
-
-    delete enemy;
-    delete player;
+    
+    delete enemy; 
+    delete player; 
+    
+    return 0;
 }
 
 void reshape (int w, int h) {
@@ -75,7 +75,7 @@ void display (void) {
     enemy->draw();
     if (gameState == GameState::GameOver) {
         const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
-        draw_game_over_overlay(msg);
+        draw_game_over(msg);
     }
     
     glutSwapBuffers();
@@ -93,8 +93,8 @@ void update(void) {
     prevTime = curTime;
 
     if (gameState == GameState::Exiting) {
-        cleanup(); 
-        std::exit(0);
+        glutLeaveMainLoop(); 
+        return;
     }    
     if (gameState == GameState::GameOver)
         return;
@@ -182,12 +182,7 @@ void reset_game() {
     glutPostRedisplay();
 }
 
-void cleanup() {
-    if (enemy) { delete enemy; enemy = nullptr; }
-    if (player){ delete player; player = nullptr; }
-}
-
-static void draw_ending_message(const char* line1, const char* line2, int w, int h) {
+static void draw_ending_msg(const char* line1, const char* line2, int w, int h) {
     auto textWidth = [&](const char* s) -> int {
         return glutBitmapLength(GLUT_BITMAP_HELVETICA_18,
                                 reinterpret_cast<const unsigned char*>(s));
@@ -213,7 +208,7 @@ static void draw_ending_message(const char* line1, const char* line2, int w, int
     drawText(line2X, line2Y, line2);
 }
 
-static void draw_game_over_overlay(const char* msg) {
+static void draw_game_over(const char* msg) {
     int w = glutGet(GLUT_WINDOW_WIDTH);
     int h = glutGet(GLUT_WINDOW_HEIGHT);
 
@@ -239,7 +234,7 @@ static void draw_game_over_overlay(const char* msg) {
         glVertex2f(0,h);
     glEnd();
 
-    draw_ending_message(msg, "Press R to Restart / Q to Quit", w, h);
+    draw_ending_msg(msg, "Press R to Restart / Q to Quit", w, h);
 
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
