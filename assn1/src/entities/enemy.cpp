@@ -54,7 +54,8 @@ void Enemy::update(float deltaTime, Player* player) {
         set_isActive(false);
         set_isVisible(false);
         for (auto &b : bulletPool.get_pool()) 
-            b->set_isVisible(false);
+            if(b->get_isActive())
+                bulletPool.release(b);
     }
 
     shootCooldown -= deltaTime;
@@ -155,10 +156,6 @@ void Enemy::shoot(){
 
 void Enemy::reset(){
     init(glm::vec3(0,30,0), 0, glm::vec3(1,0,0), glm::vec3(2,2,2));
-
-    for (auto &b : bulletPool.get_pool()) 
-        bulletPool.release(b);
-
     heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
     moveDir = 1.0f;
