@@ -28,12 +28,13 @@ glm::quat Object::get_quat() const {
 }
 
 glm::mat4 Object::get_finalMatrix() const {
-    return parent ? parent->get_modelMatrix() * modelMatrix : modelMatrix;
+    return parent ? parent->get_finalMatrix() * modelMatrix : modelMatrix;
 }
 
-void Object::set_parent(Object* _parent) {
+void Object::set_parent(Object* _parent, bool fix) {
     if (_parent) {
-        modelMatrix = glm::inverse(_parent->get_modelMatrix()) * modelMatrix;
+        if (fix)
+            modelMatrix = glm::inverse(_parent->get_finalMatrix()) * modelMatrix;
         isLocal = false;
     }
     else {

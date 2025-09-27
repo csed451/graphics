@@ -36,7 +36,7 @@ public:
     /* setter */
     void set_modelMatrix(glm::mat4 m) { modelMatrix = m; }
     void set_center(glm::vec3 v) { center = v; }
-    void set_parent(Object* _parent);
+    void set_parent(Object* _parent, bool fix=false);
     void set_isLocal(bool b) { isLocal = b; }
     void set_isActive(bool b) { isActive = b; }
     void set_isVisible(bool b) { isVisible = b; }
