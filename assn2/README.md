@@ -1,0 +1,48 @@
+## Assn2 Overview
+Simple 2D shooting game enhanced with hierarchical animation.
+
+
+
+## Compile Command
+```bash
+# on graphics/assn2/src
+cd ./assn2/src
+
+# g++ main.cpp base/object.cpp entities/player.cpp entities/canon.cpp entities/attack.cpp entities/enemy.cpp entities/bullet.cpp \
+#     -o main -I. -Ibase -Ientities -I../../include -lGL -lGLEW -lglut
+
+# Using WildCard
+g++ main.cpp base/*.cpp entities/*.cpp -o main \
+    -I. -Ibase -Ientities -I../../include \
+    -lGL -lGLEW -lglut
+```
+
+## End-User Guide
+
+### 1. Compilation
+Move to the src directory (graphics/assn2/src) and run one of the provided g++ commands.  
+If successful, an executable named `main` is generated in the same directory.
+
+### 2. Execution
+Run:
+```bash
+./main
+```
+
+### 3. Controls
+Movement:
+- Arrow Up: Move up
+- Arrow Down: Move down
+- Arrow Left: Move left
+- Arrow Right: Move right
+
+Attack:
+- Space (hold): Continuous fire
+
+Game Over:
+- R / r: Restart
+- Q / q / ESC: Quit
+
+### 4. Notes
+Ensure OpenGL, GLEW, and GLUT development packages are installed.
+For additional details, refer to the [main project README](../README.md).
