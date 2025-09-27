@@ -1,4 +1,8 @@
 .vscode
 
-./assn1/src/main
-./assn2/src/main
+# ignore build files
+testbed_wsl
+/assn1/src/main
+/assn2/src/main
+/assn3/src/main
+/assn4/src/main
