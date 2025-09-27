@@ -16,6 +16,8 @@ inline const glm::vec3 UP = glm::vec3(0, 1, 0);
 inline const glm::vec3 DOWN = glm::vec3(0, -1, 0);
 inline const glm::vec3 RIGHT = glm::vec3(1, 0, 0);
 inline const glm::vec3 LEFT = glm::vec3(-1, 0, 0);
+inline const glm::vec3 FORWARD = glm::vec3(0, 0, 1);
+inline const glm::vec3 BACKWARD = glm::vec3(0, 0, -1);
 inline const glm::vec3 ZERO = glm::vec3(0, 0, 0);
 
 inline glm::mat4 cameraMatrix = glm::mat4(1);

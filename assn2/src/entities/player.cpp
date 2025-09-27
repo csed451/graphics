@@ -45,6 +45,8 @@ void Player::update(float deltaTime, Enemy *enemy) {
     leftCanon.update(deltaTime);
     rightCanon.update(deltaTime);
 
+    for (auto& o : orbits) o.update(deltaTime);
+
 
     if (isRecovery) {
         recoveryCooldown -= deltaTime;
@@ -61,6 +63,7 @@ void Player::update(float deltaTime, Enemy *enemy) {
                     pool.release(bullet);
                     isRecovery = true;
                     recoveryCooldown = recoveryInterval;
+                    orbits[heart].set_isActive(false);
                     break;
                 }
             }
@@ -74,6 +77,7 @@ void Player::draw() const {
     leftCanon.draw();
     rightCanon.draw();
     for (auto& h : hearts) h.draw();
+    for (auto& o : orbits) o.draw();
 }
 
 void Player::reset() {
@@ -95,6 +99,8 @@ void Player::reset() {
     
     for (auto& h : hearts) h.set_isActive(true);
     heart = MAX_HEART;     
+    for (auto& o : orbits) o.set_isActive(true);
+
  
     set_isActive(true);
     set_isVisible(true);

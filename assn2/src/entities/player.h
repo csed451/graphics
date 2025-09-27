@@ -5,6 +5,7 @@
 #include "object.h"
 #include "canon.h"
 #include "heart.h"
+#include "orbit.h"
 
 class Enemy;
 
@@ -27,6 +28,8 @@ private:
 
     std::vector<Heart> hearts;
     int heart = MAX_HEART;
+
+    std::vector<Orbit> orbits;
 public:
     Player(
         glm::vec3 _pos=ZERO, 
@@ -39,8 +42,14 @@ public:
         rightCanon.init(glm::vec3(0.8, 0.2, 0));
         leftCanon.set_parent(this);
         rightCanon.set_parent(this);
-        for (int i = 1; i <= heart; i++)
+        for (int i = 1; i <= heart; i++) {
             hearts.emplace_back().init(glm::vec3(-MAX_COORD + i * 5, -MAX_COORD + 5, 0), 0, UP, glm::vec3(2));
+            Orbit & orbit = orbits.emplace_back();
+            orbit.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));
+            orbit.rotate_world(360.0f/heart * (i-1), FORWARD);
+            orbit.set_parent(this);
+        }
+
     };
 
     std::vector<Canon*> get_canons() { return {&leftCanon, &rightCanon}; }

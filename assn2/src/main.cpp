@@ -17,9 +17,11 @@ std::vector<float> starVertices;
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 constexpr float CAMERA_INITIAL_SPEED = 0.05f;
 
-
 float playerSpeed = PLAYER_INITIAL_SPEED;
 float cameraSpeed = CAMERA_INITIAL_SPEED;
+
+inline glm::vec3 playerDirection = ZERO;
+inline glm::vec3 playerPrevDirection = ZERO;
 
 
 void reshape (int w, int h);
@@ -187,15 +189,23 @@ void special_key_down(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
             player->set_direction(UP);
+            playerPrevDirection = playerDirection;
+            playerDirection = UP;
             break;
         case GLUT_KEY_DOWN:
             player->set_direction(DOWN);
-        break;
+            playerPrevDirection = playerDirection;
+            playerDirection = DOWN;
+            break;
         case GLUT_KEY_LEFT:
             player->set_direction(LEFT);
+            playerPrevDirection = playerDirection;
+            playerDirection = LEFT;
             break;
         case GLUT_KEY_RIGHT:
             player->set_direction(RIGHT);
+            playerPrevDirection = playerDirection;
+            playerDirection = RIGHT;
             break;
     }
 }
@@ -218,20 +228,40 @@ void special_key_up(int key, int x, int y) {
     glm::vec3 direction = player->get_direction();
     switch (key) {
         case GLUT_KEY_UP:
-            if (direction == UP)
-                player->set_direction(ZERO);
+            if (playerDirection == UP) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == UP)
+                playerPrevDirection = ZERO;
             break;
         case GLUT_KEY_DOWN:
-            if (direction == DOWN)
-                player->set_direction(ZERO);
+            if (direction == DOWN) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == DOWN)
+                playerPrevDirection = ZERO;
             break;
         case GLUT_KEY_LEFT:
-            if (direction == LEFT)
-                player->set_direction(ZERO);
+            if (direction == LEFT) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == LEFT)
+                playerPrevDirection = ZERO;
             break;
         case GLUT_KEY_RIGHT:
-            if (direction == RIGHT)
-                player->set_direction(ZERO);
+            if (direction == RIGHT) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == RIGHT)
+                playerPrevDirection = ZERO;
             break;
     }
 }
