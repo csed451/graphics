@@ -1,27 +1,20 @@
 ## Assn2 Overview
 Simple 2D shooting game enhanced with hierarchical animation.
 
+## End-User Guide
 
-
-## Compile Command
+### 1. Compilation
+Move to the src directory (graphics/assn2/src) and run one of the provided g++ commands.  
+If successful, an executable named `main` is generated in the same directory.
 ```bash
 # on graphics/assn2/src
 cd ./assn2/src
-
-# g++ main.cpp base/object.cpp entities/player.cpp entities/canon.cpp entities/attack.cpp entities/enemy.cpp entities/bullet.cpp \
-#     -o main -I. -Ibase -Ientities -I../../include -lGL -lGLEW -lglut
 
 # Using WildCard
 g++ main.cpp base/*.cpp entities/*.cpp -o main \
     -I. -Ibase -Ientities -I../../include \
     -lGL -lGLEW -lglut
 ```
-
-## End-User Guide
-
-### 1. Compilation
-Move to the src directory (graphics/assn2/src) and run one of the provided g++ commands.  
-If successful, an executable named `main` is generated in the same directory.
 
 ### 2. Execution
 Run:
