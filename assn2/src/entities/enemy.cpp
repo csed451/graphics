@@ -5,10 +5,6 @@
 #include "enemy.h"
 #include "player.h"
 
-// inline bool is_outside_window(glm::vec3 pos) {
-//     return pos.x > MAX_COORD || pos.x < -MAX_COORD || pos.y > MAX_COORD  || pos.y < -MAX_COORD;
-// }
-
 void Enemy::init_vertices() {
     // outer octagon Vertices
     outerVertices.push_back(0.0f); 
@@ -89,13 +85,13 @@ void Enemy::draw_shape() const {
     glDisable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    float glow = 0.5f + 0.5f * std::sin(animationTime * 3.2f + horizontalPhase * 0.7f);
-
-    glColor3f(0.7f + 0.3f * glow, 0.15f + 0.25f * (1.0f - glow), 0.25f * glow);
+    // outer octagon
+    glColor3f(0.85f, 0.15f, 0.15f);
     glVertexPointer(2, GL_FLOAT, 0, outerVertices.data());
     glDrawArrays(GL_TRIANGLE_FAN, 0, outerVertices.size() / 2);
 
-    glColor3f(1.0f, 0.65f + 0.25f * glow, 0.2f + 0.5f * (1.0f - glow));
+    // core Vertices
+    glColor3f(1.0f, 0.8f, 0.2f);
     glVertexPointer(2, GL_FLOAT, 0, innerVertices.data());
     glDrawArrays(GL_TRIANGLE_FAN, 0, innerVertices.size() / 2);
 

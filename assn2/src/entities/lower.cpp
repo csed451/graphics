@@ -14,10 +14,16 @@ Lower::Lower(
     float _phaseOffset,
     float _handPhaseOffset
 ) : Object(_pos, _angle, _axis, _size, _center),
+    swingAmplitude(_swingAmplitude), 
+    swingFrequency(_swingFrequency), 
+    phaseOffset(_phaseOffset), 
+    initialPos(_pos), 
+    initialAngle(_angle), 
+    initialAxis(_axis), 
+    initialSize(_size), 
+    initialCenter(_center),
     hand(glm::vec3(0, 2.5f, 0), 0, FORWARD, glm::vec3(2), ZERO, this, 
-        _handPhaseOffset, _swingAmplitude * 1.15f, _swingFrequency * 1.4f, 0.25f),
-    swingAmplitude(_swingAmplitude), swingFrequency(_swingFrequency), phaseOffset(_phaseOffset), 
-    initialPos(_pos), initialAngle(_angle), initialAxis(_axis), initialSize(_size), initialCenter(_center) {
+        _swingAmplitude * 1.15f, _swingFrequency * 1.4f, _handPhaseOffset, 0.25f) {
     if (_parent) set_parent(_parent);
 }
 

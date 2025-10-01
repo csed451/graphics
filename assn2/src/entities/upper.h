@@ -8,16 +8,14 @@
 class Upper : public Object {
 private:
     Lower lowerArm;
-
-    float swingAmplitude;
-    float swingFrequency;
-    float phaseOffset;
-    
     float animationTime = 0.0f;
     float currentSwing = 0.0f;
+    float swingAmplitude;
+    float swingFrequency;
+    float phaseOffset;    
 
     glm::vec3 initialPos;
-    GLfloat initialAngle;
+    GLfloat   initialAngle;
     glm::vec3 initialAxis;
     glm::vec3 initialSize; 
     glm::vec3 initialCenter;

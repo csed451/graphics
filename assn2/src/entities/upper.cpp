@@ -3,14 +3,29 @@
 #include "upper.h"
 
 Upper::Upper(
-    glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center, Object* _parent,
-    float _swingAmplitude, float _swingFrequency, float _phaseOffset,
-    float _lowerSwingAmplitude, float _lowerSwingFrequency, float _lowerPhaseOffset
+    glm::vec3 _pos, 
+    GLfloat _angle, 
+    glm::vec3 _axis, 
+    glm::vec3 _size, 
+    glm::vec3 _center, 
+    Object* _parent,
+    float _swingAmplitude, 
+    float _swingFrequency, 
+    float _phaseOffset,
+    float _lowerSwingAmplitude, 
+    float _lowerSwingFrequency, 
+    float _lowerPhaseOffset
 ) : Object(_pos, _angle, _axis, _size, _center),
+    swingAmplitude(_swingAmplitude), 
+    swingFrequency(_swingFrequency), 
+    phaseOffset(_phaseOffset),
+    initialPos(_pos), 
+    initialAngle(_angle), 
+    initialAxis(_axis), 
+    initialSize(_size), 
+    initialCenter(_center),
     lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this, 
-            _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f),
-    swingAmplitude(_swingAmplitude), swingFrequency(_swingFrequency), phaseOffset(_phaseOffset),
-    initialPos(_pos), initialAngle(_angle), initialAxis(_axis), initialSize(_size), initialCenter(_center) {
+        _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f) {
     if (_parent) set_parent(_parent);
 }
 

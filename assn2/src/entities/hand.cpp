@@ -9,9 +9,9 @@ Hand::Hand(
     glm::vec3 _size,
     glm::vec3 _center,
     Object* _parent,
-    float _phaseOffset,
     float _swingAmplitude,
     float _swingFrequency,
+    float _phaseOffset,
     float _pulseAmplitude
 ) : Object(_pos, _angle, _axis, _size, _center),
     swingAmplitude(_swingAmplitude),
@@ -24,6 +24,18 @@ Hand::Hand(
     initialSize(_size),
     initialCenter(_center) {
     if (_parent) set_parent(_parent);
+}
+
+void Hand::draw_shape() const {
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glBegin(GL_TRIANGLE_FAN);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(-0.6f, 1.4f, 0.0f);
+        glVertex3f(-0.3f, 1.2f, 0.0f);
+        glVertex3f(0.0f, 1.8f, 0.0f);
+        glVertex3f(0.3f, 1.2f, 0.0f);
+        glVertex3f(0.6f, 1.4f, 0.0f);
+    glEnd();
 }
 
 void Hand::update(float deltaTime) {
@@ -41,18 +53,6 @@ void Hand::update(float deltaTime) {
     float scaleFactor = pulse / currentScale;
     scale_local(glm::vec3(scaleFactor, scaleFactor, 1.0f));
     currentScale = pulse;
-}
-
-void Hand::draw_shape() const {
-    glColor3f(0.9f, 0.9f, 0.9f);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(-0.6f, 1.4f, 0.0f);
-        glVertex3f(-0.3f, 1.2f, 0.0f);
-        glVertex3f(0.0f, 1.8f, 0.0f);
-        glVertex3f(0.3f, 1.2f, 0.0f);
-        glVertex3f(0.6f, 1.4f, 0.0f);
-    glEnd();
 }
 
 void Hand::reset_pose() {

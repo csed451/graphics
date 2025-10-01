@@ -15,30 +15,27 @@ class Enemy : public Object{
 private:
     std::vector<float> outerVertices;
     std::vector<float> innerVertices;
-    void init_vertices();
-
     ObjectPool<Bullet> bulletPool;    
-    int heart = ENEMY_MAX_HEART;
-
-    Upper leftUpperArm;
+    void init_vertices();
     Upper rightUpperArm;
-
-    float animationTime = 0.0f;
-
+    Upper leftUpperArm;
+    
+    const float shootInterval = 2.0f; 
+    const float moveLimit = -15.0f;
+    const float moveSpeed = 2.0f;        
     const float outerR = 1.4f;
     const float coreR  = 0.40f;
     
-    const float shootInterval = 2.0f; 
-    float shootCooldown = shootInterval; 
-
-    const float moveLimit = -15.0f;
-    const float moveSpeed = 2.0f;        
-    float moveDir = -1.0f;          
-    bool counter = true;
-
+    int heart = ENEMY_MAX_HEART;
     glm::vec3 spawnPosition;
-    float horizontalPhase;
+
     float horizontalAmplitude = 4.0f;
+    float horizontalPhase;
+    float shootCooldown = shootInterval; 
+    float animationTime = 0.0f;
+    float moveDir = -1.0f;
+    bool counter = true;   
+    
 public:
     Enemy(
         glm::vec3 _pos=ZERO, 
@@ -47,13 +44,11 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center), 
-        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 
-                    18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f),
-        rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 
-                    18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
-        bulletPool(200),
+        rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
+        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f),
+        horizontalPhase(glm::abs(_pos.x) * 0.1f + _pos.y * 0.05f),
         spawnPosition(_pos),
-        horizontalPhase(glm::abs(_pos.x) * 0.1f + _pos.y * 0.05f) {
+        bulletPool(200) {
         set_hitboxRadius(outerR);
         init_vertices();        
     };  

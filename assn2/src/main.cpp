@@ -30,6 +30,7 @@ void reshape (int w, int h);
 void display (void);
 void timer(int value);
 void update(void);
+
 void key_down(unsigned char key, int x, int y);
 void special_key_down(int key, int x, int y);
 void key_up(unsigned char key, int x, int y);
@@ -37,10 +38,15 @@ void special_key_up(int key, int x, int y);
 
 void reset_game();
 
+static void update_game_over();
+static void check_and_handle_game_over();
+static bool enemies_destroyed();
+
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h);
 static void draw_game_over(const char* msg);
-static void draw_stars();
+
 static void init_stars();
+static void draw_stars();
 
 
 int main(int argc, char** argv) {
@@ -94,10 +100,7 @@ void display (void) {
 
     if (gameState == GameState::GameOver) {
         draw_stars();
-        bool allDestroyed = std::all_of(enemies.begin(), enemies.end(), [](const Enemy* e) {
-            return e->is_destroyed();
-        });
-        const char* msg = allDestroyed ? "GAME WIN!" : "GAME OVER!";
+        const char* msg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
     } else {
         for (auto enemy : enemies)
@@ -119,68 +122,17 @@ void update(void) {
     prevTime = curTime;
 
     if (gameState == GameState::Exiting) {
-        glutLeaveMainLoop(); 
-        return;
+        glutLeaveMainLoop(); return;
     }    
     if (gameState == GameState::GameOver) {
-        if (cameraPos.z > 10) {
-            cameraPos.z -= (100 - 10)/100.0f;
-            cameraPos.y -= (10)/100.0f;
-        }
-        else if (cameraPos.y <= 450) {
-            cameraPos.y += cameraSpeed;
-            cameraTarget = player->get_pos();
-            player->translate(UP * playerSpeed);
-            playerSpeed += 0.0001;
-            if (playerSpeed > 0.05) {
-                playerSpeed += 0.001;
-                cameraSpeed += 0.001;
-                player->set_isAccelerating(true);
-            }
-        }
-        update_camera();
-        return;
+        update_game_over(); return;
     }
     
-    player->update(deltaTime, enemies);
-
     for (auto enemy : enemies)
         enemy->update(deltaTime, player);
-
-    bool allDestroyed = std::all_of(enemies.begin(), enemies.end(), [](const Enemy* e) {
-        return e->is_destroyed();
-    });
-
-    if (allDestroyed || !player->get_isActive()) {
-        gameState = GameState::GameOver;
-        init_stars();
-        player->set_isActive(true);
-        player->set_isRecovery(false);
-
-        for (auto& canon : player->get_canons()){
-            ObjectPool<Attack> & pool = canon->get_attackPool();
-            for (auto& attack : pool.get_pool())
-                if (attack->get_isActive())
-                    pool.release(attack); 
-        }
-
-        for (auto enemy : enemies) {
-            ObjectPool<Bullet>& pool = enemy->get_bulletPool();
-            for (auto bullet : pool.get_pool())
-                if (bullet->get_isActive())
-                    pool.release(bullet);
-        }
-
-        /* set camera pos for animation */
-        glm::vec3 pos = player->get_pos();
-        cameraTarget.x = pos.x;
-        cameraTarget.y = pos.y + 5;
-        cameraPos.x = pos.x;
-        update_camera();
-
-        playerSpeed = PLAYER_INITIAL_SPEED;
-        cameraSpeed = CAMERA_INITIAL_SPEED;
-    }
+    player->update(deltaTime, enemies);
+    
+    check_and_handle_game_over();
 }
 
 void key_down(unsigned char key, int x, int y) {
@@ -289,18 +241,71 @@ void special_key_up(int key, int x, int y) {
 
 void reset_game() {
     init_camera();
-
     prevTime = glutGet(GLUT_ELAPSED_TIME);
-
     gameState = GameState::Playing;
     starVertices.clear();
-
     for (auto enemy : enemies)
         enemy->reset();
     player->reset();
-
-
     glutPostRedisplay();
+}
+
+static void update_game_over() {
+    if (cameraPos.z > 10) {
+        cameraPos.z -= (100 - 10)/100.0f;
+        cameraPos.y -= (10)/100.0f;
+    }
+    else if (cameraPos.y <= 450) {
+        cameraPos.y += cameraSpeed;
+        cameraTarget = player->get_pos();
+        player->translate(UP * playerSpeed);
+        playerSpeed += 0.0001;
+        if (playerSpeed > 0.05) {
+            playerSpeed += 0.001;
+            cameraSpeed += 0.001;
+            player->set_isAccelerating(true);
+        }
+    }
+    update_camera();
+}
+
+static void check_and_handle_game_over() {
+    if (enemies_destroyed() || !player->get_isActive()) {
+        gameState = GameState::GameOver;
+        init_stars();
+        player->set_isActive(true);
+        player->set_isRecovery(false);
+
+        for (auto& canon : player->get_canons()){
+            ObjectPool<Attack> & pool = canon->get_attackPool();
+            for (auto& attack : pool.get_pool())
+                if (attack->get_isActive())
+                    pool.release(attack); 
+        }
+
+        for (auto enemy : enemies) {
+            ObjectPool<Bullet>& pool = enemy->get_bulletPool();
+            for (auto bullet : pool.get_pool())
+                if (bullet->get_isActive())
+                    pool.release(bullet);
+        }
+
+        /* set camera pos for animation */
+        glm::vec3 pos = player->get_pos();
+        cameraTarget.x = pos.x;
+        cameraTarget.y = pos.y + 5;
+        cameraPos.x = pos.x;
+        update_camera();
+
+        playerSpeed = PLAYER_INITIAL_SPEED;
+        cameraSpeed = CAMERA_INITIAL_SPEED;
+    }
+}
+
+static bool enemies_destroyed() {
+    return std::all_of(enemies.begin(), enemies.end(), [](const Enemy* e) {
+        return e->is_destroyed();
+    });
 }
 
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h) {
@@ -363,6 +368,16 @@ static void draw_game_over(const char* msg) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+static void init_stars() {
+    starVertices.clear();
+    srand(42);
+    for (int i = 0; i < 100000; ++i) {
+        starVertices.push_back(rand() % 1000 - 500);
+        starVertices.push_back(rand() % 1000 - 500);
+        starVertices.push_back(rand() % 1000 - 500);
+    }
+}
+
 static void draw_stars() {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -389,15 +404,4 @@ static void draw_stars() {
     glutSolidSphere(100, 64, 64);
 
     glPopMatrix();
-}
-
-
-static void init_stars() {
-    starVertices.clear();
-    srand(42);
-    for (int i = 0; i < 100000; ++i) {
-        starVertices.push_back(rand() % 1000 - 500);
-        starVertices.push_back(rand() % 1000 - 500);
-        starVertices.push_back(rand() % 1000 - 500);
-    }
 }
