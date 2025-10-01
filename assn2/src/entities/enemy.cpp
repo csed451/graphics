@@ -1,8 +1,13 @@
 #include <iostream>
+#include <cmath>
 
 #include "globals.h"
 #include "enemy.h"
 #include "player.h"
+
+// inline bool is_outside_window(glm::vec3 pos) {
+//     return pos.x > MAX_COORD || pos.x < -MAX_COORD || pos.y > MAX_COORD  || pos.y < -MAX_COORD;
+// }
 
 void Enemy::init_vertices() {
     // outer octagon Vertices
@@ -25,16 +30,22 @@ void Enemy::init_vertices() {
 }
 
 void Enemy::update(float deltaTime, Player* player) {
-    translate(glm::vec3(moveDir * moveSpeed * deltaTime, 0, 0));
-    float x = get_pos().x;
-    if (x > moveLimit) {
-        translate(glm::vec3(moveLimit - x, 0, 0));
+    if (!get_isActive())
+        return;
+
+    animationTime += deltaTime;
+    
+    translate(glm::vec3(0, moveDir * moveSpeed * deltaTime, 0));
+
+    float y = get_pos().y;
+    if (MAX_COORD < y) {
+        translate(glm::vec3(0, MAX_COORD - y, 0));
         moveDir = -1.0f;
-    } else if (x < -moveLimit) {
-        translate(glm::vec3(-moveLimit - x, 0, 0));
+    } else if (y < moveLimit) {
+        translate(glm::vec3(0, moveLimit - y, 0));
         moveDir = 1.0f;
     }
-    
+
     for (auto& canon : player->get_canons()){
         ObjectPool<Attack> & pool = canon->get_attackPool();
         for (auto& attack : pool.get_pool()) {
@@ -53,6 +64,10 @@ void Enemy::update(float deltaTime, Player* player) {
     if(is_destroyed()){
         set_isActive(false);
         set_isVisible(false);
+        leftUpperArm.set_isActive(false);
+        leftUpperArm.set_isVisible(false);
+        rightUpperArm.set_isActive(false);
+        rightUpperArm.set_isVisible(false);
         for (auto &b : bulletPool.get_pool()) 
             if(b->get_isActive())
                 b->set_isActive(false);
@@ -64,6 +79,9 @@ void Enemy::update(float deltaTime, Player* player) {
         shootCooldown = shootInterval;
     }
     bulletPool.update(deltaTime);
+
+    leftUpperArm.update(deltaTime);
+    rightUpperArm.update(deltaTime);
 }
 
 void Enemy::draw_shape() const {
@@ -71,13 +89,13 @@ void Enemy::draw_shape() const {
     glDisable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    // outer octagon
-    glColor3f(0.85f, 0.15f, 0.15f);
+    float glow = 0.5f + 0.5f * std::sin(animationTime * 3.2f + horizontalPhase * 0.7f);
+
+    glColor3f(0.7f + 0.3f * glow, 0.15f + 0.25f * (1.0f - glow), 0.25f * glow);
     glVertexPointer(2, GL_FLOAT, 0, outerVertices.data());
     glDrawArrays(GL_TRIANGLE_FAN, 0, outerVertices.size() / 2);
 
-    // core Vertices
-    glColor3f(1.0f, 0.8f, 0.2f);
+    glColor3f(1.0f, 0.65f + 0.25f * glow, 0.2f + 0.5f * (1.0f - glow));
     glVertexPointer(2, GL_FLOAT, 0, innerVertices.data());
     glDrawArrays(GL_TRIANGLE_FAN, 0, innerVertices.size() / 2);
 
@@ -89,6 +107,9 @@ void Enemy::draw() const {
     Object::draw();
     bulletPool.draw();
     draw_health_bar();
+
+    leftUpperArm.draw();
+    rightUpperArm.draw();
 }
 
 void Enemy::draw_health_bar() const{
@@ -155,7 +176,7 @@ void Enemy::shoot(){
 }
 
 void Enemy::reset(){
-    init(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2));
+    init(spawnPosition, 0, RIGHT, glm::vec3(2));
 
     for (auto &b : bulletPool.get_pool()) 
         if(b->get_isActive())
@@ -163,8 +184,15 @@ void Enemy::reset(){
 
     heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
-    moveDir = 1.0f;
+    moveDir = -1.0f;
     counter = true;
+    animationTime = 0.0f;
+    leftUpperArm.reset_pose();
+    rightUpperArm.reset_pose();
+    leftUpperArm.set_isActive(true);
+    leftUpperArm.set_isVisible(true);
+    rightUpperArm.set_isActive(true);
+    rightUpperArm.set_isVisible(true);
     set_isActive(true);
     set_isVisible(true);  
 }
