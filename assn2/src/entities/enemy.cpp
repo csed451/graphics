@@ -28,8 +28,6 @@ void Enemy::init_vertices() {
 void Enemy::update(float deltaTime, Player* player) {
     if (!get_isActive())
         return;
-
-    animationTime += deltaTime;
     
     translate(glm::vec3(0, moveDir * moveSpeed * deltaTime, 0));
 
@@ -60,10 +58,9 @@ void Enemy::update(float deltaTime, Player* player) {
     if(is_destroyed()){
         set_isActive(false);
         set_isVisible(false);
-        leftUpperArm.set_isActive(false);
-        leftUpperArm.set_isVisible(false);
-        rightUpperArm.set_isActive(false);
-        rightUpperArm.set_isVisible(false);
+        healthBar.deactivate();
+        leftUpperArm.deactivate();
+        rightUpperArm.deactivate();
         for (auto &b : bulletPool.get_pool()) 
             if(b->get_isActive())
                 b->set_isActive(false);
@@ -101,57 +98,10 @@ void Enemy::draw_shape() const {
 
 void Enemy::draw() const {
     Object::draw();
+    healthBar.draw();
     bulletPool.draw();
-    draw_health_bar();
-
     leftUpperArm.draw();
     rightUpperArm.draw();
-}
-
-void Enemy::draw_health_bar() const{
-    int w = glutGet(GLUT_WINDOW_WIDTH);
-    int h = glutGet(GLUT_WINDOW_HEIGHT);
-    
-    // initialize OpenGL
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix(); 
-    glLoadIdentity();
-    glOrtho(0, w, 0, h, -1.0, 1.0);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix(); 
-    glLoadIdentity();
-
-    // Draw health bar
-    float bar_width = w * 0.8f;
-    float bar_height = 20;
-    float start_x = (w - bar_width) / 2.0f;
-    float start_y = h - bar_height - 10.0f;
-    float health_ratio = (float) heart / ENEMY_MAX_HEART;
-
-    // health bar background
-    glColor3f(0.3f, 0.3f, 0.3f);
-    glBegin(GL_QUADS);
-        glVertex2f(start_x, start_y);
-        glVertex2f(start_x + bar_width, start_y);
-        glVertex2f(start_x + bar_width, start_y + bar_height);
-        glVertex2f(start_x, start_y + bar_height);
-    glEnd();
-
-    // Remaining health bar
-    glColor3f(1.0f, health_ratio, 0.0f);
-    glBegin(GL_QUADS);
-        glVertex2f(start_x, start_y);
-        glVertex2f(start_x + bar_width * health_ratio, start_y);
-        glVertex2f(start_x + bar_width * health_ratio, start_y + bar_height);
-        glVertex2f(start_x, start_y + bar_height);
-    glEnd();
-    
-    // Restore OpenGL state
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
 }
 
 void Enemy::shoot(){
@@ -173,22 +123,19 @@ void Enemy::shoot(){
 
 void Enemy::reset(){
     init(spawnPosition, 0, RIGHT, glm::vec3(2));
+    set_isActive(true);
+    set_isVisible(true);  
 
     for (auto &b : bulletPool.get_pool()) 
         if(b->get_isActive())
             bulletPool.release(b);
 
-    heart = ENEMY_MAX_HEART;
     shootCooldown = shootInterval;
+    heart = ENEMY_MAX_HEART;
     moveDir = -1.0f;
     counter = true;
-    animationTime = 0.0f;
-    leftUpperArm.reset_pose();
-    rightUpperArm.reset_pose();
-    leftUpperArm.set_isActive(true);
-    leftUpperArm.set_isVisible(true);
-    rightUpperArm.set_isActive(true);
-    rightUpperArm.set_isVisible(true);
-    set_isActive(true);
-    set_isVisible(true);  
+    
+    leftUpperArm.reset();
+    rightUpperArm.reset();
+    healthBar.reset();
 }

@@ -55,9 +55,17 @@ void Hand::update(float deltaTime) {
     currentScale = pulse;
 }
 
-void Hand::reset_pose() {
+void Hand::deactivate() {
+    set_isActive(false);
+    set_isVisible(false);
+}
+
+void Hand::reset() {
     init(initialPos, initialAngle, initialAxis, initialSize, initialCenter);
+    set_isActive(true);
+    set_isVisible(true);
     animationTime = 0.0f;
     currentSwing = 0.0f;
     currentScale = 1.0f;
 }
+

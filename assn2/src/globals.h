@@ -7,6 +7,7 @@
 
 
 constexpr float MAX_COORD = 50;
+constexpr int ENEMY_MAX_HEART = 10;
 constexpr int FPS = 60;
 
 constexpr float TWO_PI  = 6.2831853f;

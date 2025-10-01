@@ -34,5 +34,6 @@ public:
 
     void draw_shape() const override;
     void update(float deltaTime);
-    void reset_pose();
+    void deactivate();
+    void reset();
 };

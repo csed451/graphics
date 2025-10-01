@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     enemies.push_back(new Enemy(glm::vec3(-20, 50, 0), 0, DOWN, glm::vec3(2)));
-    // enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
+    enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
     glutMainLoop();

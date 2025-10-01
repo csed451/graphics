@@ -56,9 +56,17 @@ void Lower::update(float deltaTime) {
     hand.update(deltaTime);
 }
 
-void Lower::reset_pose() {
+void Lower::deactivate() {
+    set_isActive(false);
+    set_isVisible(false);
+    hand.deactivate();
+}
+
+void Lower::reset() {
     init(initialPos, initialAngle, initialAxis, initialSize, initialCenter);
+    set_isActive(true);
+    set_isVisible(true);
     animationTime = 0.0f;
     currentSwing = 0.0f;
-    hand.reset_pose();
+    hand.reset();
 }

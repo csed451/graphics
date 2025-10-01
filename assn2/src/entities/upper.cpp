@@ -58,9 +58,17 @@ void Upper::draw() const {
     lowerArm.draw();
 }
 
-void Upper::reset_pose() {
+void Upper::deactivate() {
+    set_isActive(false);
+    set_isVisible(false);
+    lowerArm.deactivate();
+}
+
+void Upper::reset() {
     init(initialPos, initialAngle, initialAxis, initialSize, initialCenter);
+    set_isActive(true);
+    set_isVisible(true);
     animationTime = 0.0f;
     currentSwing = 0.0f;
-    lowerArm.reset_pose();
+    lowerArm.reset();
 }

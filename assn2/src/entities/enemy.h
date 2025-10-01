@@ -4,11 +4,11 @@
 #include <glm/gtc/constants.hpp>
 #include "object.h"
 #include "objectPool.h"
+#include "healthbar.h"
 #include "bullet.h"
 #include "upper.h"
 
 
-const int ENEMY_MAX_HEART = 10;
 
 class Player;
 class Enemy : public Object{
@@ -16,7 +16,10 @@ private:
     std::vector<float> outerVertices;
     std::vector<float> innerVertices;
     ObjectPool<Bullet> bulletPool;    
+    glm::vec3 spawnPosition;
     void init_vertices();
+
+    Healthbar healthBar;
     Upper rightUpperArm;
     Upper leftUpperArm;
     
@@ -26,13 +29,8 @@ private:
     const float outerR = 1.4f;
     const float coreR  = 0.40f;
     
-    int heart = ENEMY_MAX_HEART;
-    glm::vec3 spawnPosition;
-
-    float horizontalAmplitude = 4.0f;
-    float horizontalPhase;
     float shootCooldown = shootInterval; 
-    float animationTime = 0.0f;
+    int heart = ENEMY_MAX_HEART;
     float moveDir = -1.0f;
     bool counter = true;   
     
@@ -44,11 +42,10 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center), 
+        healthBar(glm::vec3(0, 2.5f, 0), 0, UP, glm::vec3(1), ZERO, this),
         rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
         leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f),
-        horizontalPhase(glm::abs(_pos.x) * 0.1f + _pos.y * 0.05f),
-        spawnPosition(_pos),
-        bulletPool(200) {
+        spawnPosition(_pos), bulletPool(200) {
         set_hitboxRadius(outerR);
         init_vertices();        
     };  
@@ -61,7 +58,7 @@ public:
     
     inline void take_damage(int damage) { heart = std::max(0, heart - damage); }
     inline bool is_destroyed() const { return heart <= 0; }
-    void draw_health_bar() const;    
+    int get_heart() const { return heart; }
 
     void shoot();
     void reset();
