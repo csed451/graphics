@@ -30,6 +30,8 @@ public:
     }
 
     void update(float deltaTime) {
+        if (!get_isActive())
+            return;
         rotate_world(velocity * deltaTime, FORWARD);
     }
 };

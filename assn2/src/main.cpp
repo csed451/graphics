@@ -1,5 +1,7 @@
-#include <iostream>
+#include <algorithm>
 #include <cstdlib>
+#include <iostream>
+#include <vector>
 
 #include "globals.h"
 #include "player.h"
@@ -9,7 +11,7 @@ enum class GameState { Playing, GameOver, Exiting };
 
 GameState gameState = GameState::Playing;
 Player* player = nullptr;
-Enemy* enemy = nullptr;
+std::vector<Enemy*> enemies;
 int prevTime = 0;
 
 std::vector<float> starVertices;
@@ -62,12 +64,14 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
-    enemy = new Enemy(glm::vec3(0,30,0), 0, RIGHT, glm::vec3(2));
+    enemies.push_back(new Enemy(glm::vec3(-20, 50, 0), 0, DOWN, glm::vec3(2)));
+    // enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
     glutMainLoop();
     
-    delete enemy; 
+    for (auto enemy : enemies)
+        delete enemy;
     delete player; 
     
     return 0;
@@ -90,10 +94,14 @@ void display (void) {
 
     if (gameState == GameState::GameOver) {
         draw_stars();
-        const char* msg = enemy->is_destroyed() ? "GAME WIN!" : "GAME OVER!";
+        bool allDestroyed = std::all_of(enemies.begin(), enemies.end(), [](const Enemy* e) {
+            return e->is_destroyed();
+        });
+        const char* msg = allDestroyed ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
     } else {
-        enemy->draw();
+        for (auto enemy : enemies)
+            enemy->draw();
     }
     
     glutSwapBuffers();
@@ -134,10 +142,16 @@ void update(void) {
         return;
     }
     
-    player->update(deltaTime, enemy);
-    enemy->update(deltaTime, player);
+    player->update(deltaTime, enemies);
 
-    if (enemy->is_destroyed() || !player->get_isActive()) {
+    for (auto enemy : enemies)
+        enemy->update(deltaTime, player);
+
+    bool allDestroyed = std::all_of(enemies.begin(), enemies.end(), [](const Enemy* e) {
+        return e->is_destroyed();
+    });
+
+    if (allDestroyed || !player->get_isActive()) {
         gameState = GameState::GameOver;
         init_stars();
         player->set_isActive(true);
@@ -149,7 +163,14 @@ void update(void) {
                 if (attack->get_isActive())
                     pool.release(attack); 
         }
- 
+
+        for (auto enemy : enemies) {
+            ObjectPool<Bullet>& pool = enemy->get_bulletPool();
+            for (auto bullet : pool.get_pool())
+                if (bullet->get_isActive())
+                    pool.release(bullet);
+        }
+
         /* set camera pos for animation */
         glm::vec3 pos = player->get_pos();
         cameraTarget.x = pos.x;
@@ -272,8 +293,10 @@ void reset_game() {
     prevTime = glutGet(GLUT_ELAPSED_TIME);
 
     gameState = GameState::Playing;
+    starVertices.clear();
 
-    enemy->reset();
+    for (auto enemy : enemies)
+        enemy->reset();
     player->reset();
 
 
@@ -370,6 +393,7 @@ static void draw_stars() {
 
 
 static void init_stars() {
+    starVertices.clear();
     srand(42);
     for (int i = 0; i < 100000; ++i) {
         starVertices.push_back(rand() % 1000 - 500);

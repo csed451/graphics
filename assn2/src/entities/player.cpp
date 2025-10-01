@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "player.h"
 #include "enemy.h"
 
@@ -25,7 +27,7 @@ void Player::draw_shape() const {
     }
 }
 
-void Player::update(float deltaTime, Enemy *enemy) {
+void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {
     if (!get_isActive())
         return; 
 
@@ -54,19 +56,29 @@ void Player::update(float deltaTime, Enemy *enemy) {
             isRecovery = false; 
     }
     else {
-        ObjectPool<Bullet> & pool = enemy->get_bulletPool();
-        for (auto& bullet : pool.get_pool()) {
-            if (bullet->get_isActive()) {
+        for (auto enemy : enemies) {
+            if (!enemy || !enemy->get_isActive())
+                continue;
+
+            ObjectPool<Bullet>& pool = enemy->get_bulletPool();
+            for (auto& bullet : pool.get_pool()) {
+                if (!bullet->get_isActive())
+                    continue;
+
                 if (check_collision(bullet)) {
-                    heart -= 1;
-                    hearts[heart].set_isActive(false);
+                    heart = std::max(0, heart - 1);
+                    if (heart < static_cast<int>(hearts.size()))
+                        hearts[heart].set_isActive(false);
+                    if (heart < static_cast<int>(orbits.size()))
+                        orbits[heart].set_isActive(false);
                     pool.release(bullet);
                     isRecovery = true;
                     recoveryCooldown = recoveryInterval;
-                    orbits[heart].set_isActive(false);
                     break;
                 }
             }
+
+            if (isRecovery) break;
         }
     }
 

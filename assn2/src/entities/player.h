@@ -61,7 +61,7 @@ public:
     void set_isRecovery(bool b) { isRecovery = b; }
     void set_isAccelerating(bool b) { isAccelerating = b; }
 
-    void update(float deltaTime, Enemy *enemy);
+    void update(float deltaTime, const std::vector<Enemy*>& enemies);
 
     void draw() const;
     void draw_shape() const override;
