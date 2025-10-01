@@ -1,5 +1,5 @@
 .vscode
-**/AGENT.md
+**/AGENTS.md
 
 # ignore build files
 testbed_wsl
