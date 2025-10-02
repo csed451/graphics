@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
     enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
+
     glutMainLoop();
     
     for (auto enemy : enemies)
@@ -243,6 +244,8 @@ void reset_game() {
     init_camera();
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     gameState = GameState::Playing;
+    playerDirection = ZERO;
+    playerPrevDirection = ZERO;
     starVertices.clear();
     for (auto enemy : enemies)
         enemy->reset();
@@ -295,6 +298,7 @@ static void check_and_handle_game_over() {
         cameraTarget.x = pos.x;
         cameraTarget.y = pos.y + 5;
         cameraPos.x = pos.x;
+        cameraPos.y = pos.y + 5;
         update_camera();
 
         playerSpeed = PLAYER_INITIAL_SPEED;

@@ -110,8 +110,14 @@ void Player::reset() {
     recoveryCooldown = 0;
     
     for (auto& h : hearts) h.set_isActive(true);
-    heart = MAX_HEART;     
-    for (auto& o : orbits) o.set_isActive(true);
+    heart = MAX_HEART;
+    int i = 1;
+    for (auto& o : orbits) {
+        o.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));
+        o.rotate_world(360.0f/heart * (i-1), FORWARD);
+        o.set_isActive(true);
+        i++;
+    }
 
  
     set_isActive(true);
