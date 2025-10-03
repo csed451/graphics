@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "player.h"
-#include "enemy.h"
+#include "game/entities/enemy.h"
 
 void Player::draw_shape() const {
     glColor4f(0, 1, 0, isRecovery ? 0.2 : 1);
@@ -10,7 +10,7 @@ void Player::draw_shape() const {
         glVertex3f(-1, -1, 0);
         glVertex3f(1, -1, 0);
     glEnd();
-    if(!isShooting && !isRecovery && direction != ZERO || isAccelerating) {
+    if ((!isShooting && !isRecovery && direction != ZERO) || isAccelerating) {
         glColor3f(1, 0, 0);
         glBegin(GL_QUADS);
             glVertex3f(-1.2, -1.8, 0);

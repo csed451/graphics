@@ -1,7 +1,11 @@
-#include "object.h"
+#include "core/base/object.h"
+#include "core/globals/camera.h"
 
 Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center)
-: modelMatrix(glm::mat4(1.0f)), center(_center), isLocal(true), parent(nullptr) {
+: modelMatrix(glm::mat4(1.0f)),
+  center(_center),
+  parent(nullptr),
+  isLocal(true) {
     init(_pos, _angle, _axis, _size, _center);
 }
 
@@ -45,7 +49,7 @@ void Object::set_parent(Object* _parent, bool fix) {
     parent = _parent;
 }
 
-void Object::init(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center) {
+void Object::init(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 /*_center*/) {
     modelMatrix = glm::mat4(1.0f);
     translate_world(_pos);
     rotate_local(_angle, _axis);

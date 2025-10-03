@@ -3,9 +3,15 @@
 #include <iostream>
 #include <vector>
 
-#include "globals.h"
-#include "player.h"
-#include "enemy.h"
+#include <GL/freeglut.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "core/globals/game_constants.h"
+#include "core/globals/camera.h"
+#include "game/entities/player.h"
+#include "game/entities/enemy.h"
 
 enum class GameState { Playing, GameOver, Exiting };
 
@@ -111,7 +117,7 @@ void display (void) {
     glutSwapBuffers();
 }
 
-void timer(int value) {
+void timer(int /*value*/) {
     update();
     glutPostRedisplay();
     glutTimerFunc(1000.0f / FPS, timer, 0);
@@ -136,7 +142,7 @@ void update(void) {
     check_and_handle_game_over();
 }
 
-void key_down(unsigned char key, int x, int y) {
+void key_down(unsigned char key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver) {
         if (key == 'r' || key == 'R') 
             reset_game();
@@ -156,7 +162,7 @@ void key_down(unsigned char key, int x, int y) {
     }
 }
 
-void special_key_down(int key, int x, int y) {
+void special_key_down(int key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 
@@ -184,7 +190,7 @@ void special_key_down(int key, int x, int y) {
     }
 }
 
-void key_up(unsigned char key, int x, int y) {
+void key_up(unsigned char key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 
@@ -195,7 +201,7 @@ void key_up(unsigned char key, int x, int y) {
     }
 }
 
-void special_key_up(int key, int x, int y) {
+void special_key_up(int key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 

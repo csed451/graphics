@@ -33,12 +33,15 @@ public:
     }
 
     void update(float deltaTime) {
-        for (auto obj : pool)
-            if (obj->get_isActive())
-                if (is_outside_window(obj->get_pos()))
+        for (auto obj : pool) {
+            if (obj->get_isActive()) {
+                if (is_outside_window(obj->get_pos())) {
                     release(obj);
-                else
+                } else {
                     obj->update(deltaTime);
+                }
+            }
+        }
     }
 
     void draw() const {

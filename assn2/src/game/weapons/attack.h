@@ -1,6 +1,6 @@
 #pragma once
 
-#include "object.h"
+#include "core/base/object.h"
 
 class Attack : public Object {
 private:

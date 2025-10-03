@@ -1,14 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <glm/gtc/constants.hpp>
-#include "object.h"
-#include "objectPool.h"
-#include "healthbar.h"
-#include "bullet.h"
-#include "upper.h"
-
-
+#include "core/base/object.h"
+#include "core/base/object_pool.h"
+#include "game/ui/healthbar.h"
+#include "game/weapons/bullet.h"
+#include "game/attachments/upper.h"
 
 class Player;
 class Enemy : public Object{
@@ -42,10 +41,11 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center), 
+        bulletPool(200),
+        spawnPosition(_pos),
         healthBar(glm::vec3(0, 2.5f, 0), 0, UP, glm::vec3(1), ZERO, this),
         rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
-        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f),
-        spawnPosition(_pos), bulletPool(200) {
+        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f) {
         set_hitboxRadius(outerR);
         init_vertices();        
     };  

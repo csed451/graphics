@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "globals.h"
+#include "core/globals/game_constants.h"
 
 class Object {
 private:
@@ -17,6 +17,7 @@ private:
     float hitboxRadius = 1;
 public:
     Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
+    virtual ~Object() = default;
     
     /* getter */
     glm::mat4 get_modelMatrix() const { return modelMatrix; }
@@ -59,7 +60,7 @@ public:
     void scale_world(glm::vec3 v);
 
     
-    void update(float deltaTime) {};
+    virtual void update(float /*deltaTime*/) {};
     void draw() const;
     virtual void draw_shape() const = 0;
 

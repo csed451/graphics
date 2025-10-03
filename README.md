@@ -14,8 +14,8 @@ The repository is organized into the following subdirectories:
 graphics
    ├── include/
    ├── assn1/
-   │   ├── src/         # assn1 source code
    │   ├── docs/        # assn1 documents
+   │   ├── src/         # assn1 source code
    │   └── README.md    # assn1 description
    ├── assn2/
    ├── assn3/

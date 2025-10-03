@@ -1,10 +1,15 @@
 #include "healthbar.h"
-#include "enemy.h"
+#include "game/entities/enemy.h"
 
 Healthbar::Healthbar(
     glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center, Object* _parent
-) : initialPos(_pos), initialAngle(_angle), initialAxis(_axis), initialSize(_size), initialCenter(_center),
-    Object(_pos, _angle, _axis, _size, _center), parent(static_cast<Enemy*>(_parent)) { 
+) : Object(_pos, _angle, _axis, _size, _center),
+    initialPos(_pos),
+    initialAngle(_angle),
+    initialAxis(_axis),
+    initialSize(_size),
+    initialCenter(_center),
+    parent(static_cast<Enemy*>(_parent)) { 
     if (_parent) set_parent(_parent);
 }
 
@@ -35,6 +40,7 @@ void Healthbar::draw_shape() const {
 }
 
 void Healthbar::update(float deltaTime) {
+    (void)deltaTime;
     if (!get_isActive())
         return;
 }

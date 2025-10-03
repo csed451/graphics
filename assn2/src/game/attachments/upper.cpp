@@ -16,16 +16,16 @@ Upper::Upper(
     float _lowerSwingFrequency, 
     float _lowerPhaseOffset
 ) : Object(_pos, _angle, _axis, _size, _center),
-    swingAmplitude(_swingAmplitude), 
-    swingFrequency(_swingFrequency), 
+    lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this,
+             _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f),
+    swingAmplitude(_swingAmplitude),
+    swingFrequency(_swingFrequency),
     phaseOffset(_phaseOffset),
-    initialPos(_pos), 
-    initialAngle(_angle), 
-    initialAxis(_axis), 
-    initialSize(_size), 
-    initialCenter(_center),
-    lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this, 
-        _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f) {
+    initialPos(_pos),
+    initialAngle(_angle),
+    initialAxis(_axis),
+    initialSize(_size),
+    initialCenter(_center) {
     if (_parent) set_parent(_parent);
 }
 
