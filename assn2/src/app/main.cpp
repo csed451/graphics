@@ -117,7 +117,7 @@ void display (void) {
     glutSwapBuffers();
 }
 
-void timer(int value) {
+void timer(int /*value*/) {
     update();
     glutPostRedisplay();
     glutTimerFunc(1000.0f / FPS, timer, 0);
@@ -142,7 +142,7 @@ void update(void) {
     check_and_handle_game_over();
 }
 
-void key_down(unsigned char key, int x, int y) {
+void key_down(unsigned char key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver) {
         if (key == 'r' || key == 'R') 
             reset_game();
@@ -162,7 +162,7 @@ void key_down(unsigned char key, int x, int y) {
     }
 }
 
-void special_key_down(int key, int x, int y) {
+void special_key_down(int key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 
@@ -190,7 +190,7 @@ void special_key_down(int key, int x, int y) {
     }
 }
 
-void key_up(unsigned char key, int x, int y) {
+void key_up(unsigned char key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 
@@ -201,7 +201,7 @@ void key_up(unsigned char key, int x, int y) {
     }
 }
 
-void special_key_up(int key, int x, int y) {
+void special_key_up(int key, int /*x*/, int /*y*/) {
     if (gameState == GameState::GameOver)
         return;
 

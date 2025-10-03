@@ -3,39 +3,57 @@ Simple 2D shooting game enhanced with hierarchical animation.
 
 ## End-User Guide
 
-### 1. Compilation
-Move to the src directory (graphics/assn2/src) and run one of the provided g++ commands.  
-If successful, an executable named `main` is generated in the same directory.
+### 1. Build & Run
+Move to the src directory (graphics/assn2/src) and run one of the provided Makefile Command.
+
+From `./assn2/src/`:
+- `make` (or `make all`): build the `main` executable into `assn2/src/main`.
+- `make run`: build (if needed) and launch the game.
+- `make clean`: remove `build/` artifacts and `main`.
+
+<details>
+<summary>If you want, you can compile and execute directly with the command below.</summary>
+
 ```bash
 # on graphics/assn2/src
 cd ./assn2/src
 
-# Using WildCard
-g++ main.cpp base/*.cpp entities/*.cpp -o main \
-    -I. -Ibase -Ientities -I../../include \
+g++ app/main.cpp \
+    core/base/object.cpp \
+    game/entities/player.cpp \
+    game/entities/enemy.cpp \
+    game/weapons/attack.cpp \
+    game/weapons/canon.cpp \
+    game/weapons/bullet.cpp \
+    game/attachments/upper.cpp \
+    game/attachments/lower.cpp \
+    game/attachments/hand.cpp \
+    game/ui/healthbar.cpp \
+    -o main \
+    -I. -I../../include \
     -lGL -lGLEW -lglut
-```
 
-### 2. Execution
-Run:
-```bash
 ./main
 ```
 
-### 3. Controls
-Movement:
-- Arrow Up: Move up
-- Arrow Down: Move down
-- Arrow Left: Move left
-- Arrow Right: Move right
+</details>
 
-Attack:
-- Space (hold): Continuous fire
+<br>
+
+### 2. Controls
+Movement:
+- Arrow keys
+
+Combat:
+- Space (hold): fire
 
 Game Over:
-- R / r: Restart
-- Q / q / ESC: Quit
+- R / r: restart
+- Q / q / ESC: quit
 
-### 4. Notes
+
+<br>
+
+### 3 Notes
 Ensure OpenGL, GLEW, and GLUT development packages are installed.
 For additional details, refer to the [main project README](../README.md).
