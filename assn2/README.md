@@ -11,7 +11,9 @@ From `./assn2/src/`:
 - `make run`: build (if needed) and launch the game.
 - `make clean`: remove `build/` artifacts and `main`.
 
-<details>
+<!-- <details> -->
+<br>
+
 <summary>If you want, you can compile and execute directly with the command below.</summary>
 
 ```bash
@@ -36,24 +38,24 @@ g++ app/main.cpp \
 ./main
 ```
 
-</details>
+<!-- </details> -->
 
 <br>
 
+---
 ### 2. Controls
-Movement:
-- Arrow keys
+Movement: **Arrow keys**
 
-Combat:
-- Space (hold): fire
+Combat: **Space (hold)** > fire
 
-Game Over:
-- R / r: restart
-- Q / q / ESC: quit
+Game Over: 
+- **R / r**: restart
+- **Q / q / ESC**: quit
 
 
 <br>
 
+---
 ### 3 Notes
 Ensure OpenGL, GLEW, and GLUT development packages are installed.
 For additional details, refer to the [main project README](../README.md).
