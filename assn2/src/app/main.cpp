@@ -3,9 +3,15 @@
 #include <iostream>
 #include <vector>
 
-#include "globals.h"
-#include "player.h"
-#include "enemy.h"
+#include <GL/freeglut.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "core/globals/game_constants.h"
+#include "core/globals/camera.h"
+#include "game/entities/player.h"
+#include "game/entities/enemy.h"
 
 enum class GameState { Playing, GameOver, Exiting };
 

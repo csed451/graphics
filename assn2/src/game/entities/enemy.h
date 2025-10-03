@@ -1,14 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 #include <glm/gtc/constants.hpp>
-#include "object.h"
-#include "objectPool.h"
-#include "healthbar.h"
-#include "bullet.h"
-#include "upper.h"
-
-
+#include "core/base/object.h"
+#include "core/base/object_pool.h"
+#include "game/ui/healthbar.h"
+#include "game/weapons/bullet.h"
+#include "game/attachments/upper.h"
 
 class Player;
 class Enemy : public Object{

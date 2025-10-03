@@ -1,4 +1,5 @@
-#include "object.h"
+#include "core/base/object.h"
+#include "core/globals/camera.h"
 
 Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center)
 : modelMatrix(glm::mat4(1.0f)), center(_center), isLocal(true), parent(nullptr) {

@@ -1,4 +1,5 @@
 #include "canon.h"
+#include <glm/gtc/quaternion.hpp>
 
 void Canon::draw_shape() const {
     glColor3f(0.5, 0.5, 0.5);

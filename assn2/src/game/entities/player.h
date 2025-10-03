@@ -2,10 +2,10 @@
 
 #include <vector>
 
-#include "object.h"
-#include "canon.h"
-#include "heart.h"
-#include "orbit.h"
+#include "core/base/object.h"
+#include "game/weapons/canon.h"
+#include "game/ui/heart.h"
+#include "game/attachments/orbit.h"
 
 class Enemy;
 

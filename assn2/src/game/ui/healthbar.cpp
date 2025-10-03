@@ -1,5 +1,5 @@
 #include "healthbar.h"
-#include "enemy.h"
+#include "game/entities/enemy.h"
 
 Healthbar::Healthbar(
     glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center, Object* _parent

@@ -1,7 +1,7 @@
 #include <algorithm>
 
 #include "player.h"
-#include "enemy.h"
+#include "game/entities/enemy.h"
 
 void Player::draw_shape() const {
     glColor4f(0, 1, 0, isRecovery ? 0.2 : 1);

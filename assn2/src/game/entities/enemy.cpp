@@ -1,9 +1,9 @@
 #include <iostream>
 #include <cmath>
 
-#include "globals.h"
+#include "core/globals/game_constants.h"
 #include "enemy.h"
-#include "player.h"
+#include "game/entities/player.h"
 
 void Enemy::init_vertices() {
     // outer octagon Vertices
