@@ -9,6 +9,7 @@ BIN := main
 SRC_DIRS := \
 	app \
 	core/base \
+	core/render \
 	game/entities \
 	game/weapons \
 	game/attachments \

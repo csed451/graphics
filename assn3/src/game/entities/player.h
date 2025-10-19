@@ -1,11 +1,13 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "core/base/object.h"
 #include "game/weapons/canon.h"
 #include "game/ui/heart.h"
 #include "game/attachments/orbit.h"
+#include "core/render/mesh.h"
 #include "core/base/scene_context.h"
 
 class Enemy;
@@ -31,6 +33,8 @@ private:
     int heart = MAX_HEART;
 
     std::vector<Orbit> orbits;
+
+    std::shared_ptr<Mesh> mesh;
 public:
     Player(
         glm::vec3 _pos=ZERO, 
@@ -58,6 +62,7 @@ public:
                 root->add_child(&heartObj);
         }
 
+        mesh = load_mesh("assets/jet.obj");
     };
 
     std::vector<Canon*> get_canons() { return {&leftCanon, &rightCanon}; }

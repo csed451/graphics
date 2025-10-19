@@ -4,25 +4,23 @@
 #include "game/entities/enemy.h"
 
 void Player::draw_shape() const {
-    glColor4f(0, 1, 0, isRecovery ? 0.2 : 1);
-    glBegin(GL_TRIANGLES);
-        glVertex3f(0, 1, 0);
-        glVertex3f(-1, -1, 0);
-        glVertex3f(1, -1, 0);
-    glEnd();
-    if ((!isShooting && !isRecovery && direction != ZERO) || isAccelerating) {
-        glColor3f(1, 0, 0);
-        glBegin(GL_QUADS);
-            glVertex3f(-1.2, -1.8, 0);
-            glVertex3f(-0.3, -1.8, 0);
-            glVertex3f(-0.5, -1, 0);
+    if (mesh) {
+        glColor4f(0, 1, 0, isRecovery ? 0.2f : 1.0f);
+        GLfloat scaleFactor = 0.3f;
+        
+        // jet.obj is facing forward in -Z direction => rotates to fit the forward axis
+        glPushMatrix();
+        glScalef(scaleFactor, scaleFactor, scaleFactor);    
+        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+        glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+        mesh->draw();
+        glPopMatrix();
+    } else {
+        glColor4f(0, 1, 0, isRecovery ? 0.2f : 1.0f);
+        glBegin(GL_TRIANGLES);
+            glVertex3f(0, 1, 0);
             glVertex3f(-1, -1, 0);
-        glEnd();
-        glBegin(GL_QUADS);
-            glVertex3f(0.3, -1.8, 0);
-            glVertex3f(1.2, -1.8, 0);
             glVertex3f(1, -1, 0);
-            glVertex3f(0.5, -1, 0);
         glEnd();
     }
 }
