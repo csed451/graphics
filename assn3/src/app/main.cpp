@@ -15,16 +15,35 @@
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
+
 enum class GameState { Playing, GameOver, Exiting };
-
 GameState gameState = GameState::Playing;
-Player* player = nullptr;
-std::vector<Enemy*> enemies;
-int prevTime = 0;
 
-std::vector<float> starVertices;
+enum class RenderStyle { Opaque, Wireframe };
+RenderStyle currentStyle = RenderStyle::Opaque;
 
 SceneNode sceneRoot;
+
+void apply_render_style(RenderStyle style) {
+    switch (style) {
+    case RenderStyle::Opaque:                        
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glLineWidth(1.0f);
+        break;
+    case RenderStyle::Wireframe:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(-1.0f, -1.0f);
+        glLineWidth(1.2f);
+        break;
+    }
+}
+
+std::vector<float> starVertices;
+std::vector<Enemy*> enemies;
+Player* player = nullptr;
+int prevTime = 0;
 
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 constexpr float CAMERA_INITIAL_SPEED = 0.05f;
@@ -126,12 +145,15 @@ void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    
+    apply_render_style(currentStyle);
     sceneRoot.draw();
 
     if (gameState == GameState::GameOver) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         draw_stars();
         const char* msg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
+        apply_render_style(currentStyle);
     }
     
     glutSwapBuffers();
@@ -174,6 +196,12 @@ void key_down(unsigned char key, int /*x*/, int /*y*/) {
         switch (key) {
             case ' ': 
                 player->set_isShooting(true); 
+                break;
+            case 'w':
+            case 'W':
+                currentStyle = (currentStyle == RenderStyle::Opaque)
+                    ? RenderStyle::Wireframe
+                    : RenderStyle::Opaque;
                 break;
             case 27: // ESC
                 gameState = GameState::Exiting;
