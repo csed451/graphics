@@ -30,11 +30,11 @@ void Hand::draw_shape() const {
     glColor3f(0.9f, 0.9f, 0.9f);
     glBegin(GL_TRIANGLE_FAN);
         glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(-0.6f, 1.4f, 0.0f);
-        glVertex3f(-0.3f, 1.2f, 0.0f);
-        glVertex3f(0.0f, 1.8f, 0.0f);
-        glVertex3f(0.3f, 1.2f, 0.0f);
         glVertex3f(0.6f, 1.4f, 0.0f);
+        glVertex3f(0.3f, 1.2f, 0.0f);
+        glVertex3f(0.0f, 1.8f, 0.0f);
+        glVertex3f(-0.3f, 1.2f, 0.0f);
+        glVertex3f(-0.6f, 1.4f, 0.0f);
     glEnd();
 }
 
@@ -68,4 +68,3 @@ void Hand::reset() {
     currentSwing = 0.0f;
     currentScale = 1.0f;
 }
-

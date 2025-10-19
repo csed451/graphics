@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 void reshape (int w, int h) {
     glViewport (0, 0, w, h);    
     float aspect = (h == 0) ? 1.0f : static_cast<float>(w) / static_cast<float>(h);
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
