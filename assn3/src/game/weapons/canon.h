@@ -20,7 +20,6 @@ public:
     ) : Object(_pos, _angle, _axis, _size, _center), attackPool(50) {};
 
     void draw_shape() const override;
-    void draw() const;
     void update(float deltaTime);
 
     ObjectPool<Attack>& get_attackPool() { return attackPool; }

@@ -96,14 +96,6 @@ void Enemy::draw_shape() const {
     glPopAttrib();
 }
 
-void Enemy::draw() const {
-    Object::draw();
-    healthBar.draw();
-    bulletPool.draw();
-    leftUpperArm.draw();
-    rightUpperArm.draw();
-}
-
 void Enemy::shoot(){
     const int num_bullets = 20; 
     const float angle_step = 360.0f / num_bullets; 

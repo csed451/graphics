@@ -18,11 +18,6 @@ void Canon::update(float deltaTime) {
     shootCooldown -= deltaTime;
 }
 
-void Canon::draw() const {
-    Object::draw();
-    attackPool.draw();
-}
-
 void Canon::shoot() {
     if (shootCooldown <= 0) {
         Attack* a = attackPool.acquire();

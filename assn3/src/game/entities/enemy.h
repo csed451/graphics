@@ -54,7 +54,6 @@ public:
 
     void update(float deltaTime, Player* player);
     void draw_shape() const override;
-    void draw() const;
     
     inline void take_damage(int damage) { heart = std::max(0, heart - damage); }
     inline bool is_destroyed() const { return heart <= 0; }

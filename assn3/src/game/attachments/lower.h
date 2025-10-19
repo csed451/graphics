@@ -33,7 +33,6 @@ public:
         );
 
     void draw_shape() const override;
-    void draw() const;
     void update(float deltaTime);
     
     void deactivate();

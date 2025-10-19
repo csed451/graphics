@@ -53,11 +53,6 @@ void Upper::update(float deltaTime) {
     lowerArm.update(deltaTime);
 }
 
-void Upper::draw() const {
-    Object::draw();
-    lowerArm.draw();
-}
-
 void Upper::deactivate() {
     set_isActive(false);
     set_isVisible(false);

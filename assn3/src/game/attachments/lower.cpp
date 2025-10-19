@@ -37,11 +37,6 @@ void Lower::draw_shape() const {
     glEnd();
 }
 
-void Lower::draw() const {
-    Object::draw();
-    hand.draw();
-}
-
 void Lower::update(float deltaTime) {
     if (!get_isActive())
         return;

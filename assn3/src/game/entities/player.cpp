@@ -84,14 +84,6 @@ void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {
 
 }
 
-void Player::draw() const {
-    Object::draw();
-    leftCanon.draw();
-    rightCanon.draw();
-    for (auto& h : hearts) h.draw();
-    for (auto& o : orbits) o.draw();
-}
-
 void Player::reset() {
     init(ZERO, 0, UP, glm::vec3(2,2,2));
     

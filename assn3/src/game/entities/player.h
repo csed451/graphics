@@ -6,6 +6,7 @@
 #include "game/weapons/canon.h"
 #include "game/ui/heart.h"
 #include "game/attachments/orbit.h"
+#include "core/base/scene_context.h"
 
 class Enemy;
 
@@ -42,12 +43,19 @@ public:
         rightCanon.init(glm::vec3(0.8, 0.2, 0));
         leftCanon.set_parent(this);
         rightCanon.set_parent(this);
+        hearts.reserve(MAX_HEART);
+        orbits.reserve(MAX_HEART);
         for (int i = 1; i <= heart; i++) {
             hearts.emplace_back().init(glm::vec3(-MAX_COORD + i * 5, -MAX_COORD + 5, 0), 0, UP, glm::vec3(2));
             Orbit & orbit = orbits.emplace_back();
             orbit.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));
             orbit.rotate_world(360.0f/heart * (i-1), FORWARD);
             orbit.set_parent(this);
+        }
+
+        if (auto* root = get_scene_root()) {
+            for (auto& heartObj : hearts)
+                root->add_child(&heartObj);
         }
 
     };
@@ -62,8 +70,6 @@ public:
     void set_isAccelerating(bool b) { isAccelerating = b; }
 
     void update(float deltaTime, const std::vector<Enemy*>& enemies);
-
-    void draw() const;
     void draw_shape() const override;
 
     void reset();
