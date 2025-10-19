@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include "core/base/object.h"
+#include "core/base/scene_context.h"
 
 template <typename T>
 class ObjectPool {
@@ -24,10 +26,14 @@ public:
         T* obj = available.back();
         available.pop_back();
         obj->set_isActive(true);
+        if (auto* root = get_scene_root())
+            root->add_child(obj);
         return obj;
     }
 
     void release(T* obj) {
+        if (auto* root = get_scene_root())
+            obj->set_parent(nullptr);
         available.push_back(obj);
         obj->set_isActive(false);
     }
@@ -50,7 +56,10 @@ public:
     }
 
     ~ObjectPool() {
-        for (auto obj : pool) 
+        for (auto obj : pool) {
+            if (auto* root = get_scene_root())
+                obj->set_parent(nullptr);
             delete obj;
+        }
     }
 };

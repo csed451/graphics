@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
 #include "core/globals/game_constants.h"
 
 class Object {
@@ -15,9 +16,14 @@ private:
     bool isActive = true;
     bool isVisible = true;
     float hitboxRadius = 1;
+    std::vector<Object*> children;
+
+    void detach_from_parent();
+    void add_child_reference(Object* child);
+    void remove_child_reference(Object* child);
 public:
     Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
-    virtual ~Object() = default;
+    virtual ~Object();
     
     /* getter */
     glm::mat4 get_modelMatrix() const { return modelMatrix; }
@@ -65,4 +71,9 @@ public:
     virtual void draw_shape() const = 0;
 
     bool check_collision(Object* other);
+
+    void add_child(Object* child, bool fix=false);
+    void remove_child(Object* child);
+    void clear_children();
+    const std::vector<Object*>& get_children() const { return children; }
 };

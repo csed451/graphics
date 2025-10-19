@@ -10,6 +10,8 @@
 
 #include "core/globals/game_constants.h"
 #include "core/globals/camera.h"
+#include "core/base/scene_node.h"
+#include "core/base/scene_context.h"
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
@@ -21,6 +23,8 @@ std::vector<Enemy*> enemies;
 int prevTime = 0;
 
 std::vector<float> starVertices;
+
+SceneNode sceneRoot;
 
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 constexpr float CAMERA_INITIAL_SPEED = 0.05f;
@@ -66,7 +70,7 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 3D 렌더링을 준비하기 위해 깊이 버퍼를 활성화한다.
+    // Enable depth buffer to prepare for 3D rendering
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0f);
@@ -85,9 +89,15 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
+    set_scene_root(&sceneRoot);
+
     enemies.push_back(new Enemy(glm::vec3(-20, 50, 0), 0, DOWN, glm::vec3(2)));
     enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
+
+    sceneRoot.add_child(player);
+    for (auto enemy : enemies)
+        sceneRoot.add_child(enemy);
 
 
     glutMainLoop();
@@ -116,15 +126,12 @@ void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
    
-    player->draw();
+    sceneRoot.draw();
 
     if (gameState == GameState::GameOver) {
         draw_stars();
         const char* msg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
         draw_game_over(msg);
-    } else {
-        for (auto enemy : enemies)
-            enemy->draw();
     }
     
     glutSwapBuffers();

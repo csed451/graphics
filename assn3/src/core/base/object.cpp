@@ -1,5 +1,6 @@
 #include "core/base/object.h"
 #include "core/globals/camera.h"
+#include <algorithm>
 
 Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center)
 : modelMatrix(glm::mat4(1.0f)),
@@ -7,6 +8,11 @@ Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size,
   parent(nullptr),
   isLocal(true) {
     init(_pos, _angle, _axis, _size, _center);
+}
+
+Object::~Object() {
+    clear_children();
+    detach_from_parent();
 }
 
 glm::vec3 Object::get_pos() const {
@@ -36,17 +42,24 @@ glm::mat4 Object::get_finalMatrix() const {
 }
 
 void Object::set_parent(Object* _parent, bool fix) {
-    if (_parent) {
+    if (parent == _parent)
+        return;
+
+    if (parent)
+        parent->remove_child_reference(this);
+
+    parent = _parent;
+
+    if (parent) {
         if (fix)
-            modelMatrix = glm::inverse(_parent->get_finalMatrix()) * modelMatrix;
+            modelMatrix = glm::inverse(parent->get_finalMatrix()) * modelMatrix;
         isLocal = false;
+        parent->add_child_reference(this);
     }
     else {
         modelMatrix = get_finalMatrix();
         isLocal = true;
     }
-
-    parent = _parent;
 }
 
 void Object::init(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 /*_center*/) {
@@ -116,6 +129,10 @@ void Object::draw() const {
 
         draw_shape();
 
+        for (auto child : children)
+            if (child)
+                child->draw();
+
         glPopMatrix();
     }
 }
@@ -123,4 +140,49 @@ void Object::draw() const {
 bool Object::check_collision(Object* other) {
     float distance = glm::distance(get_pos(), other->get_pos());
     return distance <= get_hitboxRadius() + other->get_hitboxRadius(); 
+}
+
+void Object::add_child(Object* child, bool fix) {
+    if (!child || child == this)
+        return;
+    child->set_parent(this, fix);
+}
+
+void Object::remove_child(Object* child) {
+    if (!child)
+        return;
+    if (child->parent != this)
+        return;
+    child->detach_from_parent();
+}
+
+void Object::clear_children() {
+    std::vector<Object*> temp = children;
+    children.clear();
+    for (auto* child : temp)
+        if (child)
+            child->set_parent(nullptr);
+}
+
+void Object::detach_from_parent() {
+    if (!parent)
+        return;
+    parent->remove_child_reference(this);
+    parent = nullptr;
+    isLocal = true;
+}
+
+void Object::add_child_reference(Object* child) {
+    if (!child)
+        return;
+    if (std::find(children.begin(), children.end(), child) == children.end())
+        children.push_back(child);
+}
+
+void Object::remove_child_reference(Object* child) {
+    if (!child)
+        return;
+    auto it = std::remove(children.begin(), children.end(), child);
+    if (it != children.end())
+        children.erase(it, children.end());
 }
