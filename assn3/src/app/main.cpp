@@ -66,6 +66,15 @@ int main(int argc, char** argv) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // 3D 렌더링을 준비하기 위해 깊이 버퍼를 활성화한다.
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glClearDepth(1.0f);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    init_camera();
+
     /* connect call back function */
     glutReshapeFunc(reshape);
     glutDisplayFunc(display);
@@ -92,8 +101,12 @@ int main(int argc, char** argv) {
 
 void reshape (int w, int h) {
     glViewport (0, 0, w, h);    
+    float aspect = (h == 0) ? 1.0f : static_cast<float>(w) / static_cast<float>(h);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
+
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixf(glm::value_ptr(glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 100.0f)));
+    glLoadIdentity();
+    glLoadMatrixf(glm::value_ptr(projection));
     update_camera();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
