@@ -61,8 +61,6 @@ void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {
 
                 if (check_collision(bullet)) {
                     heart = std::max(0, heart - 1);
-                    if (heart < static_cast<int>(hearts.size()))
-                        hearts[heart].set_isActive(false);
                     if (heart < static_cast<int>(orbits.size()))
                         orbits[heart].set_isActive(false);
                     pool.release(bullet);
@@ -95,7 +93,6 @@ void Player::reset() {
     isAccelerating = false;
     recoveryCooldown = 0;
     
-    for (auto& h : hearts) h.set_isActive(true);
     heart = MAX_HEART;
     int i = 1;
     for (auto& o : orbits) {
