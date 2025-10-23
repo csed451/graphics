@@ -2,6 +2,7 @@
 
 #include "player.h"
 #include "game/entities/enemy.h"
+#include "core/globals/camera.h"
 
 void Player::draw_shape() const {
     if (get_mesh())
@@ -13,6 +14,38 @@ void Player::draw_shape() const {
         glVertex3f(-1, -1, 0);
         glVertex3f(1, -1, 0);
     glEnd();
+}
+
+void Player::draw() const {
+    if (get_isActive() && get_isVisible()) {
+        glPushMatrix();
+        glm::mat4 finalMatrix = get_finalMatrix();
+        glm::mat4 mvp = cameraMatrix * finalMatrix;
+        glLoadMatrixf(glm::value_ptr(mvp));
+
+
+        if (direction == UP)
+            glRotatef(-20.0f, 1.0f, 0.0f, 0.0f);
+        else if (direction == DOWN)
+            glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
+        else if (direction == RIGHT)
+            glRotatef(20.0f, 0.0f, 1.0f, 0.0f);
+        else if (direction == LEFT)
+            glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);
+
+        
+
+        if (get_mesh())
+            draw_mesh_internal();
+
+        draw_shape();
+
+        for (auto child : get_children())
+            if (child)
+                child->draw();
+
+        glPopMatrix();
+    }
 }
 
 glm::vec4 Player::resolve_mesh_tint() const {

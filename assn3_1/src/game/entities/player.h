@@ -74,5 +74,7 @@ public:
     void update(float deltaTime, const std::vector<Enemy*>& enemies);
     void draw_shape() const override;
 
+    void draw() const;
+
     void reset();
 };

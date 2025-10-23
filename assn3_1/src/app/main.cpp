@@ -74,6 +74,7 @@ static void draw_game_over(const char* msg);
 
 static void init_stars();
 static void draw_stars();
+static void draw_bounding_box();
 
 void set_projection_matrix(ProjectionType type) {
     glm::mat4 projection;
@@ -90,7 +91,6 @@ void set_projection_matrix(ProjectionType type) {
     }
     else if(type == ProjectionType::Thirdperson) {
         projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 500.0f);
-        // init_camera(glm::vec3(0, -500, 0), ZERO, UP);
         cameraTargetObject = player;
         cameraPos = glm::vec3(0, -20, 10);
     }
@@ -100,8 +100,7 @@ void set_projection_matrix(ProjectionType type) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glLoadMatrixf(glm::value_ptr(projection));
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    update_camera();
 }
 
 
@@ -169,28 +168,7 @@ void display (void) {
     apply_render_style(currentStyle);
     sceneRoot.draw();
 
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(cameraMatrix));
-    glBegin(GL_LINES);
-    // 앞면
-        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4);
-
-        // 뒷면
-        glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-
-        // 연결선
-        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-    glEnd();
+    draw_bounding_box();
 
     if (gameState == GameState::GameOver) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -497,4 +475,31 @@ static void draw_stars() {
     glutSolidSphere(100, 64, 64);
 
     glPopMatrix();
+}
+
+void draw_bounding_box() {
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(cameraMatrix));
+
+    glLineWidth(2.0f); 
+    glBegin(GL_LINES);
+    // 앞면
+        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4);
+
+        // 뒷면
+        glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+
+        // 연결선
+        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+    glEnd();
 }

@@ -27,8 +27,8 @@ private:
     void detach_from_parent();
     void add_child_reference(Object* child);
     void remove_child_reference(Object* child);
-    void draw_mesh_internal() const;
 protected:
+    void draw_mesh_internal() const;
     virtual glm::vec4 resolve_mesh_tint() const;
 public:
     Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
@@ -85,7 +85,7 @@ public:
 
     
     virtual void update(float /*deltaTime*/) {};
-    void draw() const;
+    virtual void draw() const;
     virtual void draw_shape() const {};
 
     bool check_collision(Object* other);
