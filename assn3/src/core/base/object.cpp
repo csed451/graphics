@@ -142,19 +142,6 @@ bool Object::check_collision(Object* other) {
     return distance <= get_hitboxRadius() + other->get_hitboxRadius(); 
 }
 
-void Object::add_child(Object* child, bool fix) {
-    if (!child || child == this)
-        return;
-    child->set_parent(this, fix);
-}
-
-void Object::remove_child(Object* child) {
-    if (!child)
-        return;
-    if (child->parent != this)
-        return;
-    child->detach_from_parent();
-}
 
 void Object::clear_children() {
     std::vector<Object*> temp = children;

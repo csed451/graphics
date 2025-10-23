@@ -13,3 +13,5 @@ public:
 
     void draw_shape() const override {}
 };
+
+inline SceneNode sceneRoot;

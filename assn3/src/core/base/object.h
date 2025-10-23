@@ -72,8 +72,6 @@ public:
 
     bool check_collision(Object* other);
 
-    void add_child(Object* child, bool fix=false);
-    void remove_child(Object* child);
     void clear_children();
     const std::vector<Object*>& get_children() const { return children; }
 };

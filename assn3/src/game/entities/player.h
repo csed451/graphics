@@ -8,7 +8,7 @@
 #include "game/ui/heart.h"
 #include "game/attachments/orbit.h"
 #include "core/render/mesh.h"
-#include "core/base/scene_context.h"
+#include "core/base/scene_node.h"
 
 class Enemy;
 
@@ -57,10 +57,8 @@ public:
             orbit.set_parent(this);
         }
 
-        if (auto* root = get_scene_root()) {
-            for (auto& heartObj : hearts)
-                root->add_child(&heartObj);
-        }
+        for (auto& heartObj : hearts)
+            heartObj.set_parent(&sceneRoot);
 
         mesh = load_mesh("assets/jet.obj");
     };

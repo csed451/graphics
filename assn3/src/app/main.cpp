@@ -11,7 +11,7 @@
 #include "core/globals/game_constants.h"
 #include "core/globals/camera.h"
 #include "core/base/scene_node.h"
-#include "core/base/scene_context.h"
+// #include "core/base/scene_context.h"
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
@@ -22,7 +22,7 @@ GameState gameState = GameState::Playing;
 enum class RenderStyle { Opaque, Wireframe };
 RenderStyle currentStyle = RenderStyle::Opaque;
 
-SceneNode sceneRoot;
+// SceneNode sceneRoot;
 
 void apply_render_style(RenderStyle style) {
     switch (style) {
@@ -108,15 +108,15 @@ int main(int argc, char** argv) {
     glutTimerFunc(0, timer, 0);
 
     prevTime = glutGet(GLUT_ELAPSED_TIME);
-    set_scene_root(&sceneRoot);
 
     enemies.push_back(new Enemy(glm::vec3(-20, 50, 0), 0, DOWN, glm::vec3(2)));
     enemies.push_back(new Enemy(glm::vec3(20, 30, 0), 0, DOWN, glm::vec3(2)));
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
-    sceneRoot.add_child(player);
+    player->set_parent(&sceneRoot);
     for (auto enemy : enemies)
-        sceneRoot.add_child(enemy);
+        enemy->set_parent(&sceneRoot);
+
 
 
     glutMainLoop();
