@@ -21,6 +21,7 @@ GameState gameState = GameState::Playing;
 enum class RenderStyle { Opaque, Wireframe };
 RenderStyle currentStyle = RenderStyle::Opaque;
 
+
 void apply_render_style(RenderStyle style) {
     switch (style) {
     case RenderStyle::Opaque:                        
@@ -74,6 +75,35 @@ static void draw_game_over(const char* msg);
 static void init_stars();
 static void draw_stars();
 
+void set_projection_matrix(ProjectionType type) {
+    glm::mat4 projection;
+
+    cameraTargetObject = nullptr;
+
+    if(type == ProjectionType::Perspective) {
+        projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 500.0f);
+        init_camera();
+    }
+    else if(type == ProjectionType::Orthographic) {
+        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -1.0f, 1.0f);
+        cameraMatrix = glm::mat4(1.0f);
+    }
+    else if(type == ProjectionType::Thirdperson) {
+        projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 500.0f);
+        // init_camera(glm::vec3(0, -500, 0), ZERO, UP);
+        cameraTargetObject = player;
+        cameraPos = glm::vec3(0, -20, 10);
+    }
+
+
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glLoadMatrixf(glm::value_ptr(projection));
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
 
 int main(int argc, char** argv) {
     /* initial window setup */
@@ -124,24 +154,43 @@ int main(int argc, char** argv) {
 }
 
 void reshape (int w, int h) {
-    glViewport (0, 0, w, h);    
-    float aspect = (h == 0) ? 1.0f : static_cast<float>(w) / static_cast<float>(h);
-    glm::mat4 projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
+    glViewport (0, 0, w, h);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glLoadMatrixf(glm::value_ptr(projection));
-    update_camera();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+
+    set_projection_matrix(projectionType);
 }
 
 void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    update_camera();
    
     apply_render_style(currentStyle);
     sceneRoot.draw();
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(glm::value_ptr(cameraMatrix));
+    glBegin(GL_LINES);
+    // 앞면
+        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4);
+
+        // 뒷면
+        glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+
+        // 연결선
+        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
+    glEnd();
 
     if (gameState == GameState::GameOver) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -197,6 +246,11 @@ void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 currentStyle = (currentStyle == RenderStyle::Opaque)
                     ? RenderStyle::Wireframe
                     : RenderStyle::Opaque;
+                break;
+            case 'c':
+            case 'C':
+                projectionType = static_cast<ProjectionType>((static_cast<int>(projectionType) + 1) % 3);
+                set_projection_matrix(projectionType);
                 break;
             case 27: // ESC
                 gameState = GameState::Exiting;
@@ -290,7 +344,7 @@ void special_key_up(int key, int /*x*/, int /*y*/) {
 }
 
 void reset_game() {
-    init_camera();
+    set_projection_matrix(ProjectionType::Perspective);
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     gameState = GameState::Playing;
     playerDirection = ZERO;
@@ -303,20 +357,11 @@ void reset_game() {
 }
 
 static void update_game_over() {
-    if (cameraPos.z > 10) {
-        cameraPos.z -= (100 - 10)/100.0f;
-        cameraPos.y -= (10)/100.0f;
-    }
-    else if (cameraPos.y <= 450) {
-        cameraPos.y += cameraSpeed;
-        cameraTarget = player->get_pos();
+    if (player->get_pos().y <= 450) {
+        playerSpeed += 0.01;
         player->translate(UP * playerSpeed);
-        playerSpeed += 0.0001;
-        if (playerSpeed > 0.05) {
-            playerSpeed += 0.001;
-            cameraSpeed += 0.001;
-            player->set_isAccelerating(true);
-        }
+
+        player->set_isAccelerating(true);
     }
     update_camera();
 }
@@ -343,12 +388,7 @@ static void check_and_handle_game_over() {
         }
 
         /* set camera pos for animation */
-        glm::vec3 pos = player->get_pos();
-        cameraTarget.x = pos.x;
-        cameraTarget.y = pos.y + 5;
-        cameraPos.x = pos.x;
-        cameraPos.y = pos.y + 5;
-        update_camera();
+        set_projection_matrix(ProjectionType::Thirdperson);
 
         playerSpeed = PLAYER_INITIAL_SPEED;
         cameraSpeed = CAMERA_INITIAL_SPEED;

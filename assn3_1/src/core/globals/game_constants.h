@@ -17,6 +17,7 @@ inline const glm::vec3 FORWARD = glm::vec3(0, 0, 1);
 inline const glm::vec3 BACKWARD = glm::vec3(0, 0, -1);
 inline const glm::vec3 ZERO = glm::vec3(0, 0, 0);
 
+
 inline bool is_outside_window(glm::vec3 pos) {
     return pos.x > MAX_COORD || pos.x < -MAX_COORD || pos.y > MAX_COORD  || pos.y < -MAX_COORD;
 }
