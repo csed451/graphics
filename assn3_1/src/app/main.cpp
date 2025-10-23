@@ -11,7 +11,6 @@
 #include "core/globals/game_constants.h"
 #include "core/globals/camera.h"
 #include "core/base/scene_node.h"
-// #include "core/base/scene_context.h"
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
@@ -21,8 +20,6 @@ GameState gameState = GameState::Playing;
 
 enum class RenderStyle { Opaque, Wireframe };
 RenderStyle currentStyle = RenderStyle::Opaque;
-
-// SceneNode sceneRoot;
 
 void apply_render_style(RenderStyle style) {
     switch (style) {
@@ -116,8 +113,6 @@ int main(int argc, char** argv) {
     player->set_parent(&sceneRoot);
     for (auto enemy : enemies)
         enemy->set_parent(&sceneRoot);
-
-
 
     glutMainLoop();
     

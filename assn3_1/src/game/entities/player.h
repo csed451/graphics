@@ -1,13 +1,11 @@
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include "core/base/object.h"
 #include "game/weapons/canon.h"
 #include "game/ui/heart.h"
 #include "game/attachments/orbit.h"
-#include "core/render/mesh.h"
 #include "core/base/scene_node.h"
 
 class Enemy;
@@ -33,8 +31,8 @@ private:
     int heart = MAX_HEART;
 
     std::vector<Orbit> orbits;
-
-    std::shared_ptr<Mesh> mesh;
+protected:
+    glm::vec4 resolve_mesh_tint() const override;
 public:
     Player(
         glm::vec3 _pos=ZERO, 
@@ -57,10 +55,17 @@ public:
             orbit.set_parent(this);
         }
 
-        for (auto& heartObj : hearts)
-            heartObj.set_parent(&sceneRoot);
+        // for (auto& heartObj : hearts)
+        //     heartObj.set_parent(&sceneRoot);
 
-        mesh = load_mesh("assets/jet.obj");
+        if (load_mesh("assets/jet.obj")) {
+            glm::mat4 meshTransform(1.0f);
+            meshTransform = glm::scale(meshTransform, glm::vec3(0.3f));
+            meshTransform = glm::rotate(meshTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            meshTransform = glm::rotate(meshTransform, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            set_mesh_transform(meshTransform);
+            set_mesh_color(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        }
     };
 
     std::vector<Canon*> get_canons() { return {&leftCanon, &rightCanon}; }

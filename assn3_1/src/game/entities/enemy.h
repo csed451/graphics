@@ -32,7 +32,7 @@ private:
     int heart = ENEMY_MAX_HEART;
     float moveDir = -1.0f;
     bool counter = true;   
-    
+
 public:
     Enemy(
         glm::vec3 _pos=ZERO, 
@@ -47,7 +47,16 @@ public:
         rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
         leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f) {
         set_hitboxRadius(outerR);
-        init_vertices();        
+        init_vertices();
+        
+        if (load_mesh("assets/drone.obj")) {
+            glm::mat4 meshTransform(1.0f);
+            meshTransform = glm::scale(meshTransform, glm::vec3(5.0f));
+            meshTransform = glm::rotate(meshTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            meshTransform = glm::rotate(meshTransform, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            set_mesh_transform(meshTransform);
+            set_mesh_color(glm::vec4(0.85f, 0.15f, 0.15f, 1.0f));
+        }
     };  
     
     ObjectPool<Bullet>& get_bulletPool() { return bulletPool; }

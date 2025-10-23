@@ -78,6 +78,9 @@ void Enemy::update(float deltaTime, Player* player) {
 }
 
 void Enemy::draw_shape() const {
+    if (get_mesh())
+        return;
+    
     glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
     glDisable(GL_CULL_FACE);
     glEnableClientState(GL_VERTEX_ARRAY);

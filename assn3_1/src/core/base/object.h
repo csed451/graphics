@@ -1,11 +1,14 @@
 #pragma once
 
 #include <GL/freeglut.h>
+#include <memory>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 #include <vector>
 #include "core/globals/game_constants.h"
+#include "core/render/mesh.h"
 
 class Object {
 private:
@@ -17,10 +20,16 @@ private:
     bool isVisible = true;
     float hitboxRadius = 1;
     std::vector<Object*> children;
+    std::shared_ptr<Mesh> mesh;
+    glm::mat4 meshLocalTransform = glm::mat4(1.0f);
+    glm::vec4 meshBaseTint = glm::vec4(1.0f);
 
     void detach_from_parent();
     void add_child_reference(Object* child);
     void remove_child_reference(Object* child);
+    void draw_mesh_internal() const;
+protected:
+    virtual glm::vec4 resolve_mesh_tint() const;
 public:
     Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
     virtual ~Object();
@@ -32,7 +41,11 @@ public:
     bool get_isLocal() const { return isLocal; }
     bool get_isActive() const { return isActive; }
     bool get_isVisible() const { return isVisible; }
-    bool get_hitboxRadius() const { return hitboxRadius; }
+    float get_hitboxRadius() const { return hitboxRadius; }
+    
+    const std::shared_ptr<Mesh>& get_mesh() const { return mesh; }
+    const glm::mat4& get_mesh_transform() const { return meshLocalTransform; }
+    const glm::vec4& get_mesh_color() const { return meshBaseTint; }
 
     /* additional information */
     glm::vec3 get_pos() const;
@@ -48,6 +61,11 @@ public:
     void set_isActive(bool b) { isActive = b; }
     void set_isVisible(bool b) { isVisible = b; }
     void set_hitboxRadius(float r) { hitboxRadius = r; }
+
+    void set_mesh(const std::shared_ptr<Mesh>& m) { mesh = m; }
+    bool load_mesh(const std::string& path);
+    void set_mesh_transform(const glm::mat4& transform) { meshLocalTransform = transform; }
+    void set_mesh_color(const glm::vec4& color) { meshBaseTint = color; }
 
     void init(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
 
@@ -68,7 +86,7 @@ public:
     
     virtual void update(float /*deltaTime*/) {};
     void draw() const;
-    virtual void draw_shape() const = 0;
+    virtual void draw_shape() const {};
 
     bool check_collision(Object* other);
 
