@@ -78,25 +78,15 @@ void Enemy::update(float deltaTime, Player* player) {
 }
 
 void Enemy::draw_shape() const {
-    if (get_mesh())
-        return;
+    glColor4f(0.85f, 0.15f, 0.15f, 1.0f);
+    GLfloat scaleFactor = 5.0f;
     
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);
-    glDisable(GL_CULL_FACE);
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    // outer octagon
-    glColor3f(0.85f, 0.15f, 0.15f);
-    glVertexPointer(2, GL_FLOAT, 0, outerVertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, outerVertices.size() / 2);
-
-    // core Vertices
-    glColor3f(1.0f, 0.8f, 0.2f);
-    glVertexPointer(2, GL_FLOAT, 0, innerVertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, innerVertices.size() / 2);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopAttrib();
+    glPushMatrix();
+    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+    get_mesh()->draw();
+    glPopMatrix();
 }
 
 void Enemy::shoot(){

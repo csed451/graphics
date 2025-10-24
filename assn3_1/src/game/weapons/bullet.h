@@ -26,16 +26,8 @@ public:
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center) { 
         set_hitboxRadius(r + outline);
-        init_vertices();
-
-        if (load_mesh("assets/sphere.obj")) {
-            glm::mat4 meshTransform(1.0f);
-            meshTransform = glm::scale(meshTransform, glm::vec3(1.2f));
-            meshTransform = glm::rotate(meshTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            meshTransform = glm::rotate(meshTransform, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            set_mesh_transform(meshTransform);
-            set_mesh_color(glm::vec4(1.0f, 0.8f, 0.8f, 0.8f));
-        }
+        init_vertices();        
+        set_mesh(load_mesh("assets/sphere.obj"));
     };
     
     void draw_shape() const override;

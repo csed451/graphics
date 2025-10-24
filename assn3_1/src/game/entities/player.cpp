@@ -5,15 +5,15 @@
 #include "core/globals/camera.h"
 
 void Player::draw_shape() const {
-    if (get_mesh())
-        return;
-
     glColor4f(0, 1, 0, isRecovery ? 0.2f : 1.0f);
-    glBegin(GL_TRIANGLES);
-        glVertex3f(0, 1, 0);
-        glVertex3f(-1, -1, 0);
-        glVertex3f(1, -1, 0);
-    glEnd();
+    GLfloat scaleFactor = 0.3f;
+    
+    glPushMatrix();
+    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+    get_mesh()->draw();
+    glPopMatrix();
 }
 
 void Player::draw() const {
@@ -23,7 +23,6 @@ void Player::draw() const {
         glm::mat4 mvp = cameraMatrix * finalMatrix;
         glLoadMatrixf(glm::value_ptr(mvp));
 
-
         if (direction == UP)
             glRotatef(-20.0f, 1.0f, 0.0f, 0.0f);
         else if (direction == DOWN)
@@ -31,12 +30,7 @@ void Player::draw() const {
         else if (direction == RIGHT)
             glRotatef(20.0f, 0.0f, 1.0f, 0.0f);
         else if (direction == LEFT)
-            glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);
-
-        
-
-        if (get_mesh())
-            draw_mesh_internal();
+            glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);     
 
         draw_shape();
 
@@ -46,12 +40,6 @@ void Player::draw() const {
 
         glPopMatrix();
     }
-}
-
-glm::vec4 Player::resolve_mesh_tint() const {
-    glm::vec4 tint = Object::resolve_mesh_tint();
-    tint.a = isRecovery ? 0.2f : tint.a;
-    return tint;
 }
 
 void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {

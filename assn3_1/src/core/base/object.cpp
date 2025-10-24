@@ -121,41 +121,12 @@ void Object::scale_world(glm::vec3 v) {
     modelMatrix = mS * modelMatrix;
 }
 
-bool Object::load_mesh(const std::string& path) {
-    mesh = ::load_mesh(path);
-    return static_cast<bool>(mesh);
-}
-
-glm::vec4 Object::resolve_mesh_tint() const {
-    return meshBaseTint;
-}
-
-void Object::draw_mesh_internal() const {
-    if (!mesh)
-        return;
-
-    glPushMatrix();
-    glMultMatrixf(glm::value_ptr(meshLocalTransform));
-
-    glm::vec4 tint = resolve_mesh_tint();
-    glPushAttrib(GL_CURRENT_BIT);
-    glColor4f(tint.r, tint.g, tint.b, tint.a);
-
-    mesh->draw();
-
-    glPopAttrib();
-    glPopMatrix();
-}
-
 void Object::draw() const {
     if (isActive && isVisible) {
         glPushMatrix();
         glm::mat4 finalMatrix = get_finalMatrix();
         glm::mat4 mvp = cameraMatrix * finalMatrix;
         glLoadMatrixf(glm::value_ptr(mvp));
-
-        if (mesh)
-            draw_mesh_internal();
 
         draw_shape();
 
@@ -171,7 +142,6 @@ bool Object::check_collision(Object* other) {
     float distance = glm::distance(get_pos(), other->get_pos());
     return distance <= get_hitboxRadius() + other->get_hitboxRadius(); 
 }
-
 
 void Object::clear_children() {
     std::vector<Object*> temp = children;

@@ -21,29 +21,38 @@ void Bullet::init_vertices(){
 }
 
 void Bullet::draw_shape() const {
-    if(get_mesh())
-        return;
+    glColor4f(1.0f, 0.8f, 0.8, 1.0f);
+    GLfloat scaleFactor = 1.2f;
+    
+    glPushMatrix();
+    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+    get_mesh()->draw();
+    glPopMatrix();
+    
+    return;
         
-    glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);    
-    glDisable(GL_CULL_FACE);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    // glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);    
+    // glDisable(GL_CULL_FACE);
+    // glEnableClientState(GL_VERTEX_ARRAY);
     
-    if (counter) 
-        glColor3f(0.0f, 0.68f, 1.0f);
-    else 
-        glColor3f(1.0f, 0.32f, 0.0f);
+    // if (counter) 
+    //     glColor3f(0.0f, 0.68f, 1.0f);
+    // else 
+    //     glColor3f(1.0f, 0.32f, 0.0f);
     
-    // outline Vertices
-    glVertexPointer(2, GL_FLOAT, 0, outlineVertices.data());
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, outlineVertices.size() / 2);
+    // // outline Vertices
+    // glVertexPointer(2, GL_FLOAT, 0, outlineVertices.data());
+    // glDrawArrays(GL_TRIANGLE_STRIP, 0, outlineVertices.size() / 2);
 
-    // core Vertices
-    glColor3f(1,1,1);
-    glVertexPointer(2, GL_FLOAT, 0, coreVertices.data());
-    glDrawArrays(GL_TRIANGLE_FAN, 0, coreVertices.size() / 2);
+    // // core Vertices
+    // glColor3f(1,1,1);
+    // glVertexPointer(2, GL_FLOAT, 0, coreVertices.data());
+    // glDrawArrays(GL_TRIANGLE_FAN, 0, coreVertices.size() / 2);
     
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopAttrib();
+    // glDisableClientState(GL_VERTEX_ARRAY);
+    // glPopAttrib();
 }
 
 void Bullet::update(float deltaTime) {

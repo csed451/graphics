@@ -2,13 +2,14 @@
 #include <glm/gtc/quaternion.hpp>
 
 void Canon::draw_shape() const {
-    glColor3f(0.5, 0.5, 0.5);
-    glBegin(GL_QUADS);
-        glVertex3f(-0.2, -0.5, 0);
-        glVertex3f(0.2, -0.5, 0);
-        glVertex3f(0.2, 0.5, 0);
-        glVertex3f(-0.2, 0.5, 0);
-    glEnd();
+    glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+    GLfloat scaleFactor = 0.2f;
+    
+    glPushMatrix();
+    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+    get_mesh()->draw();
+    glPopMatrix();
 }
 
 void Canon::update(float deltaTime) {

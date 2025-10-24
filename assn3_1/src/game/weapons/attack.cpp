@@ -1,13 +1,15 @@
 #include "attack.h"
 
 void Attack::draw_shape() const {
-    glColor3f(1, 1, 1);
-    glBegin(GL_QUADS);
-        glVertex3f(-0.2, -1, 0);
-        glVertex3f(0.2, -1, 0);
-        glVertex3f(0.2, 1, 0);
-        glVertex3f(-0.2, 1, 0);
-    glEnd();
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    GLfloat scaleFactor = 0.3f;
+    
+    glPushMatrix();
+    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
+    get_mesh()->draw();
+    glPopMatrix();
 }
 
 void Attack::update(float deltaTime) {

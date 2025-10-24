@@ -29,8 +29,7 @@ private:
     int heart = MAX_HEART;
 
     std::vector<Orbit> orbits;
-protected:
-    glm::vec4 resolve_mesh_tint() const override;
+
 public:
     Player(
         glm::vec3 _pos=ZERO, 
@@ -44,21 +43,12 @@ public:
         leftCanon.set_parent(this);
         rightCanon.set_parent(this);
         orbits.reserve(MAX_HEART);
+        set_mesh(load_mesh("assets/jet.obj"));
         for (int i = 1; i <= heart; i++) {
             Orbit & orbit = orbits.emplace_back();
             orbit.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));
             orbit.rotate_world(360.0f/heart * (i-1), FORWARD);
             orbit.set_parent(this);
-        }
-
-
-        if (load_mesh("assets/jet.obj")) {
-            glm::mat4 meshTransform(1.0f);
-            meshTransform = glm::scale(meshTransform, glm::vec3(0.3f));
-            meshTransform = glm::rotate(meshTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-            meshTransform = glm::rotate(meshTransform, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            set_mesh_transform(meshTransform);
-            set_mesh_color(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
         }
     };
 
