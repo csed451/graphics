@@ -11,6 +11,7 @@ private:
     float swingFrequency;
     float phaseOffset;
     float pulseAmplitude;
+    bool isLeftHand;
 
     glm::vec3 initialPos;
     GLfloat initialAngle;
@@ -29,7 +30,8 @@ public:
         float _swingAmplitude = 35.0f,
         float _swingFrequency = 2.5f,
         float _phaseOffset = 0.0f,
-        float _pulseAmplitude = 0.2f
+        float _pulseAmplitude = 0.2f,
+        bool _isLeftHand = false
     );
 
     void draw_shape() const override;

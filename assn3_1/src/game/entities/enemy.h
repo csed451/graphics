@@ -44,8 +44,8 @@ public:
         bulletPool(200),
         spawnPosition(_pos),
         healthBar(glm::vec3(0, 2.5f, 0), 0, UP, glm::vec3(1), ZERO, this),
-        rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>()),
-        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f) {
+        rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>(), false),
+        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f, true) {
         set_hitboxRadius(outerR);
         init_vertices();        
         set_mesh(load_mesh("assets/drone.obj"));

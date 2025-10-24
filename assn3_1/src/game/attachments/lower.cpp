@@ -12,10 +12,11 @@ Lower::Lower(
     float _swingAmplitude,
     float _swingFrequency,
     float _phaseOffset,
-    float _handPhaseOffset
+    float _handPhaseOffset,
+    bool _isLeftHand
 ) : Object(_pos, _angle, _axis, _size, _center),
-    hand(glm::vec3(0, 2.5f, 0), 0, FORWARD, glm::vec3(2), ZERO, this,
-         _swingAmplitude * 1.15f, _swingFrequency * 1.4f, _handPhaseOffset, 0.25f),
+    hand(glm::vec3(0, 4.0f, 0), 0, FORWARD, glm::vec3(2), ZERO, this,
+         _swingAmplitude * 1.15f, _swingFrequency * 1.4f, _handPhaseOffset, 0.25f, _isLeftHand),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
     phaseOffset(_phaseOffset),
@@ -25,16 +26,18 @@ Lower::Lower(
     initialSize(_size),
     initialCenter(_center) {
     if (_parent) set_parent(_parent);
+    set_mesh(load_mesh("assets/lower_arm.obj"));
 }
 
 void Lower::draw_shape() const {
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
+
     glColor3f(0.9f, 0.9f, 0.9f);
-    glBegin(GL_QUADS);
-        glVertex3f(-0.5f, -0.4f, 0.0f);
-        glVertex3f(0.5f, -0.4f, 0.0f);
-        glVertex3f(0.7f, 2.0f, 0.0f);
-        glVertex3f(-0.7f, 2.0f, 0.0f);
-    glEnd();
+    glPushMatrix();
+    mesh->draw();
+    glPopMatrix();
 }
 
 void Lower::update(float deltaTime) {

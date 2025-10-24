@@ -14,10 +14,11 @@ Upper::Upper(
     float _phaseOffset,
     float _lowerSwingAmplitude, 
     float _lowerSwingFrequency, 
-    float _lowerPhaseOffset
+    float _lowerPhaseOffset,
+    bool _isLeftHand
 ) : Object(_pos, _angle, _axis, _size, _center),
     lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this,
-             _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f),
+             _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f, _isLeftHand),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
     phaseOffset(_phaseOffset),
@@ -27,16 +28,18 @@ Upper::Upper(
     initialSize(_size),
     initialCenter(_center) {
     if (_parent) set_parent(_parent);
+    set_mesh(load_mesh("assets/upper_arm.obj"));
 }
 
 void Upper::draw_shape() const {
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
+
     glColor3f(0.9f, 0.9f, 0.9f);
-    glBegin(GL_QUADS);
-        glVertex3f(-0.3f, 0.0f, 0.0f);
-        glVertex3f(0.3f, 0.0f, 0.0f);
-        glVertex3f(0.5f, 2.5f, 0.0f);
-        glVertex3f(-0.5f, 2.5f, 0.0f);
-    glEnd();
+    glPushMatrix();
+    mesh->draw();
+    glPopMatrix();
 }
 
 void Upper::update(float deltaTime) {

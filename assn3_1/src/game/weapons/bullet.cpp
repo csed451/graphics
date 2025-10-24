@@ -21,7 +21,11 @@ void Bullet::init_vertices(){
 }
 
 void Bullet::draw_shape() const {
-    glColor4f(1.0f, 0.8f, 0.8, 1.0f);
+    if (counter) 
+        glColor4f(0.0f, 0.68f, 1.0f, 1.0f);
+    else 
+        glColor4f(1.0f, 0.32f, 0.0f, 1.0f);
+
     GLfloat scaleFactor = 1.2f;
     
     glPushMatrix();
@@ -32,27 +36,6 @@ void Bullet::draw_shape() const {
     glPopMatrix();
     
     return;
-        
-    // glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT);    
-    // glDisable(GL_CULL_FACE);
-    // glEnableClientState(GL_VERTEX_ARRAY);
-    
-    // if (counter) 
-    //     glColor3f(0.0f, 0.68f, 1.0f);
-    // else 
-    //     glColor3f(1.0f, 0.32f, 0.0f);
-    
-    // // outline Vertices
-    // glVertexPointer(2, GL_FLOAT, 0, outlineVertices.data());
-    // glDrawArrays(GL_TRIANGLE_STRIP, 0, outlineVertices.size() / 2);
-
-    // // core Vertices
-    // glColor3f(1,1,1);
-    // glVertexPointer(2, GL_FLOAT, 0, coreVertices.data());
-    // glDrawArrays(GL_TRIANGLE_FAN, 0, coreVertices.size() / 2);
-    
-    // glDisableClientState(GL_VERTEX_ARRAY);
-    // glPopAttrib();
 }
 
 void Bullet::update(float deltaTime) {

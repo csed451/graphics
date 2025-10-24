@@ -33,7 +33,8 @@ public:
             float _phaseOffset = 0.0f,
             float _lowerSwingAmplitude = 25.0f,
             float _lowerSwingFrequency = 1.8f,
-            float _lowerPhaseOffset = 0.0f
+            float _lowerPhaseOffset = 0.0f,
+            bool _isLeftHand = false
         );
 
     void draw_shape() const override;

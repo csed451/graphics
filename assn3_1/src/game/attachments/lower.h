@@ -29,7 +29,8 @@ public:
             float _swingAmplitude = 25.0f,
             float _swingFrequency = 1.8f,
             float _phaseOffset = 0.0f,
-            float _handPhaseOffset = 0.0f
+            float _handPhaseOffset = 0.0f,
+            bool _isLeftHand = false
         );
 
     void draw_shape() const override;
