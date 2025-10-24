@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "upper.h"
+#include "core/render/mesh.h"
 
 Upper::Upper(
     glm::vec3 _pos, 
@@ -15,10 +16,10 @@ Upper::Upper(
     float _lowerSwingAmplitude, 
     float _lowerSwingFrequency, 
     float _lowerPhaseOffset,
-    bool _isLeftHand
+    bool _isLeftPlane
 ) : Object(_pos, _angle, _axis, _size, _center),
     lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this,
-             _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f, _isLeftHand),
+             _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f, _isLeftPlane),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
     phaseOffset(_phaseOffset),
@@ -55,6 +56,10 @@ void Upper::update(float deltaTime) {
 
     lowerArm.add_parent_rotation_delta(deltaSwing);
     lowerArm.update(deltaTime);
+}
+
+void Upper::detach_plane() {
+    lowerArm.detach_plane();
 }
 
 void Upper::deactivate() {

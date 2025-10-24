@@ -1,11 +1,11 @@
 #pragma once
 
 #include "core/base/object.h"
-#include "hand.h"
+#include "escort_plane.h"
 
 class Lower : public Object {
 private:
-    Hand hand;
+    EscortPlane escortPlane;
     float animationTime = 0.0f;
     float currentSwing = 0.0f;
     float swingAmplitude;
@@ -30,13 +30,15 @@ public:
             float _swingAmplitude = 25.0f,
             float _swingFrequency = 1.8f,
             float _phaseOffset = 0.0f,
-            float _handPhaseOffset = 0.0f,
-            bool _isLeftHand = false
+            float _planePhaseOffset = 0.0f,
+            bool _isLeftPlane = false
         );
 
     void draw_shape() const override;
     void update(float deltaTime);
     void add_parent_rotation_delta(float deltaDegrees);
+    void detach_plane();
+    bool is_plane_detached() const { return escortPlane.is_detached(); }
     
     void deactivate();
     void reset();

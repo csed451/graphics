@@ -34,12 +34,15 @@ public:
             float _lowerSwingAmplitude = 25.0f,
             float _lowerSwingFrequency = 1.8f,
             float _lowerPhaseOffset = 0.0f,
-            bool _isLeftHand = false
+            bool _isLeftPlane = false
         );
 
     void draw_shape() const override;
     void update(float deltaTime);
     
+    void detach_plane();
+    bool is_plane_detached() const { return lowerArm.is_plane_detached(); }
+
     void deactivate();
     void reset();
 };

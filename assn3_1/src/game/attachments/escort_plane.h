@@ -2,15 +2,21 @@
 
 #include "core/base/object.h"
 
-class Hand : public Object {
+class EscortPlane : public Object {
 private:
+    float animationTime = 0.0f;
     float currentScale = 1.0f;
     float swingAmplitude;
     float swingFrequency;
     float phaseOffset;
     float pulseAmplitude;
-    bool isLeftHand;
+    bool isLeftPlane;
 
+    const float travelSpeed = 5.0f;
+    bool isDetached = false;
+    glm::vec3 travelDirection = glm::vec3(0.0f);
+    glm::mat4 detachedWorldMatrix = glm::mat4(1.0f);
+    Object* initialParent = nullptr;
     glm::vec3 initialPos;
     GLfloat initialAngle;
     glm::vec3 initialAxis;
@@ -18,7 +24,7 @@ private:
     glm::vec3 initialCenter;
 
 public:
-    Hand(
+    EscortPlane(
         glm::vec3 _pos = ZERO,
         GLfloat _angle = 0,
         glm::vec3 _axis = UP,
@@ -29,12 +35,15 @@ public:
         float _swingFrequency = 2.5f,
         float _phaseOffset = 0.0f,
         float _pulseAmplitude = 0.2f,
-        bool _isLeftHand = false
+        bool _isLeftPlane = false
     );
 
     void draw_shape() const override;
     void update(float deltaTime);
     void apply_parent_rotation_correction(float deltaDegrees);
+    void detach_to_world();
+    bool is_detached() const { return isDetached; }
+
     void deactivate();
     void reset();
 };

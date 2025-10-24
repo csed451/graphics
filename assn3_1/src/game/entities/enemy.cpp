@@ -55,6 +55,13 @@ void Enemy::update(float deltaTime, Player* player) {
         }
     }    
 
+    float healthRatio = static_cast<float>(heart) / ENEMY_MAX_HEART;
+    if (!planesReleased && healthRatio <= 0.6f) {
+        planesReleased = true;
+        leftUpperArm.detach_plane();
+        rightUpperArm.detach_plane();
+    }
+
     if(is_destroyed()){
         set_isActive(false);
         set_isVisible(false);
@@ -119,6 +126,7 @@ void Enemy::reset(){
     heart = ENEMY_MAX_HEART;
     moveDir = -1.0f;
     counter = true;
+    planesReleased = false;
     
     leftUpperArm.reset();
     rightUpperArm.reset();

@@ -32,6 +32,7 @@ private:
     int heart = ENEMY_MAX_HEART;
     float moveDir = -1.0f;
     bool counter = true;   
+    bool planesReleased = false;
 
 public:
     Enemy(
