@@ -34,7 +34,7 @@ void Hand::draw_shape() const {
     if (!mesh)
         return;
 
-    glColor3f(0.9f, 0.9f, 0.9f);
+    glColor4f(0.85f, 0.15f, 0.15f, 0.9f);
     const GLfloat scaleFactor = 10.0f;
 
     glPushMatrix();
@@ -46,21 +46,15 @@ void Hand::draw_shape() const {
     glPopMatrix();
 }
 
-void Hand::update(float deltaTime) {
+void Hand::update(float /*deltaTime*/) {
     if (!get_isActive())
         return;
+}
 
-    animationTime += deltaTime;
-
-    float targetSwing = std::sin(animationTime * swingFrequency + phaseOffset) * swingAmplitude;
-    float deltaSwing = targetSwing - currentSwing;
-    rotate_local(deltaSwing, FORWARD);
-    currentSwing = targetSwing;
-
-    // float pulse = 1.0f + pulseAmplitude * (0.5f * (std::sin(animationTime * swingFrequency * 1.5f + phaseOffset) + 1.0f));
-    // float scaleFactor = pulse / currentScale;
-    // scale_local(glm::vec3(scaleFactor, scaleFactor, 1.0f));
-    // currentScale = pulse;
+void Hand::apply_parent_rotation_correction(float deltaDegrees) {
+    if (std::abs(deltaDegrees) < 1e-4f)
+        return;
+    rotate_local(-deltaDegrees, FORWARD);
 }
 
 void Hand::deactivate() {
@@ -72,7 +66,5 @@ void Hand::reset() {
     init(initialPos, initialAngle, initialAxis, initialSize, initialCenter);
     set_isActive(true);
     set_isVisible(true);
-    animationTime = 0.0f;
-    currentSwing = 0.0f;
     currentScale = 1.0f;
 }

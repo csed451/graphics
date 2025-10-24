@@ -11,6 +11,7 @@ private:
     float swingAmplitude;
     float swingFrequency;
     float phaseOffset;
+    float pendingParentRotation = 0.0f;
 
     glm::vec3 initialPos;
     GLfloat   initialAngle;
@@ -35,6 +36,7 @@ public:
 
     void draw_shape() const override;
     void update(float deltaTime);
+    void add_parent_rotation_delta(float deltaDegrees);
     
     void deactivate();
     void reset();

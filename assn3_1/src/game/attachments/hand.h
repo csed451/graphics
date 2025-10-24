@@ -4,8 +4,6 @@
 
 class Hand : public Object {
 private:
-    float animationTime = 0.0f;
-    float currentSwing = 0.0f;
     float currentScale = 1.0f;
     float swingAmplitude;
     float swingFrequency;
@@ -36,6 +34,7 @@ public:
 
     void draw_shape() const override;
     void update(float deltaTime);
+    void apply_parent_rotation_correction(float deltaDegrees);
     void deactivate();
     void reset();
 };

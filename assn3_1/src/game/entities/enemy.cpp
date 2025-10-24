@@ -78,7 +78,7 @@ void Enemy::update(float deltaTime, Player* player) {
 }
 
 void Enemy::draw_shape() const {
-    glColor4f(0.85f, 0.15f, 0.15f, 1.0f);
+    glColor4f(0.85f, 0.15f, 0.15f, 0.7f);
     GLfloat scaleFactor = 5.0f;
     
     glPushMatrix();

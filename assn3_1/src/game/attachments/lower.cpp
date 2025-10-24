@@ -15,7 +15,7 @@ Lower::Lower(
     float _handPhaseOffset,
     bool _isLeftHand
 ) : Object(_pos, _angle, _axis, _size, _center),
-    hand(glm::vec3(0, 4.0f, 0), 0, FORWARD, glm::vec3(2), ZERO, this,
+    hand(glm::vec3(0, 3.5f, 0), 0, FORWARD, glm::vec3(2), ZERO, this,
          _swingAmplitude * 1.15f, _swingFrequency * 1.4f, _handPhaseOffset, 0.25f, _isLeftHand),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
@@ -45,12 +45,16 @@ void Lower::update(float deltaTime) {
         return;
 
     animationTime += deltaTime;
+    float inheritedDelta = pendingParentRotation;
+    pendingParentRotation = 0.0f;
 
     float targetSwing = std::sin(animationTime * swingFrequency + phaseOffset) * swingAmplitude;
     float deltaSwing = targetSwing - currentSwing;
     rotate_local(deltaSwing, FORWARD);
     currentSwing = targetSwing;
 
+    float netDelta = inheritedDelta + deltaSwing;
+    hand.apply_parent_rotation_correction(netDelta);
     hand.update(deltaTime);
 }
 
@@ -66,5 +70,10 @@ void Lower::reset() {
     set_isVisible(true);
     animationTime = 0.0f;
     currentSwing = 0.0f;
+    pendingParentRotation = 0.0f;
     hand.reset();
+}
+
+void Lower::add_parent_rotation_delta(float deltaDegrees) {
+    pendingParentRotation += deltaDegrees;
 }

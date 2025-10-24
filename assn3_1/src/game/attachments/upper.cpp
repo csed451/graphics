@@ -53,6 +53,7 @@ void Upper::update(float deltaTime) {
     rotate_local(deltaSwing, FORWARD);
     currentSwing = targetSwing;
 
+    lowerArm.add_parent_rotation_delta(deltaSwing);
     lowerArm.update(deltaTime);
 }
 
