@@ -92,8 +92,6 @@ void EscortPlane::detach_to_world() {
         return;
 
     detachedWorldMatrix = get_finalMatrix();
-
-    // Keep current world transform but move under the scene root to remain visible independently.
     set_parent(nullptr);
     set_modelMatrix(detachedWorldMatrix);
     set_parent(&sceneRoot, true);

@@ -1,13 +1,15 @@
-## Assn3 Overview
+## Assn3-1 Overview
+
+Assignment 3-1 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
 
 
 ## End-User Guide
 
 ### 1. Build & Run
-Move to the src directory (graphics/assn3/src) and run one of the provided Makefile Command.
+Move to the src directory (`graphics/assn3_1/src`) and run one of the provided Makefile commands.
 
-From `./assn3/src/`:
-- `make` (or `make all`): build the `main` executable into `assn3/src/main`.
+From `./assn3_1/src/`:
+- `make` (or `make all`): build the `main` executable into `assn3_1/src/main`.
 - `make run`: build (if needed) and launch the game.
 - `make clean`: remove `build/` artifacts and `main`.
 
@@ -16,17 +18,19 @@ From `./assn3/src/`:
 <summary>If you want, you can compile and execute directly with the command below.</summary>
 
 ```bash
-# on graphics/assn2/src
-cd ./assn2/src
+# on graphics/assn3_1/src
+cd ./assn3_1/src
 
 g++ app/main.cpp \
     core/base/object.cpp \
+    core/render/mesh.cpp \
     game/entities/player.cpp \
     game/entities/enemy.cpp \
     game/weapons/attack.cpp \
     game/weapons/canon.cpp \
     game/weapons/bullet.cpp \
     game/attachments/upper.cpp \
+    game/attachments/escort_plane.cpp \
     game/attachments/lower.cpp \
     game/attachments/hand.cpp \
     game/ui/healthbar.cpp \
@@ -45,7 +49,13 @@ g++ app/main.cpp \
 ### 2. Controls
 Movement: **Arrow keys**
 
-Combat: **Space (hold)** > fire
+Combat: **Space (hold)** >>  fire
+
+Render Style: **W / w** 
+- toggles : opaque vs. wireframe
+
+Camera Views: **C / c** 
+- cycles : top-perspective → top-orthographic → third-person
 
 Game Over: 
 - **R / r**: restart
