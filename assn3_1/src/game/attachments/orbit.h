@@ -18,14 +18,11 @@ public:
 
     void draw_shape() const override {
         glColor4f(0.85f, 0.15f, 0.15f, 1.0f);
-        GLfloat scaleFactor = 0.8f;
         
-        glPushMatrix();
-        glScalef(scaleFactor, scaleFactor, scaleFactor);    
+        glScalef(0.8f, 0.8f, 0.8f);    
         glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
         glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
         get_mesh()->draw();
-        glPopMatrix();
     }
 
     void update(float deltaTime) {

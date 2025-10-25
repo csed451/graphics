@@ -77,7 +77,7 @@ public:
     void scale_world(glm::vec3 v);
 
     virtual void update(float /*deltaTime*/) {};
-    virtual void draw() const;
+    void draw() const;
     virtual void draw_shape() const = 0;
 
     void clear_children();

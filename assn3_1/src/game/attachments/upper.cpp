@@ -38,9 +38,7 @@ void Upper::draw_shape() const {
         return;
 
     glColor3f(0.9f, 0.9f, 0.9f);
-    glPushMatrix();
     mesh->draw();
-    glPopMatrix();
 }
 
 void Upper::update(float deltaTime) {

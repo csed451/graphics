@@ -88,12 +88,10 @@ void Enemy::draw_shape() const {
     glColor4f(0.85f, 0.15f, 0.15f, 0.7f);
     GLfloat scaleFactor = 5.0f;
     
-    glPushMatrix();
     glScalef(scaleFactor, scaleFactor, scaleFactor);    
     glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
     get_mesh()->draw();
-    glPopMatrix();
 }
 
 void Enemy::shoot(){

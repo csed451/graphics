@@ -28,12 +28,10 @@ void Bullet::draw_shape() const {
 
     GLfloat scaleFactor = 1.2f;
     
-    glPushMatrix();
     glScalef(scaleFactor, scaleFactor, scaleFactor);    
     glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
     get_mesh()->draw();
-    glPopMatrix();
     
     return;
 }

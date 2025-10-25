@@ -6,40 +6,20 @@
 
 void Player::draw_shape() const {
     glColor4f(0, 1, 0, isRecovery ? 0.2f : 1.0f);
-    GLfloat scaleFactor = 0.3f;
-    
-    glPushMatrix();
-    glScalef(scaleFactor, scaleFactor, scaleFactor);    
+
+    if (direction == UP)
+        glRotatef(-20.0f, 1.0f, 0.0f, 0.0f);
+    else if (direction == DOWN)
+        glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
+    else if (direction == RIGHT)
+        glRotatef(20.0f, 0.0f, 1.0f, 0.0f);
+    else if (direction == LEFT)
+        glRotatef(-20.0f, 0.0f, 1.0f, 0.0f); 
+
+    glScalef(0.3f, 0.3f, 0.3f);
     glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
     get_mesh()->draw();
-    glPopMatrix();
-}
-
-void Player::draw() const {
-    if (get_isActive() && get_isVisible()) {
-        glPushMatrix();
-        glm::mat4 finalMatrix = get_finalMatrix();
-        glm::mat4 mvp = cameraMatrix * finalMatrix;
-        glLoadMatrixf(glm::value_ptr(mvp));
-
-        if (direction == UP)
-            glRotatef(-20.0f, 1.0f, 0.0f, 0.0f);
-        else if (direction == DOWN)
-            glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
-        else if (direction == RIGHT)
-            glRotatef(20.0f, 0.0f, 1.0f, 0.0f);
-        else if (direction == LEFT)
-            glRotatef(-20.0f, 0.0f, 1.0f, 0.0f);     
-
-        draw_shape();
-
-        for (auto child : get_children())
-            if (child)
-                child->draw();
-
-        glPopMatrix();
-    }
 }
 
 void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {
