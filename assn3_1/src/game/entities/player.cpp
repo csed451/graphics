@@ -22,7 +22,7 @@ void Player::draw_shape() const {
     get_mesh()->draw();
 }
 
-void Player::update(float deltaTime, const std::vector<Enemy*>& enemies) {
+void Player::update(float deltaTime) {
     if (!get_isActive())
         return; 
 

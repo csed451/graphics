@@ -63,7 +63,6 @@ void special_key_up(int key, int x, int y);
 
 void reset_game();
 
-static void update_game_over();
 static void check_and_handle_game_over();
 static bool enemies_destroyed();
 
@@ -100,7 +99,6 @@ void set_projection_matrix(ProjectionType type) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glLoadMatrixf(glm::value_ptr(projection));
-    update_camera();
 }
 
 
@@ -140,8 +138,11 @@ int main(int argc, char** argv) {
     player = new Player(glm::vec3(0,0,0), 0, UP, glm::vec3(2));
 
     player->set_parent(&sceneRoot);
-    for (auto enemy : enemies)
+    player->set_enemies(enemies);
+    for (auto enemy : enemies) {
         enemy->set_parent(&sceneRoot);
+        enemy->set_player(player);
+    }
 
     glutMainLoop();
     
@@ -154,7 +155,6 @@ int main(int argc, char** argv) {
 
 void reshape (int w, int h) {
     glViewport (0, 0, w, h);
-
     set_projection_matrix(projectionType);
 }
 
@@ -195,12 +195,16 @@ void update(void) {
         glutLeaveMainLoop(); return;
     }    
     if (gameState == GameState::GameOver) {
-        update_game_over(); return;
+        if (player->get_pos().y <= 450) {
+            playerSpeed += 0.01;
+            player->translate(UP * playerSpeed);
+
+            player->set_isAccelerating(true);
+        }   
+        return;
     }
     
-    for (auto enemy : enemies)
-        enemy->update(deltaTime, player);
-    player->update(deltaTime, enemies);
+    sceneRoot.update(deltaTime);
     
     check_and_handle_game_over();
 }
@@ -331,16 +335,6 @@ void reset_game() {
         enemy->reset();
     player->reset();
     glutPostRedisplay();
-}
-
-static void update_game_over() {
-    if (player->get_pos().y <= 450) {
-        playerSpeed += 0.01;
-        player->translate(UP * playerSpeed);
-
-        player->set_isAccelerating(true);
-    }
-    update_camera();
 }
 
 static void check_and_handle_game_over() {

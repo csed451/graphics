@@ -30,6 +30,8 @@ private:
 
     std::vector<Orbit> orbits;
 
+    std::vector<Enemy*> enemies;
+
 public:
     Player(
         glm::vec3 _pos=ZERO, 
@@ -60,9 +62,10 @@ public:
     void set_isShooting(bool b) { isShooting = b; }
     void set_isRecovery(bool b) { isRecovery = b; }
     void set_isAccelerating(bool b) { isAccelerating = b; }
+    void set_enemies(std::vector<Enemy*>& _enemies) { enemies = _enemies; }
 
-    void update(float deltaTime, const std::vector<Enemy*>& enemies);
+    void update(float deltaTime);
     void draw_shape() const override;
-    
+
     void reset();
 };

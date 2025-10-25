@@ -34,6 +34,8 @@ private:
     bool counter = true;   
     bool planesReleased = false;
 
+    Player* player = nullptr;
+
 public:
     Enemy(
         glm::vec3 _pos=ZERO, 
@@ -54,7 +56,9 @@ public:
     
     ObjectPool<Bullet>& get_bulletPool() { return bulletPool; }
 
-    void update(float deltaTime, Player* player);
+    void set_player(Player* obj) { player = obj; }
+
+    void update(float deltaTime);
     void draw_shape() const override;
     
     inline void take_damage(int damage) { heart = std::max(0, heart - damage); }

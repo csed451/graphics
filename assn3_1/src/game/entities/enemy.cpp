@@ -25,7 +25,7 @@ void Enemy::init_vertices() {
     }
 }
 
-void Enemy::update(float deltaTime, Player* player) {
+void Enemy::update(float deltaTime) {
     if (!get_isActive())
         return;
     

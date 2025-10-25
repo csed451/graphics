@@ -76,7 +76,7 @@ public:
     void rotate_world(GLfloat angle, glm::vec3 axis);
     void scale_world(glm::vec3 v);
 
-    virtual void update(float /*deltaTime*/) {};
+    virtual void update(float deltaTime) { for (auto child : children) if (child) child->update(deltaTime); };
     void draw() const;
     virtual void draw_shape() const = 0;
 
