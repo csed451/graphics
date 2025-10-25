@@ -39,7 +39,7 @@ public:
     );
 
     void draw_shape() const override;
-    void update(float deltaTime);
+    void update(float deltaTime) override;
     void apply_parent_rotation_correction(float deltaDegrees);
     void detach_to_world();
     bool is_detached() const { return isDetached; }

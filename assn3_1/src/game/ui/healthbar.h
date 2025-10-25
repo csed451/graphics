@@ -24,7 +24,7 @@ public:
         );
 
     void draw_shape() const override;
-    void update(float deltaTime);
+    void update(float deltaTime) override;
     void deactivate();
     void reset();
 };

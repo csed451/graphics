@@ -25,7 +25,7 @@ public:
         get_mesh()->draw();
     }
 
-    void update(float deltaTime) {
+    void update(float deltaTime) override {
         if (!get_isActive())
             return;
         rotate_world(velocity * deltaTime, FORWARD);

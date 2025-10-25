@@ -1,6 +1,8 @@
 #include "canon.h"
 #include <glm/gtc/quaternion.hpp>
 
+
+
 void Canon::draw_shape() const {
     glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
     
@@ -11,7 +13,7 @@ void Canon::draw_shape() const {
 void Canon::update(float deltaTime) {
     if (!get_isActive())
         return; 
-    attackPool.update(deltaTime);
+    // attackPool.update(deltaTime);
     shootCooldown -= deltaTime;
 }
 

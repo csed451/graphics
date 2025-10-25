@@ -58,7 +58,7 @@ public:
 
     void set_player(Player* obj) { player = obj; }
 
-    void update(float deltaTime);
+    void update(float deltaTime) override;
     void draw_shape() const override;
     
     inline void take_damage(int damage) { heart = std::max(0, heart - damage); }

@@ -31,7 +31,7 @@ public:
     };
     
     void draw_shape() const override;
-    void update(float deltaTime);
+    void update(float deltaTime) override;
 
     void set_direction(glm::vec3 dir) { direction = dir; }
     void set_counter(bool c) { counter = c; }

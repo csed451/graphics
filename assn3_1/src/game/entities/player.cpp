@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 
 #include "player.h"
 #include "game/entities/enemy.h"
@@ -36,13 +37,19 @@ void Player::update(float deltaTime) {
         set_isActive(false);
 
     if (isShooting && ! isRecovery) {
+        std::cout << "Shooting" << std::endl;
         leftCanon.shoot();
         rightCanon.shoot();
+        std::cout << "Shooting doen" << std::endl;
     }
-    leftCanon.update(deltaTime);
-    rightCanon.update(deltaTime);
 
-    for (auto& o : orbits) o.update(deltaTime);
+    Object::update(deltaTime);
+        std::cout << "update doen" << std::endl;
+
+    // leftCanon.update(deltaTime);
+    // rightCanon.update(deltaTime);
+
+    // for (auto& o : orbits) o.update(deltaTime);
 
 
     if (isRecovery) {
@@ -74,6 +81,9 @@ void Player::update(float deltaTime) {
             if (isRecovery) break;
         }
     }
+
+        std::cout << "all doen" << std::endl;
+
 
 }
 
