@@ -44,10 +44,8 @@ Player* player = nullptr;
 int prevTime = 0;
 
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
-constexpr float CAMERA_INITIAL_SPEED = 0.05f;
 
 float playerSpeed = PLAYER_INITIAL_SPEED;
-float cameraSpeed = CAMERA_INITIAL_SPEED;
 
 inline glm::vec3 playerDirection = ZERO;
 inline glm::vec3 playerPrevDirection = ZERO;
@@ -78,6 +76,8 @@ static void draw_bounding_box();
 
 void set_projection_matrix(ProjectionType type) {
     glm::mat4 projection;
+
+    projectionType = type;
 
     cameraTargetObject = nullptr;
 
@@ -154,7 +154,6 @@ int main(int argc, char** argv) {
 
 void reshape (int w, int h) {
     glViewport (0, 0, w, h);
-
 
     set_projection_matrix(projectionType);
 }
@@ -350,6 +349,7 @@ static void check_and_handle_game_over() {
         init_stars();
         player->set_isActive(true);
         player->set_isRecovery(false);
+        player->set_direction(ZERO);
 
         for (auto& canon : player->get_canons()){
             ObjectPool<Attack> & pool = canon->get_attackPool();
@@ -369,7 +369,6 @@ static void check_and_handle_game_over() {
         set_projection_matrix(ProjectionType::Thirdperson);
 
         playerSpeed = PLAYER_INITIAL_SPEED;
-        cameraSpeed = CAMERA_INITIAL_SPEED;
     }
 }
 

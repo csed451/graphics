@@ -123,9 +123,8 @@ void Object::scale_world(glm::vec3 v) {
 
 void Object::draw() const {
     if (isActive && isVisible) {
-        glPushMatrix();
-        glm::mat4 finalMatrix = get_finalMatrix();
-        glm::mat4 mvp = cameraMatrix * finalMatrix;
+        glm::mat4 mvp = cameraMatrix * get_finalMatrix();
+        glMatrixMode(GL_MODELVIEW);
         glLoadMatrixf(glm::value_ptr(mvp));
 
         draw_shape();
@@ -133,8 +132,6 @@ void Object::draw() const {
         for (auto child : children)
             if (child)
                 child->draw();
-
-        glPopMatrix();
     }
 }
 
