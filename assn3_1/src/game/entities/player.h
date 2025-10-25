@@ -64,7 +64,7 @@ public:
     void set_isAccelerating(bool b) { isAccelerating = b; }
     void set_enemies(std::vector<Enemy*>& _enemies) { enemies = _enemies; }
 
-    void update(float deltaTime) override;
+    void update_logic(float deltaTime) override;
     void draw_shape() const override;
 
     void reset();

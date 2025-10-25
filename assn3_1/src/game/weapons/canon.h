@@ -22,7 +22,7 @@ public:
     };
 
     void draw_shape() const override;
-    void update(float deltaTime) override;
+    void update_logic(float deltaTime) override;
 
     ObjectPool<Attack>& get_attackPool() { return attackPool; }
 

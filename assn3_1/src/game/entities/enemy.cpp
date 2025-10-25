@@ -25,12 +25,7 @@ void Enemy::init_vertices() {
     }
 }
 
-void Enemy::update(float deltaTime) {
-        std::cout << "enemy update start" << std::endl;
-
-    if (!get_isActive())
-        return;
-    
+void Enemy::update_logic(float deltaTime) {
     translate(glm::vec3(0, moveDir * moveSpeed * deltaTime, 0));
 
     float y = get_pos().y;
@@ -80,13 +75,6 @@ void Enemy::update(float deltaTime) {
         shoot();
         shootCooldown = shootInterval;
     }
-    // bulletPool.update(deltaTime);
-
-    // leftUpperArm.update(deltaTime);
-    // rightUpperArm.update(deltaTime);
-    Object::update(deltaTime);
-        std::cout << "enemy update doen" << std::endl;
-
 }
 
 void Enemy::draw_shape() const {

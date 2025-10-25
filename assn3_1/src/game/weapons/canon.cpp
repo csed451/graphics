@@ -10,10 +10,7 @@ void Canon::draw_shape() const {
     get_mesh()->draw();
 }
 
-void Canon::update(float deltaTime) {
-    if (!get_isActive())
-        return; 
-    // attackPool.update(deltaTime);
+void Canon::update_logic(float deltaTime) {
     shootCooldown -= deltaTime;
 }
 

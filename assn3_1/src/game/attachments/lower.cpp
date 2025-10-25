@@ -40,10 +40,7 @@ void Lower::draw_shape() const {
     mesh->draw();
 }
 
-void Lower::update(float deltaTime) {
-    if (!get_isActive())
-        return;
-
+void Lower::update_logic(float deltaTime) {
     animationTime += deltaTime;
     float inheritedDelta = pendingParentRotation;
     pendingParentRotation = 0.0f;
@@ -57,7 +54,7 @@ void Lower::update(float deltaTime) {
         float netDelta = inheritedDelta + deltaSwing;
         escortPlane.apply_parent_rotation_correction(netDelta);
     }
-    escortPlane.update(deltaTime);
+
 }
 
 void Lower::deactivate() {

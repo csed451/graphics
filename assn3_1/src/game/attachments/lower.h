@@ -35,7 +35,7 @@ public:
         );
 
     void draw_shape() const override;
-    void update(float deltaTime) override;
+    void update_logic(float deltaTime) override;
     void add_parent_rotation_delta(float deltaDegrees);
     void detach_plane();
     bool is_plane_detached() const { return escortPlane.is_detached(); }

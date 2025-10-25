@@ -121,6 +121,14 @@ void Object::scale_world(glm::vec3 v) {
     modelMatrix = mS * modelMatrix;
 }
 
+void Object::update(float deltaTime) { 
+    if (!get_isActive())
+        return;
+    update_logic(deltaTime);
+    for (auto child : children) 
+        if (child) child->update(deltaTime); 
+};
+
 void Object::draw() const {
     if (isActive && isVisible) {
         glm::mat4 mvp = cameraMatrix * get_finalMatrix();

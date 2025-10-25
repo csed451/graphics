@@ -23,10 +23,7 @@ void Player::draw_shape() const {
     get_mesh()->draw();
 }
 
-void Player::update(float deltaTime) {
-    if (!get_isActive())
-        return; 
-
+void Player::update_logic(float deltaTime) {
     glm::vec3 move = velocity * direction * deltaTime;
     move *= (isShooting || isRecovery ? 0.5 : 1);
     translate(move);
@@ -37,19 +34,9 @@ void Player::update(float deltaTime) {
         set_isActive(false);
 
     if (isShooting && ! isRecovery) {
-        std::cout << "Shooting" << std::endl;
         leftCanon.shoot();
         rightCanon.shoot();
-        std::cout << "Shooting doen" << std::endl;
     }
-
-    Object::update(deltaTime);
-        std::cout << "update doen" << std::endl;
-
-    // leftCanon.update(deltaTime);
-    // rightCanon.update(deltaTime);
-
-    // for (auto& o : orbits) o.update(deltaTime);
 
 
     if (isRecovery) {
@@ -81,10 +68,6 @@ void Player::update(float deltaTime) {
             if (isRecovery) break;
         }
     }
-
-        std::cout << "all doen" << std::endl;
-
-
 }
 
 void Player::reset() {

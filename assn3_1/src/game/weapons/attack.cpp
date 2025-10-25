@@ -7,7 +7,6 @@ void Attack::draw_shape() const {
     get_mesh()->draw();
 }
 
-void Attack::update(float deltaTime) {
-    if (get_isActive())
-        translate(velocity * deltaTime);
+void Attack::update_logic(float deltaTime) {
+    translate(velocity * deltaTime);
 }

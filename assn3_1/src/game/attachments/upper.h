@@ -38,7 +38,7 @@ public:
         );
 
     void draw_shape() const override;
-    void update(float deltaTime) override;
+    void update_logic(float deltaTime) override;
     
     void detach_plane();
     bool is_plane_detached() const { return lowerArm.is_plane_detached(); }

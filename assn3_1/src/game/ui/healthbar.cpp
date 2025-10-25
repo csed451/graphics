@@ -56,12 +56,6 @@ void Healthbar::draw_shape() const {
     glPopMatrix();
 }
 
-void Healthbar::update(float deltaTime) {
-    (void)deltaTime;
-    if (!get_isActive())
-        return;
-}
-
 void Healthbar::deactivate() {
     set_isActive(false);
     set_isVisible(false);

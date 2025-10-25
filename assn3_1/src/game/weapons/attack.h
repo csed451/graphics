@@ -18,7 +18,7 @@ public:
     };
 
     void draw_shape() const override;
-    void update(float deltaTime) override;
+    void update_logic(float deltaTime) override;
 
     int get_damage() { return damage; }
     void set_velocity(glm::vec3 v) { velocity = v; }

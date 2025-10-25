@@ -54,10 +54,7 @@ void EscortPlane::draw_shape() const {
     glPopMatrix();
 }
 
-void EscortPlane::update(float deltaTime) {
-    if (!get_isActive())
-        return;
-
+void EscortPlane::update_logic(float deltaTime) {
     animationTime += deltaTime;
 
     if (isDetached) {

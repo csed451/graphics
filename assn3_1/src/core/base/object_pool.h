@@ -28,33 +28,21 @@ public:
         T* obj = available.back();
         available.pop_back();
         obj->set_isActive(true);
-        obj->set_parent(&sceneRoot);
         return obj;
     }
 
     void release(T* obj) {
-        obj->set_parent(nullptr);
         available.push_back(obj);
         obj->set_isActive(false);
     }
 
-    void update(float deltaTime) override {
-        for (auto obj : pool) {
-            if (obj->get_isActive()) {
-                if (is_outside_window(obj->get_pos())) {
-                    release(obj);
-                } else {
-                    obj->update(deltaTime);
-                }
-            }
-        }
+    void update_logic([[maybe_unused]] float deltaTime) override {
+        for (auto obj : pool)
+            if (obj->get_isActive() && is_outside_window(obj->get_pos()))
+                release(obj);
     }
-    void draw_shape() const override {};
 
-    // void draw() const {
-    //     for (auto obj : pool)
-    //         obj->draw();
-    // }
+    void draw_shape() const override {};
 
     ~ObjectPool() {
         for (auto obj : pool) {

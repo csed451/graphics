@@ -41,10 +41,7 @@ void Upper::draw_shape() const {
     mesh->draw();
 }
 
-void Upper::update(float deltaTime) {
-    if (!get_isActive())
-        return; 
-
+void Upper::update_logic(float deltaTime) {
     animationTime += deltaTime;
 
     float targetSwing = std::sin(animationTime * swingFrequency + phaseOffset) * swingAmplitude;
@@ -53,7 +50,6 @@ void Upper::update(float deltaTime) {
     currentSwing = targetSwing;
 
     lowerArm.add_parent_rotation_delta(deltaSwing);
-    lowerArm.update(deltaTime);
 }
 
 void Upper::detach_plane() {

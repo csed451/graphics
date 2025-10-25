@@ -80,14 +80,8 @@ public:
     void rotate_world(GLfloat angle, glm::vec3 axis);
     void scale_world(glm::vec3 v);
 
-    virtual void update(float deltaTime) { 
-        std::cout << children.size() << std::endl;
-        for (auto child : children) 
-            if (child) {
-                std::cout << "Type: " << typeid(*child).name() << std::endl;
-                child->update(deltaTime); 
-            }
-    };
+    void update(float deltaTime);
+    virtual void update_logic([[maybe_unused]] float deltaTime) {};
     void draw() const;
     virtual void draw_shape() const = 0;
 
