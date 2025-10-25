@@ -5,16 +5,18 @@
 #include "core/base/scene_node.h"
 
 template <typename T>
-class ObjectPool {
+class ObjectPool : public Object{
 private:
     std::vector<T*> pool;
     std::vector<T*> available;
 public:
-    ObjectPool(size_t size) {
+    ObjectPool(size_t size) : Object() {
+        set_parent(&sceneRoot);
         for (size_t i = 0; i < size; ++i) {
             pool.push_back(new T());
             available.push_back(pool.back());
             pool.back()->set_isActive(false);
+            pool.back()->set_parent(this);
         }
     }
 
@@ -36,7 +38,7 @@ public:
         obj->set_isActive(false);
     }
 
-    void update(float deltaTime) {
+    void update(float deltaTime) override {
         for (auto obj : pool) {
             if (obj->get_isActive()) {
                 if (is_outside_window(obj->get_pos())) {
@@ -47,11 +49,12 @@ public:
             }
         }
     }
+    void draw_shape() const override {};
 
-    void draw() const {
-        for (auto obj : pool)
-            obj->draw();
-    }
+    // void draw() const {
+    //     for (auto obj : pool)
+    //         obj->draw();
+    // }
 
     ~ObjectPool() {
         for (auto obj : pool) {
