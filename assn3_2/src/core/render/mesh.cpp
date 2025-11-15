@@ -1,6 +1,6 @@
 #include "core/render/mesh.h"
 
-#include <GL/freeglut.h>
+#include <GL/glew.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -9,6 +9,8 @@
 #include <string>
 #include <unordered_map>
 
+
+// Anonymous namespace for helper functions
 namespace {
 struct FaceVertex {
     int position = 0;
@@ -41,6 +43,26 @@ void parse_face_token(const std::string& token, FaceVertex& fv) {
 }
 }
 
+
+void Mesh::release_gpu() {
+    if (m_vboNormals) {
+        glDeleteBuffers(1, &m_vboNormals);
+        m_vboNormals = 0;
+    }
+    if (m_vboPositions) {
+        glDeleteBuffers(1, &m_vboPositions);
+        m_vboPositions = 0;
+    }
+    if (m_vao) {
+        glDeleteVertexArrays(1, &m_vao);
+        m_vao = 0;
+    }
+}
+
+Mesh::~Mesh() {
+    release_gpu();
+}
+
 bool Mesh::load_from_obj(const std::string& path) {
     std::ifstream file(path);
     if (!file.is_open())
@@ -48,6 +70,7 @@ bool Mesh::load_from_obj(const std::string& path) {
 
     m_positions.clear();
     m_normals.clear();
+    release_gpu();
 
     std::vector<std::array<float, 3>> tempPositions;
     std::vector<std::array<float, 3>> tempNormals;
@@ -146,31 +169,57 @@ bool Mesh::load_from_obj(const std::string& path) {
         }
     }
 
+    // Setup GPU buffers (Shader-compatible)
+    m_vertexCount = static_cast<GLsizei>(m_positions.size() / 3);
+    m_hasNormals = (m_normals.size() == m_positions.size());
+
+    // Generate and bind VAO and VBO
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_vboPositions);
+
+    // Bind VAO and VBO
+    glBindVertexArray(m_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vboPositions);
+
+    // VBO data upload
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_positions.size() * sizeof(float)),
+                 m_positions.data(), GL_STATIC_DRAW);
+    // VAO attribute setup
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+    // Normals VBO setup if available
+    if (m_hasNormals) {
+        glGenBuffers(1, &m_vboNormals);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
+        glBufferData(GL_ARRAY_BUFFER,
+                     static_cast<GLsizeiptr>(m_normals.size() * sizeof(float)),
+                     m_normals.data(),
+                     GL_STATIC_DRAW);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    } else {
+        glDisableVertexAttribArray(1);
+    }
+    
+    // Unbind to avoid accidental modification
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     return true;
 }
 
 void Mesh::draw() const {
-    if (m_positions.empty())
+    if (!m_vao)
         return;
 
-    glPushAttrib(GL_ENABLE_BIT);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, m_positions.data());
-
-    bool hasNormals = m_normals.size() == m_positions.size();
-    if (hasNormals) {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_FLOAT, 0, m_normals.data());
-    }
-
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_positions.size() / 3));
-
-    if (hasNormals)
-        glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopAttrib();
+    glBindVertexArray(m_vao);
+    glDrawArrays(GL_TRIANGLES, 0, m_vertexCount);
+    glBindVertexArray(0);
 }
 
+
+// [free function] Global mesh loading function with caching
 std::shared_ptr<Mesh> load_mesh(const std::string& path) {
     static std::unordered_map<std::string, std::weak_ptr<Mesh>> cache;
 

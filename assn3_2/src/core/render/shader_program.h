@@ -18,7 +18,7 @@ public:
     ShaderProgram() = default;
     ~ShaderProgram();
 
-    // 복사, 이동 생성자 및 대입 연산자 금지
+    // Prevent copy and move semantics
     ShaderProgram(const ShaderProgram&) = delete;                   // 복사 생성
     ShaderProgram& operator=(const ShaderProgram&) = delete;        // 복사 대입
     ShaderProgram(ShaderProgram&&) noexcept = delete;               // 이동 생성
