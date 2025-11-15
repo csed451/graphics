@@ -1,15 +1,15 @@
 
-# Assn3-1 Overview
+# Assn3-2 Overview
 
-Assignment 3-1 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
+Assignment 3-2 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
 
 ## End-User Guide
 
 ### 1. Build & Run
 
-Move to the src directory (`graphics/assn3_1/src`) and run one of the provided Makefile commands.
+Move to the src directory (`graphics/assn3_2/src`) and run one of the provided Makefile commands.
 
-From `./assn3_1/src/`:
+From `./assn3_2/src/`:
 
 - `make` (or `make all`): build the `main` executable into `assn3_1/src/main`.
 - `make run`: build (if needed) and launch the game.
@@ -19,8 +19,8 @@ From `./assn3_1/src/`:
     <summary> If you want, you can compile and execute directly with the command below. </summary>
 
 ```bash
-# on graphics/assn3_1/src
-cd ./assn3_1/src
+# on graphics/assn3_2/src
+cd ./assn3_2/src
 
 g++ app/main.cpp \
     core/base/object.cpp \
@@ -54,11 +54,11 @@ Combat: **Space (hold)** >>  fire
 
 Render Style: **W / w**
 
-- toggles : opaque vs. wireframe
+- cycles : opaque → wireframe → ...
 
 Camera Views: **C / c**
 
-- cycles : top-perspective → top-orthographic → third-person
+- cycles : top-perspective → top-orthographic → third-person → ...
 
 Game Over:
 
