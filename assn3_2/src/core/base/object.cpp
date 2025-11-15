@@ -130,17 +130,13 @@ void Object::update(float deltaTime) {
 };
 
 void Object::draw() const {
-    if (isActive && isVisible) {
-        glm::mat4 mvp = cameraMatrix * get_finalMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(glm::value_ptr(mvp));
+    if (!isActive || !isVisible)
+        return;
 
-        draw_shape();
-
-        for (auto child : children)
-            if (child)
-                child->draw();
-    }
+    draw_shape();
+    for (auto child : children)
+        if (child)
+            child->draw();
 }
 
 bool Object::check_collision(Object* other) {
