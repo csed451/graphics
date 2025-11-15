@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,6 +12,8 @@
 #include "core/globals/game_constants.h"
 #include "core/globals/camera.h"
 #include "core/base/scene_node.h"
+#include "core/render/renderer.h"
+#include "core/render/mesh.h"
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
@@ -21,22 +24,13 @@ GameState gameState = GameState::Playing;
 enum class RenderStyle { Opaque, Wireframe };
 RenderStyle currentStyle = RenderStyle::Opaque;
 
-
-void apply_render_style(RenderStyle style) {
-    switch (style) {
-    case RenderStyle::Opaque:                        
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glLineWidth(1.0f);
-        break;
-    case RenderStyle::Wireframe:
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0f, -1.0f);
-        glLineWidth(1.2f);
-        break;
-    }
-}
+// for Shared Renderer
+GLuint starVAO = 0;
+GLuint starVBO = 0;
+GLuint boundingBoxVAO = 0;
+GLuint boundingBoxVBO = 0;
+GLsizei starVertexCount = 0;
+GLsizei boundingBoxVertexCount = 0;
 
 std::vector<float> starVertices;
 std::vector<Enemy*> enemies;
@@ -71,7 +65,24 @@ static void draw_game_over(const char* msg);
 
 static void init_stars();
 static void draw_stars();
+static void init_bounding_box();
 static void draw_bounding_box();
+
+void apply_render_style(RenderStyle style) {
+    switch (style) {
+    case RenderStyle::Opaque:                        
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glLineWidth(1.0f);
+        break;
+    case RenderStyle::Wireframe:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+        glPolygonOffset(-1.0f, -1.0f);
+        glLineWidth(1.2f);
+        break;
+    }
+}
 
 void set_projection_matrix(ProjectionType type) {
     glm::mat4 projection;
@@ -87,20 +98,17 @@ void set_projection_matrix(ProjectionType type) {
     else if(type == ProjectionType::Orthographic) {
         projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -1.0f, 1.0f);
         cameraMatrix = glm::mat4(1.0f);
+        gRenderer.set_view(cameraMatrix);
     }
     else if(type == ProjectionType::Thirdperson) {
         projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 500.0f);
         cameraTargetObject = player;
         cameraPos = glm::vec3(0, -20, 10);
     }
-
-
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glLoadMatrixf(glm::value_ptr(projection));
+    projectionMatrix = projection;
+    gRenderer.set_projection(projection);
+    update_camera();
 }
-
 
 int main(int argc, char** argv) {
     /* initial window setup */
@@ -110,17 +118,23 @@ int main(int argc, char** argv) {
     glutInitWindowPosition(100,100);
     glutCreateWindow("Bullet Hell shooter");
 
+    // Initialize GLEW and Renderer
+    glewExperimental = GL_TRUE;
+    glewInit();
+    gRenderer.init();
+
+    // OpenGL states configuration
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Enable depth buffer to prepare for 3D rendering
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0f);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glPointSize(2.0f);
 
     init_camera();
+    set_projection_matrix(projectionType);
 
     /* connect call back function */
     glutReshapeFunc(reshape);
@@ -161,21 +175,28 @@ void reshape (int w, int h) {
 void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     update_camera();
-   
+    
+    //**** Render Scene Here ****//
+    gRenderer.begin_frame();
+
     apply_render_style(currentStyle);
     sceneRoot.draw();
-
     draw_bounding_box();
-
-    if (gameState == GameState::GameOver) {
+    bool showOverlay = (gameState == GameState::GameOver);
+    const char* overlayMsg = nullptr;
+    if (showOverlay) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         draw_stars();
-        const char* msg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
-        draw_game_over(msg);
+        overlayMsg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
         apply_render_style(currentStyle);
     }
+
+    gRenderer.end_frame();
+    //**** End Render Scene ****//
+
+    if (showOverlay && overlayMsg)
+        draw_game_over(overlayMsg);
     
     glutSwapBuffers();
 }
@@ -198,7 +219,6 @@ void update(void) {
         if (player->get_pos().y <= 450) {
             playerSpeed += 0.01;
             player->translate(UP * playerSpeed);
-
             player->set_isAccelerating(true);
         }   
         return;
@@ -440,59 +460,102 @@ static void init_stars() {
         starVertices.push_back(rand() % 1000 - 500);
         starVertices.push_back(rand() % 1000 - 500);
     }
+
+    // [V1] Require VAO and VBO for stars
+    starVertexCount = static_cast<GLsizei>(starVertices.size() / 3);
+    if (!starVAO)
+        glGenVertexArrays(1, &starVAO);         // request VAO handle
+    if (!starVBO)
+        glGenBuffers(1, &starVBO);              // request VBO handle
+
+    // [V2] Bind VAO and VBO 
+    glBindVertexArray(starVAO);                 // make VAO current so later calls configure it
+    glBindBuffer(GL_ARRAY_BUFFER, starVBO);     // bind vertex buffer for position data
+
+    // [V3] VBO data upload
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(starVertices.size() * sizeof(float)), 
+                starVertices.data(), GL_STATIC_DRAW);
+    // [V4] VAO attribute setup
+    glEnableVertexAttribArray(0);                                // enable attribute slot 0 (position)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr); // describe layout: 3 floats per vertex
+
+    // [V5] Unbind to avoid accidental modification
+    glBindBuffer(GL_ARRAY_BUFFER, 0);   
+    glBindVertexArray(0);               
 }
 
 static void draw_stars() {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadMatrixf(glm::value_ptr(cameraMatrix));
+    if (!starVAO || starVertexCount == 0)
+        return;
 
-    glColor3f(1.0f, 1.0f, 1.0f);
+    gRenderer.draw_raw(starVAO, starVertexCount, GL_POINTS, glm::mat4(1.0f), glm::vec4(1.0f), false);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, starVertices.data());
-    glDrawArrays(GL_POINTS, 0, starVertices.size() / 3);
-    glDisableClientState(GL_VERTEX_ARRAY);
-
-    // glBegin(GL_POINTS);
-    // for (size_t i = 0; i < starVertices.size(); i += 3) {
-    //     float x = starVertices[i];
-    //     float y = starVertices[i + 1];
-    //     float z = starVertices[i + 2];
-    //     glVertex3f(x, y, z);
-    // }
-    // glEnd();
-
-    glTranslatef(-60, 620, 20);
-    glColor3f(1,0,0);
-    glutSolidSphere(100, 64, 64);
-
-    glPopMatrix();
+    auto sunMesh = load_mesh("assets/sphere.obj");
+    if (sunMesh) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-60, 620, 20));
+        model = glm::scale(model, glm::vec3(100.0f));
+        gRenderer.draw_mesh(*sunMesh, model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    }
 }
 
-void draw_bounding_box() {
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(cameraMatrix));
+static void init_bounding_box() {
+    // Only create buffers once
+    if (boundingBoxVAO) return;
 
-    glLineWidth(2.0f); 
-    glBegin(GL_LINES);
-    // 앞면
-        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4);
+    const float frontZ = MAX_COORD / 4.0f;
+    const float backZ = -MAX_COORD / 4.0f;
+    const float min = -MAX_COORD;
+    const float max = MAX_COORD;
 
-        // 뒷면
-        glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
+    // Bounding box lines
+    std::vector<glm::vec3> vertices = {
+        {min, min, frontZ}, {max, min, frontZ},
+        {max, min, frontZ}, {max, max, frontZ},
+        {max, max, frontZ}, {min, max, frontZ},
+        {min, max, frontZ}, {min, min, frontZ},
 
-        // 연결선
-        glVertex3f(-MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD, -MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD, -MAX_COORD, -MAX_COORD/4);
-        glVertex3f( MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f( MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-        glVertex3f(-MAX_COORD,  MAX_COORD,  MAX_COORD/4); glVertex3f(-MAX_COORD,  MAX_COORD, -MAX_COORD/4);
-    glEnd();
+        {min, min, backZ}, {max, min, backZ},
+        {max, min, backZ}, {max, max, backZ},
+        {max, max, backZ}, {min, max, backZ},
+        {min, max, backZ}, {min, min, backZ},
+
+        {min, min, frontZ}, {min, min, backZ},
+        {max, min, frontZ}, {max, min, backZ},
+        {max, max, frontZ}, {max, max, backZ},
+        {min, max, frontZ}, {min, max, backZ}
+    };
+
+    boundingBoxVertexCount = static_cast<GLsizei>(vertices.size());
+
+    // Generate and bind VAO and VBO
+    glGenVertexArrays(1, &boundingBoxVAO);
+    glGenBuffers(1, &boundingBoxVBO);
+    
+    // Bind VAO and VBO
+    glBindVertexArray(boundingBoxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, boundingBoxVBO);
+
+    // VBO data upload
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(glm::vec3)),
+                 vertices.data(), GL_STATIC_DRAW);
+    // VAO attribute setup
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), nullptr);
+
+    // Unbind to avoid accidental modification
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+static void draw_bounding_box() {
+    init_bounding_box();
+    if (!boundingBoxVAO)
+        return;
+
+    gRenderer.draw_raw(boundingBoxVAO,
+                       boundingBoxVertexCount,
+                       GL_LINES,
+                       glm::mat4(1.0f),
+                       glm::vec4(1.0f, 1.0f, 0.0f, 1.0f),
+                       false);
 }
