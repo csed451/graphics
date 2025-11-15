@@ -3,24 +3,30 @@
 
 #include "player.h"
 #include "game/entities/enemy.h"
-#include "core/globals/camera.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 void Player::draw_shape() const {
-    glColor4f(0, 1, 0, isRecovery ? 0.2f : 1.0f);
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
 
+    glm::mat4 model = get_finalMatrix();
     if (direction == UP)
-        glRotatef(-20.0f, 1.0f, 0.0f, 0.0f);
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(1, 0, 0));
     else if (direction == DOWN)
-        glRotatef(20.0f, 1.0f, 0.0f, 0.0f);
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(1, 0, 0));
     else if (direction == RIGHT)
-        glRotatef(20.0f, 0.0f, 1.0f, 0.0f);
+        model = glm::rotate(model, glm::radians(20.0f), glm::vec3(0, 1, 0));
     else if (direction == LEFT)
-        glRotatef(-20.0f, 0.0f, 1.0f, 0.0f); 
+        model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(0, 1, 0));
 
-    glScalef(0.3f, 0.3f, 0.3f);
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-    get_mesh()->draw();
+    model = glm::scale(model, glm::vec3(0.3f));
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
+
+    glm::vec4 color(0.0f, 1.0f, 0.0f, isRecovery ? 0.2f : 1.0f);
+    gRenderer.draw_mesh(*mesh, model, color);
 }
 
 void Player::update_logic(float deltaTime) {

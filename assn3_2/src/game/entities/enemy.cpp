@@ -4,6 +4,8 @@
 #include "core/globals/game_constants.h"
 #include "enemy.h"
 #include "game/entities/player.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 void Enemy::init_vertices() {
     // outer octagon Vertices
@@ -78,13 +80,16 @@ void Enemy::update_logic(float deltaTime) {
 }
 
 void Enemy::draw_shape() const {
-    glColor4f(0.85f, 0.15f, 0.15f, 0.7f);
-    GLfloat scaleFactor = 5.0f;
-    
-    glScalef(scaleFactor, scaleFactor, scaleFactor);    
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-    get_mesh()->draw();
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
+
+    glm::mat4 model = get_finalMatrix();
+    model = glm::scale(model, glm::vec3(5.0f));
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
+
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.85f, 0.15f, 0.15f, 0.7f));
 }
 
 void Enemy::shoot(){
