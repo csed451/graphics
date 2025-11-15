@@ -2,6 +2,8 @@
 
 #include "lower.h"
 #include "core/render/mesh.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 Lower::Lower(
     glm::vec3 _pos,
@@ -35,9 +37,8 @@ void Lower::draw_shape() const {
     if (!mesh)
         return;
 
-    glColor3f(0.9f, 0.9f, 0.9f);
-
-    mesh->draw();
+    glm::mat4 model = get_finalMatrix();
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
 }
 
 void Lower::update_logic(float deltaTime) {

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/base/object.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 class Orbit : public Object {
 private:
@@ -17,12 +19,16 @@ public:
     };
 
     void draw_shape() const override {
-        glColor4f(0.85f, 0.15f, 0.15f, 1.0f);
-        
-        glScalef(0.8f, 0.8f, 0.8f);    
-        glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-        glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-        get_mesh()->draw();
+        const auto mesh = get_mesh();
+        if (!mesh)
+            return;
+
+        glm::mat4 model = get_finalMatrix();
+        model = glm::scale(model, glm::vec3(0.8f));
+        model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
+
+        gRenderer.draw_mesh(*mesh, model, glm::vec4(0.85f, 0.15f, 0.15f, 1.0f));
     }
 
     void update_logic(float deltaTime) override {

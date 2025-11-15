@@ -1,10 +1,15 @@
 #include "attack.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 void Attack::draw_shape() const {
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
 
-    glScalef(0.3f, 0.3f, 0.3f);
-    get_mesh()->draw();
+    glm::mat4 model = get_finalMatrix();
+    model = glm::scale(model, glm::vec3(0.3f));
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f));
 }
 
 void Attack::update_logic(float deltaTime) {

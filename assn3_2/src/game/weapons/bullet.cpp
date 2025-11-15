@@ -1,4 +1,6 @@
 #include "bullet.h"
+#include "core/render/renderer.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 void Bullet::init_vertices(){
     for(int i=0; i <= segments; ++i){
@@ -21,19 +23,19 @@ void Bullet::init_vertices(){
 }
 
 void Bullet::draw_shape() const {
-    if (counter) 
-        glColor4f(0.0f, 0.68f, 1.0f, 1.0f);
-    else 
-        glColor4f(1.0f, 0.32f, 0.0f, 1.0f);
+    const auto mesh = get_mesh();
+    if (!mesh)
+        return;
 
-    GLfloat scaleFactor = 1.2f;
-    
-    glScalef(scaleFactor, scaleFactor, scaleFactor);    
-    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-    glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-    get_mesh()->draw();
-    
-    return;
+    glm::mat4 model = get_finalMatrix();
+    model = glm::scale(model, glm::vec3(1.2f));
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
+
+    glm::vec4 color = counter
+        ? glm::vec4(0.0f, 0.68f, 1.0f, 1.0f)
+        : glm::vec4(1.0f, 0.32f, 0.0f, 1.0f);
+    gRenderer.draw_mesh(*mesh, model, color);
 }
 
 void Bullet::update_logic(float deltaTime) {
