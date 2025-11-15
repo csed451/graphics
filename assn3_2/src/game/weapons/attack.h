@@ -5,7 +5,7 @@
 class Attack : public Object {
 private:
     int damage = 1;
-    glm::vec3 velocity = glm::vec3(0, 40, 0);
+    glm::vec3 velocity = glm::vec3(0, 80, 0);
 public:
     Attack(
         glm::vec3 _pos = ZERO, 

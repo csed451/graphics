@@ -17,7 +17,7 @@ private:
     Canon rightCanon;
     
     glm::vec3 direction = ZERO;
-    float velocity = 15;
+    float velocity = 20;
     
     bool isShooting = false;
     bool isRecovery = false;

@@ -87,7 +87,7 @@ void Player::reset() {
     }
     
     direction = ZERO;
-    velocity = 15;    
+    velocity = 20;    
     isShooting = false;
     isRecovery = false;
     isAccelerating = false;

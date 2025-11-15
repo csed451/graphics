@@ -455,7 +455,7 @@ static void draw_game_over(const char* msg) {
 static void init_stars() {
     starVertices.clear();
     srand(42);
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         starVertices.push_back(rand() % 1000 - 500);
         starVertices.push_back(rand() % 1000 - 500);
         starVertices.push_back(rand() % 1000 - 500);
