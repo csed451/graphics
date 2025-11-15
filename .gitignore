@@ -1,4 +1,5 @@
 .vscode
+.markdownlint.json
 **/AGENTS.md
 
 # ignore build files
