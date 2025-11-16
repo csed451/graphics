@@ -21,9 +21,6 @@
 enum class GameState { Playing, GameOver, Exiting };
 GameState gameState = GameState::Playing;
 
-enum class RenderStyle { Opaque, Wireframe };
-RenderStyle currentStyle = RenderStyle::Opaque;
-
 // for Shared Renderer
 GLuint starVAO = 0;
 GLuint starVBO = 0;
@@ -69,22 +66,6 @@ static void draw_stars();
 static void init_bounding_box();
 static void draw_bounding_box();
 
-void apply_render_style(RenderStyle style) {
-    switch (style) {
-    case RenderStyle::Opaque:                        
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glLineWidth(1.0f);
-        break;
-    case RenderStyle::Wireframe:
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0f, -1.0f);
-        glLineWidth(1.2f);
-        break;
-    }
-}
-
 void set_projection_matrix(ProjectionType type) {
     glm::mat4 projection;
 
@@ -106,7 +87,7 @@ void set_projection_matrix(ProjectionType type) {
         cameraTargetObject = player;
         cameraPos = glm::vec3(0, -20, 10);
     }
-    projectionMatrix = projection;
+
     gRenderer.set_projection(projection);
     update_camera();
 }
@@ -181,7 +162,7 @@ void display (void) {
     //**** Render Scene Here ****//
     gRenderer.begin_frame();
 
-    apply_render_style(currentStyle);
+    gRenderer.apply_render_style();
     sceneRoot.draw();
     draw_bounding_box();
     bool showOverlay = (gameState == GameState::GameOver);
@@ -190,7 +171,8 @@ void display (void) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         draw_stars();
         overlayMsg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
-        apply_render_style(currentStyle);
+        gRenderer.apply_render_style();
+
     }
 
     gRenderer.end_frame();
@@ -245,9 +227,7 @@ void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 break;
             case 'w':
             case 'W':
-                currentStyle = (currentStyle == RenderStyle::Opaque)
-                    ? RenderStyle::Wireframe
-                    : RenderStyle::Opaque;
+                gRenderer.swich_render_style();
                 break;
             case 'c':
             case 'C':

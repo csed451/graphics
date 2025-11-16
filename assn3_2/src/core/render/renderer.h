@@ -6,6 +6,8 @@
 
 class Mesh;
 
+enum class RenderStyle { Opaque, Wireframe, HiddenLineWireframe };
+
 class Renderer {
 private:
     ShaderProgram program;
@@ -18,6 +20,8 @@ private:
     GLint uColor = -1;
     GLint uNormal = -1;
     GLint uLighting = -1;
+
+    RenderStyle currentStyle = RenderStyle::Opaque;
 
 public:
     bool init();
@@ -40,6 +44,10 @@ public:
                   const glm::mat4& modelMatrix,
                   const glm::vec4& color,
                   bool lighting = false) const;
+
+
+    void apply_render_style();
+    void swich_render_style();
 };
 
 inline Renderer gRenderer;
