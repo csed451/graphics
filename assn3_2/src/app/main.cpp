@@ -27,9 +27,10 @@ RenderStyle currentStyle = RenderStyle::Opaque;
 // for Shared Renderer
 GLuint starVAO = 0;
 GLuint starVBO = 0;
+GLsizei starVertexCount = 0;
+
 GLuint boundingBoxVAO = 0;
 GLuint boundingBoxVBO = 0;
-GLsizei starVertexCount = 0;
 GLsizei boundingBoxVertexCount = 0;
 
 std::vector<float> starVertices;

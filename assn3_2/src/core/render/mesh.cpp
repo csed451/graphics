@@ -192,10 +192,8 @@ bool Mesh::load_from_obj(const std::string& path) {
     if (m_hasNormals) {
         glGenBuffers(1, &m_vboNormals);
         glBindBuffer(GL_ARRAY_BUFFER, m_vboNormals);
-        glBufferData(GL_ARRAY_BUFFER,
-                     static_cast<GLsizeiptr>(m_normals.size() * sizeof(float)),
-                     m_normals.data(),
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_normals.size() * sizeof(float)),
+                     m_normals.data(), GL_STATIC_DRAW);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     } else {
