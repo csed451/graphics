@@ -5,6 +5,53 @@
 
 #include "core/render/mesh.h"
 
+namespace {
+    struct GLRenderState {
+        GLint polygonMode[2] = {GL_FILL, GL_FILL};
+        GLboolean colorMask[4] = {GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE};
+        GLboolean depthMask = GL_TRUE;
+        GLboolean depthTest = GL_TRUE;
+        GLboolean polygonOffsetLine = GL_FALSE;
+        GLfloat lineWidth = 1.0f;
+        GLfloat polygonOffsetFactor = 0.0f;
+        GLfloat polygonOffsetUnits = 0.0f;
+    };
+
+    GLRenderState capture_state() {
+        GLRenderState state;
+        glGetIntegerv(GL_POLYGON_MODE, state.polygonMode);
+        glGetBooleanv(GL_COLOR_WRITEMASK, state.colorMask);
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &state.depthMask);
+        state.depthTest = glIsEnabled(GL_DEPTH_TEST);
+        state.polygonOffsetLine = glIsEnabled(GL_POLYGON_OFFSET_LINE);
+        glGetFloatv(GL_LINE_WIDTH, &state.lineWidth);
+        glGetFloatv(GL_POLYGON_OFFSET_FACTOR, &state.polygonOffsetFactor);
+        glGetFloatv(GL_POLYGON_OFFSET_UNITS, &state.polygonOffsetUnits);
+        return state;
+    }
+
+    void restore_state(const GLRenderState& state) {
+        glPolygonMode(GL_FRONT, state.polygonMode[0]);
+        glPolygonMode(GL_BACK, state.polygonMode[1]);
+        glColorMask(state.colorMask[0], state.colorMask[1], state.colorMask[2], state.colorMask[3]);
+        glDepthMask(state.depthMask);
+        if (state.depthTest)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+        if (state.polygonOffsetLine)
+            glEnable(GL_POLYGON_OFFSET_LINE);
+        else
+            glDisable(GL_POLYGON_OFFSET_LINE);
+        glLineWidth(state.lineWidth);
+        glPolygonOffset(state.polygonOffsetFactor, state.polygonOffsetUnits);
+    }
+
+    bool is_triangle_primitive(GLenum primitive) {
+        return primitive == GL_TRIANGLES || primitive == GL_TRIANGLE_STRIP || primitive == GL_TRIANGLE_FAN;
+    }
+}
+
 bool Renderer::init() {
     bool loaded = false, valid = false;
     
@@ -55,29 +102,35 @@ void Renderer::draw_mesh(const Mesh& mesh,
                          const glm::mat4& modelMatrix,
                          const glm::vec4& color,
                          bool lighting) const {
-    if (currentStyle == RenderStyle::HiddenLineWireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_DEPTH_TEST);
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); 
-        glDepthMask(GL_TRUE); // only write to depth buffer
-    }
-
     glUniformMatrix4fv(uModel, 1, GL_FALSE, &modelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
     glUniformMatrix3fv(uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
     glUniform4fv(uColor, 1, &color[0]);
     glUniform1i(uLighting, lighting ? 1 : 0);
-    mesh.draw();
 
-
-    if (currentStyle == RenderStyle::HiddenLineWireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); 
-        glEnable(GL_POLYGON_OFFSET_LINE);
-        glPolygonOffset(-1.0f, -1.0f);
-        glLineWidth(2.0f);
+    if (currentStyle != RenderStyle::HiddenLineWireframe) {
         mesh.draw();
+        return;
     }
+
+    GLRenderState saved = capture_state();
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_TRUE);
+    mesh.draw(); // depth pre-pass
+
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_FALSE);
+    glPolygonOffset(-1.0f, -1.0f);
+    glLineWidth(2.0f);
+    mesh.draw(); // outline pass
+
+    restore_state(saved);
 }
 
 void Renderer::draw_raw(GLuint vao,
@@ -91,8 +144,34 @@ void Renderer::draw_raw(GLuint vao,
     glUniformMatrix3fv(uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
     glUniform4fv(uColor, 1, &color[0]);
     glUniform1i(uLighting, lighting ? 1 : 0);
+
     glBindVertexArray(vao);
+
+    bool hiddenLine = currentStyle == RenderStyle::HiddenLineWireframe && is_triangle_primitive(primitive);
+    if (!hiddenLine) {
+        glDrawArrays(primitive, 0, vertexCount);
+        glBindVertexArray(0);
+        return;
+    }
+
+    GLRenderState saved = capture_state();
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDepthMask(GL_TRUE);
     glDrawArrays(primitive, 0, vertexCount);
+
+    glEnable(GL_POLYGON_OFFSET_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_FALSE);
+    glPolygonOffset(-1.0f, -1.0f);
+    glLineWidth(2.0f);
+    glDrawArrays(primitive, 0, vertexCount);
+
+    restore_state(saved);
     glBindVertexArray(0);
 }
 

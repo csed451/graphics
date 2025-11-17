@@ -11,7 +11,7 @@ Move to the src directory (`graphics/assn3_2/src`) and run one of the provided M
 
 From `./assn3_2/src/`:
 
-- `make` (or `make all`): build the `main` executable into `assn3_1/src/main`.
+- `make` (or `make all`): build the `main` executable into `assn3_2/src/main`.
 - `make run`: build (if needed) and launch the game.
 - `make clean`: remove `build/` artifacts and `main`.
 
@@ -24,6 +24,8 @@ cd ./assn3_2/src
 
 g++ app/main.cpp \
     core/base/object.cpp \
+    core/render/shader_program.cpp \
+    core/render/renderer.cpp \
     core/render/mesh.cpp \
     game/entities/player.cpp \
     game/entities/enemy.cpp \
@@ -31,12 +33,12 @@ g++ app/main.cpp \
     game/weapons/canon.cpp \
     game/weapons/bullet.cpp \
     game/attachments/upper.cpp \
-    game/attachments/escort_plane.cpp \
     game/attachments/lower.cpp \
-    game/attachments/hand.cpp \
+    game/attachments/escort_plane.cpp \
     game/ui/healthbar.cpp \
-    -o main \
     -I. -I../../include \
+    -std=c++17 \
+    -o main \
     -lGL -lGLEW -lglut
 
 ./main
