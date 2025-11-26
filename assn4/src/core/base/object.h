@@ -1,0 +1,91 @@
+#pragma once
+
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <vector>
+#include <memory>
+
+#include "core/globals/game_constants.h"
+#include "core/render/mesh.h"
+
+#include <typeinfo>
+#include <iostream>
+
+
+class Object {
+private:
+    glm::mat4 modelMatrix;
+    glm::vec3 center;
+
+    Object* parent;
+    std::vector<Object*> children;
+    std::shared_ptr<Mesh> mesh;
+
+    bool isLocal = true;
+    bool isActive = true;
+    bool isVisible = true;
+    float hitboxRadius = 1;
+
+    void detach_from_parent();
+    void add_child_reference(Object* child);
+    void remove_child_reference(Object* child);
+
+public:
+    Object(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
+    virtual ~Object();
+    
+    /* getter */
+    glm::mat4 get_modelMatrix() const { return modelMatrix; }
+    glm::vec3 get_center() const { return center; }
+    Object* get_parent() const { return parent; }
+    bool get_isLocal() const { return isLocal; }
+    bool get_isActive() const { return isActive; }
+    bool get_isVisible() const { return isVisible; }
+    float get_hitboxRadius() const { return hitboxRadius; }
+    const std::shared_ptr<Mesh>& get_mesh() const { return mesh; }
+    const std::vector<Object*>& get_children() const { return children; }
+
+    /* additional information */
+    glm::vec3 get_pos() const;
+    glm::vec3 get_size() const;
+    glm::quat get_quat() const;
+    glm::mat4 get_finalMatrix() const;
+
+    /* setter */
+    void set_modelMatrix(glm::mat4 m) { modelMatrix = m; }
+    void set_center(glm::vec3 v) { center = v; }
+    void set_parent(Object* _parent, bool fix=false);
+    void set_isLocal(bool b) { isLocal = b; }
+    void set_isActive(bool b) { isActive = b; }
+    void set_isVisible(bool b) { isVisible = b; }
+    void set_hitboxRadius(float r) { hitboxRadius = r; }
+    void set_mesh(const std::shared_ptr<Mesh>& m) { mesh = m; }
+
+
+    void init(glm::vec3 _pos=ZERO, GLfloat _angle=0, glm::vec3 _axis=UP, glm::vec3 _size=glm::vec3(1), glm::vec3 _center=ZERO);
+
+    void translate(glm::vec3 v);
+    void rotate(GLfloat angle, glm::vec3 axis);
+    void scale(glm::vec3 v);
+
+    /* defined in local coordinate system */
+    void translate_local(glm::vec3 v);
+    void rotate_local(GLfloat angle, glm::vec3 v);
+    void scale_local(glm::vec3 v);
+
+    /* defined in world coordinate system */
+    void translate_world(glm::vec3 v);
+    void rotate_world(GLfloat angle, glm::vec3 axis);
+    void scale_world(glm::vec3 v);
+
+    void update(float deltaTime);
+    virtual void update_logic([[maybe_unused]] float deltaTime) {};
+    void draw() const;
+    virtual void draw_shape() const = 0;
+
+    void clear_children();
+    bool check_collision(Object* other);
+};
