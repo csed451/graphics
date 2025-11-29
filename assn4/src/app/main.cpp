@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -20,6 +21,9 @@
 // Constants & simple types
 enum class GameState { Playing, GameOver, Exiting };
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
+constexpr float POINT_LIGHT_RADIUS = 10.0f;
+constexpr float POINT_LIGHT_SPEED = 2.5f; // rad/sec
+constexpr float POINT_LIGHT_HEIGHT = 0.0f;
 
 // Global state (local TU scope)
 static GameState gameState = GameState::Playing;
@@ -40,6 +44,9 @@ static int windowHeight = 600;
 static float playerSpeed = PLAYER_INITIAL_SPEED;
 static glm::vec3 playerDirection = ZERO;
 static glm::vec3 playerPrevDirection = ZERO;
+static DirectionalLight dirLight;
+static PointLight pointLight;
+static float pointLightAngle = 0.0f;
 
 // Forward declarations
 static void set_projection_matrix(ProjectionType type);
@@ -114,6 +121,16 @@ int main(int argc, char** argv) {
         enemy->set_player(player);
     }
 
+    // initial lights
+    dirLight.direction = glm::normalize(glm::vec3(0.1f, -0.9f, 0.0f));
+    dirLight.color = glm::vec3(1.0f);
+    dirLight.intensity = 10.0f;
+    pointLight.position = player->get_pos() + glm::vec3(POINT_LIGHT_RADIUS, 0.0f, POINT_LIGHT_HEIGHT);
+    pointLight.color = glm::vec3(1.0f, 0.0f, 0.0f);
+    pointLight.intensity = 10.0f;
+    gRenderer.set_lights(dirLight, pointLight);
+    gRenderer.set_view_position(cameraPos);
+
     glutMainLoop();
     
     for (auto enemy : enemies)
@@ -157,6 +174,8 @@ static void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     update_camera();
+    glm::vec3 eye = cameraTargetObject ? (cameraTargetObject->get_pos() + cameraPos) : cameraPos;
+    gRenderer.set_view_position(eye);
     
     gRenderer.begin_frame();
 
@@ -204,6 +223,13 @@ static void update(void) {
         return;
     }
     
+    // animate point light around player
+    pointLightAngle += deltaTime * POINT_LIGHT_SPEED;
+    pointLight.position = player->get_pos() + glm::vec3(std::cos(pointLightAngle) * POINT_LIGHT_RADIUS,
+                                                        std::sin(pointLightAngle) * POINT_LIGHT_RADIUS,
+                                                        POINT_LIGHT_HEIGHT);
+    gRenderer.set_lights(dirLight, pointLight);
+
     sceneRoot.update(deltaTime);
     check_and_handle_game_over();
 }

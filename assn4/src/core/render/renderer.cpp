@@ -66,6 +66,13 @@ bool Renderer::init() {
     uColor = program.uniform_location("uColor");
     uNormal = program.uniform_location("uNormalMatrix");
     uLighting = program.uniform_location("uUseLighting");
+    uDirLightDir = program.uniform_location("uDirLight.direction");
+    uDirLightColor = program.uniform_location("uDirLight.color");
+    uDirLightIntensity = program.uniform_location("uDirLight.intensity");
+    uPointLightPos = program.uniform_location("uPointLight.position");
+    uPointLightColor = program.uniform_location("uPointLight.color");
+    uPointLightIntensity = program.uniform_location("uPointLight.intensity");
+    uViewPos = program.uniform_location("uViewPos");
     program.unbind();
 
     valid = uModel >= 0 && uView >= 0 && uProj >= 0 && uColor >= 0 && uNormal >= 0 && uLighting >= 0;
@@ -87,6 +94,27 @@ void Renderer::set_projection(const glm::mat4& projectionMatrix) {
     projection = projectionMatrix;
     program.bind();
     glUniformMatrix4fv(uProj, 1, GL_FALSE, &projection[0][0]);
+    program.unbind();
+}
+
+void Renderer::set_view_position(const glm::vec3& pos) {
+    viewPos = pos;
+    program.bind();
+    if (uViewPos >= 0)
+        glUniform3fv(uViewPos, 1, &viewPos[0]);
+    program.unbind();
+}
+
+void Renderer::set_lights(const DirectionalLight& dir, const PointLight& point) {
+    dirLight = dir;
+    pointLight = point;
+    program.bind();
+    if (uDirLightDir >= 0) glUniform3fv(uDirLightDir, 1, &dirLight.direction[0]);
+    if (uDirLightColor >= 0) glUniform3fv(uDirLightColor, 1, &dirLight.color[0]);
+    if (uDirLightIntensity >= 0) glUniform1f(uDirLightIntensity, dirLight.intensity);
+    if (uPointLightPos >= 0) glUniform3fv(uPointLightPos, 1, &pointLight.position[0]);
+    if (uPointLightColor >= 0) glUniform3fv(uPointLightColor, 1, &pointLight.color[0]);
+    if (uPointLightIntensity >= 0) glUniform1f(uPointLightIntensity, pointLight.intensity);
     program.unbind();
 }
 
