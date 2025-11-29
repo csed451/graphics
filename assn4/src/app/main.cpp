@@ -35,6 +35,10 @@ std::vector<Enemy*> enemies;
 Player* player = nullptr;
 int prevTime = 0;
 
+// Track window dimensions for correct aspect ratio
+int windowWidth = 600;
+int windowHeight = 600;
+
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 
 float playerSpeed = PLAYER_INITIAL_SPEED;
@@ -68,13 +72,14 @@ static void draw_bounding_box();
 
 void set_projection_matrix(ProjectionType type) {
     glm::mat4 projection;
+    float aspect = static_cast<float>(windowWidth) / static_cast<float>(std::max(1, windowHeight));
 
     projectionType = type;
 
     cameraTargetObject = nullptr;
 
     if(type == ProjectionType::Perspective) {
-        projection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 500.0f);
+        projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
         init_camera();
     }
     else if(type == ProjectionType::Orthographic) {
@@ -83,7 +88,7 @@ void set_projection_matrix(ProjectionType type) {
         gRenderer.set_view(cameraMatrix);
     }
     else if(type == ProjectionType::Thirdperson) {
-        projection = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 500.0f);
+        projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
         cameraTargetObject = player;
         cameraPos = glm::vec3(0, -20, 10);
     }
@@ -96,7 +101,7 @@ int main(int argc, char** argv) {
     /* initial window setup */
     glutInit (&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutInitWindowSize(600, 600);
+    glutInitWindowSize(windowWidth, windowHeight);
     glutInitWindowPosition(100,100);
     glutCreateWindow("Bullet Hell shooter");
 
@@ -150,6 +155,8 @@ int main(int argc, char** argv) {
 }
 
 void reshape (int w, int h) {
+    windowWidth = w;
+    windowHeight = h;
     glViewport (0, 0, w, h);
     set_projection_matrix(projectionType);
 }
@@ -227,7 +234,7 @@ void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 break;
             case 'w':
             case 'W':
-                gRenderer.swich_render_style();
+                gRenderer.switch_render_style();
                 break;
             case 'c':
             case 'C':

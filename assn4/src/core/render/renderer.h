@@ -47,7 +47,7 @@ public:
 
 
     void apply_render_style();
-    void swich_render_style();
+    void switch_render_style();
 };
 
 inline Renderer gRenderer;

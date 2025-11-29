@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 ShaderProgram::~ShaderProgram() {
     destroy();
@@ -23,12 +24,11 @@ GLuint ShaderProgram::compile(GLenum type, const std::string& path) {
     GLint compiled = GL_FALSE;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
     if (!compiled) {
-        // GLint logLen = 0;
-        // glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
-        // std::vector<char> log(static_cast<size_t>(logLen));
-        // glGetShaderInfoLog(shader, logLen, nullptr, log.data());
-        // std::cerr << "[Shader] Compile failed (" << path << "): " << log.data() << std::endl;
-        std::cerr << "[Shader] Compile failed " << path << std::endl;
+        GLint logLen = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
+        std::vector<char> log(static_cast<size_t>(std::max(1, logLen)));
+        glGetShaderInfoLog(shader, logLen, nullptr, log.data());
+        std::cerr << "[Shader] Compile failed (" << path << "): " << log.data() << std::endl;
         glDeleteShader(shader);
         return 0;
     }
@@ -87,12 +87,11 @@ bool ShaderProgram::load_from_files(const std::string& vertPath, const std::stri
     GLint linked = GL_FALSE;
     glGetProgramiv(programId, GL_LINK_STATUS, &linked);
     if (!linked) {
-        // GLint logLen = 0;
-        // glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLen);
-        // std::vector<char> log(static_cast<size_t>(logLen));
-        // glGetProgramInfoLog(programId, logLen, nullptr, log.data());
-        // std::cerr << "[Shader] Link failed: " << log.data() << std::endl;
-        std::cerr << "[Shader] Link failed"  << std::endl;
+        GLint logLen = 0;
+        glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &logLen);
+        std::vector<char> log(static_cast<size_t>(std::max(1, logLen)));
+        glGetProgramInfoLog(programId, logLen, nullptr, log.data());
+        std::cerr << "[Shader] Link failed: " << log.data() << std::endl;
         destroy();
         glDeleteShader(vert);
         glDeleteShader(frag);

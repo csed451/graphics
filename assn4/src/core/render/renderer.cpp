@@ -193,7 +193,7 @@ void Renderer::apply_render_style() {
     }
 }
 
-void Renderer::swich_render_style() {
+void Renderer::switch_render_style() {
     currentStyle = static_cast<RenderStyle>((static_cast<int>(currentStyle) + 1) % 3);
     apply_render_style();   
 }

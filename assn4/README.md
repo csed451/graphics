@@ -1,17 +1,17 @@
 
-# Assn3-2 Overview
+# Assn4 Overview
 
-Assignment 3-2 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
+Assignment 4 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
 
 ## End-User Guide
 
 ### 1. Build & Run
 
-Move to the src directory (`graphics/assn3_2/src`) and run one of the provided Makefile commands.
+Move to the src directory (`graphics/assn4/src`) and run one of the provided Makefile commands.
 
-From `./assn3_2/src/`:
+From `./assn4/src/`:
 
-- `make` (or `make all`): build the `main` executable into `assn3_2/src/main`.
+- `make` (or `make all`): build the `main` executable into `assn4/src/main`.
 - `make run`: build (if needed) and launch the game.
 - `make clean`: remove `build/` artifacts and `main`.
 
@@ -19,8 +19,8 @@ From `./assn3_2/src/`:
     <summary> If you want, you can compile and execute directly with the command below. </summary>
 
 ```bash
-# on graphics/assn3_2/src
-cd ./assn3_2/src
+# on graphics/assn4/src
+cd ./assn4/src
 
 g++ app/main.cpp \
     core/base/object.cpp \

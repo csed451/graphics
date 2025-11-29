@@ -103,6 +103,8 @@ void Enemy::shoot(){
         glm::vec3 dir = glm::vec3(cos(angle), sin(angle), 0); 
         
         Bullet* bullet = bulletPool.acquire();
+        if (!bullet)
+            continue;
         bullet->init(get_pos(), 0, RIGHT, glm::vec3(1));
         bullet->set_counter(counter);
         bullet->set_direction(dir); 

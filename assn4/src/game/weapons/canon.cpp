@@ -19,9 +19,16 @@ void Canon::update_logic(float deltaTime) {
 }
 
 void Canon::shoot() {
-    if (shootCooldown <= 0) {
-        Attack* a = attackPool.acquire();
-        a->init(get_pos(), glm::degrees(glm::angle(get_quat())), glm::axis(get_quat()), glm::vec3(1));
-        shootCooldown = shootInterval;
-    }
+    if (shootCooldown > 0)
+        return;
+
+    shootCooldown = shootInterval; // throttle even when pool is empty
+    Attack* a = attackPool.acquire();
+    if (!a)
+        return;
+
+    a->init(get_pos(),
+            glm::degrees(glm::angle(get_quat())),
+            glm::axis(get_quat()),
+            glm::vec3(1));
 }
