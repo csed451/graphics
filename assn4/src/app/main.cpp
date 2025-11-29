@@ -17,48 +17,43 @@
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
 
-
+// Constants & simple types
 enum class GameState { Playing, GameOver, Exiting };
-GameState gameState = GameState::Playing;
-
-// for Shared Renderer
-GLuint starVAO = 0;
-GLuint starVBO = 0;
-GLsizei starVertexCount = 0;
-
-GLuint boundingBoxVAO = 0;
-GLuint boundingBoxVBO = 0;
-GLsizei boundingBoxVertexCount = 0;
-
-std::vector<float> starVertices;
-std::vector<Enemy*> enemies;
-Player* player = nullptr;
-int prevTime = 0;
-
-// Track window dimensions for correct aspect ratio
-int windowWidth = 600;
-int windowHeight = 600;
-
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 
-float playerSpeed = PLAYER_INITIAL_SPEED;
+// Global state (local TU scope)
+static GameState gameState = GameState::Playing;
+static GLuint starVAO = 0;
+static GLuint starVBO = 0;
+static GLsizei starVertexCount = 0;
 
-inline glm::vec3 playerDirection = ZERO;
-inline glm::vec3 playerPrevDirection = ZERO;
+static GLuint boundingBoxVAO = 0;
+static GLuint boundingBoxVBO = 0;
+static GLsizei boundingBoxVertexCount = 0;
 
+static std::vector<float> starVertices;
+static std::vector<Enemy*> enemies;
+static Player* player = nullptr;
+static int prevTime = 0;
+static int windowWidth = 600;
+static int windowHeight = 600;
+static float playerSpeed = PLAYER_INITIAL_SPEED;
+static glm::vec3 playerDirection = ZERO;
+static glm::vec3 playerPrevDirection = ZERO;
 
-void reshape (int w, int h);
-void display (void);
-void timer(int value);
-void update(void);
+// Forward declarations
+static void set_projection_matrix(ProjectionType type);
+static void reshape (int w, int h);
+static void display (void);
+static void timer(int value);
+static void update(void);
 
-void key_down(unsigned char key, int x, int y);
-void special_key_down(int key, int x, int y);
-void key_up(unsigned char key, int x, int y);
-void special_key_up(int key, int x, int y);
+static void key_down(unsigned char key, int x, int y);
+static void special_key_down(int key, int x, int y);
+static void key_up(unsigned char key, int x, int y);
+static void special_key_up(int key, int x, int y);
 
-void reset_game();
-
+static void reset_game();
 static void check_and_handle_game_over();
 static bool enemies_destroyed();
 
@@ -70,33 +65,7 @@ static void draw_stars();
 static void init_bounding_box();
 static void draw_bounding_box();
 
-void set_projection_matrix(ProjectionType type) {
-    glm::mat4 projection;
-    float aspect = static_cast<float>(windowWidth) / static_cast<float>(std::max(1, windowHeight));
-
-    projectionType = type;
-
-    cameraTargetObject = nullptr;
-
-    if(type == ProjectionType::Perspective) {
-        projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
-        init_camera();
-    }
-    else if(type == ProjectionType::Orthographic) {
-        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -1.0f, 1.0f);
-        cameraMatrix = glm::mat4(1.0f);
-        gRenderer.set_view(cameraMatrix);
-    }
-    else if(type == ProjectionType::Thirdperson) {
-        projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
-        cameraTargetObject = player;
-        cameraPos = glm::vec3(0, -20, 10);
-    }
-
-    gRenderer.set_projection(projection);
-    update_camera();
-}
-
+// Entry point
 int main(int argc, char** argv) {
     /* initial window setup */
     glutInit (&argc, argv);
@@ -154,19 +123,46 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-void reshape (int w, int h) {
+// Camera / projection
+static void set_projection_matrix(ProjectionType type) {
+    glm::mat4 projection;
+    float aspect = static_cast<float>(windowWidth) / static_cast<float>(std::max(1, windowHeight));
+
+    projectionType = type;
+    cameraTargetObject = nullptr;
+
+    if(type == ProjectionType::Perspective) {
+        projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
+        init_camera();
+    }
+    else if(type == ProjectionType::Orthographic) {
+        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -1.0f, 1.0f);
+        cameraMatrix = glm::mat4(1.0f);
+        gRenderer.set_view(cameraMatrix);
+    }
+    else if(type == ProjectionType::Thirdperson) {
+        projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
+        cameraTargetObject = player;
+        cameraPos = glm::vec3(0, -20, 10);
+    }
+
+    gRenderer.set_projection(projection);
+    update_camera();
+}
+
+// GLUT callbacks
+static void reshape (int w, int h) {
     windowWidth = w;
     windowHeight = h;
     glViewport (0, 0, w, h);
     set_projection_matrix(projectionType);
 }
 
-void display (void) {
+static void display (void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     update_camera();
     
-    //**** Render Scene Here ****//
     gRenderer.begin_frame();
 
     gRenderer.apply_render_style();
@@ -179,11 +175,9 @@ void display (void) {
         draw_stars();
         overlayMsg = enemies_destroyed() ? "GAME WIN!" : "GAME OVER!";
         gRenderer.apply_render_style();
-
     }
 
     gRenderer.end_frame();
-    //**** End Render Scene ****//
 
     if (showOverlay && overlayMsg)
         draw_game_over(overlayMsg);
@@ -191,13 +185,14 @@ void display (void) {
     glutSwapBuffers();
 }
 
-void timer(int /*value*/) {
+static void timer(int /*value*/) {
     update();
     glutPostRedisplay();
     glutTimerFunc(1000.0f / FPS, timer, 0);
 }
 
-void update(void) {
+// Game loop & state
+static void update(void) {
     int curTime = glutGet(GLUT_ELAPSED_TIME);
     float deltaTime = (curTime - prevTime) / 1000.0f;
     prevTime = curTime;
@@ -207,7 +202,7 @@ void update(void) {
     }    
     if (gameState == GameState::GameOver) {
         if (player->get_pos().y <= 450) {
-            playerSpeed += 0.01;
+            playerSpeed += 0.01f;
             player->translate(UP * playerSpeed);
             player->set_isAccelerating(true);
         }   
@@ -215,124 +210,10 @@ void update(void) {
     }
     
     sceneRoot.update(deltaTime);
-    
     check_and_handle_game_over();
 }
 
-void key_down(unsigned char key, int /*x*/, int /*y*/) {
-    if (gameState == GameState::GameOver) {
-        if (key == 'r' || key == 'R') 
-            reset_game();
-        else if (key == 'q' || key == 'Q' || key == 27) 
-            gameState = GameState::Exiting;
-        return;
-    }
-    else {
-        switch (key) {
-            case ' ': 
-                player->set_isShooting(true); 
-                break;
-            case 'w':
-            case 'W':
-                gRenderer.switch_render_style();
-                break;
-            case 'c':
-            case 'C':
-                projectionType = static_cast<ProjectionType>((static_cast<int>(projectionType) + 1) % 3);
-                set_projection_matrix(projectionType);
-                break;
-            case 27: // ESC
-                gameState = GameState::Exiting;
-                break;
-        }
-    }
-}
-
-void special_key_down(int key, int /*x*/, int /*y*/) {
-    if (gameState == GameState::GameOver)
-        return;
-
-    switch (key) {
-        case GLUT_KEY_UP:
-            player->set_direction(UP);
-            playerPrevDirection = playerDirection;
-            playerDirection = UP;
-            break;
-        case GLUT_KEY_DOWN:
-            player->set_direction(DOWN);
-            playerPrevDirection = playerDirection;
-            playerDirection = DOWN;
-            break;
-        case GLUT_KEY_LEFT:
-            player->set_direction(LEFT);
-            playerPrevDirection = playerDirection;
-            playerDirection = LEFT;
-            break;
-        case GLUT_KEY_RIGHT:
-            player->set_direction(RIGHT);
-            playerPrevDirection = playerDirection;
-            playerDirection = RIGHT;
-            break;
-    }
-}
-
-void key_up(unsigned char key, int /*x*/, int /*y*/) {
-    if (gameState == GameState::GameOver)
-        return;
-
-    switch (key) {
-        case ' ':
-            player->set_isShooting(false);
-            break;
-    }
-}
-
-void special_key_up(int key, int /*x*/, int /*y*/) {
-    if (gameState == GameState::GameOver)
-        return;
-
-    glm::vec3 direction = player->get_direction();
-    switch (key) {
-        case GLUT_KEY_UP:
-            if (playerDirection == UP) {
-                player->set_direction(playerPrevDirection);
-                playerDirection = playerPrevDirection;
-                playerPrevDirection = ZERO;
-            }
-            else if (playerPrevDirection == UP)
-                playerPrevDirection = ZERO;
-            break;
-        case GLUT_KEY_DOWN:
-            if (direction == DOWN) {
-                player->set_direction(playerPrevDirection);
-                playerDirection = playerPrevDirection;
-                playerPrevDirection = ZERO;
-            }
-            else if (playerPrevDirection == DOWN)
-                playerPrevDirection = ZERO;
-            break;
-        case GLUT_KEY_LEFT:
-            if (direction == LEFT) {
-                player->set_direction(playerPrevDirection);
-                playerDirection = playerPrevDirection;
-                playerPrevDirection = ZERO;
-            }
-            else if (playerPrevDirection == LEFT)
-                playerPrevDirection = ZERO;
-            break;
-        case GLUT_KEY_RIGHT:
-            if (direction == RIGHT) {
-                player->set_direction(playerPrevDirection);
-                playerDirection = playerPrevDirection;
-                playerPrevDirection = ZERO;
-            }
-            else if (playerPrevDirection == RIGHT)
-                playerPrevDirection = ZERO;
-            break;
-    }
-}
-
-void reset_game() {
+static void reset_game() {
     set_projection_matrix(ProjectionType::Perspective);
     prevTime = glutGet(GLUT_ELAPSED_TIME);
     gameState = GameState::Playing;
@@ -380,6 +261,121 @@ static bool enemies_destroyed() {
     });
 }
 
+// Input handling
+static void key_down(unsigned char key, int /*x*/, int /*y*/) {
+    if (gameState == GameState::GameOver) {
+        if (key == 'r' || key == 'R') 
+            reset_game();
+        else if (key == 'q' || key == 'Q' || key == 27) 
+            gameState = GameState::Exiting;
+        return;
+    }
+    else {
+        switch (key) {
+            case ' ': 
+                player->set_isShooting(true); 
+                break;
+            case 'w':
+            case 'W':
+                gRenderer.switch_render_style();
+                break;
+            case 'c':
+            case 'C':
+                projectionType = static_cast<ProjectionType>((static_cast<int>(projectionType) + 1) % 3);
+                set_projection_matrix(projectionType);
+                break;
+            case 27: // ESC
+                gameState = GameState::Exiting;
+                break;
+        }
+    }
+}
+
+static void special_key_down(int key, int /*x*/, int /*y*/) {
+    if (gameState == GameState::GameOver)
+        return;
+
+    switch (key) {
+        case GLUT_KEY_UP:
+            player->set_direction(UP);
+            playerPrevDirection = playerDirection;
+            playerDirection = UP;
+            break;
+        case GLUT_KEY_DOWN:
+            player->set_direction(DOWN);
+            playerPrevDirection = playerDirection;
+            playerDirection = DOWN;
+            break;
+        case GLUT_KEY_LEFT:
+            player->set_direction(LEFT);
+            playerPrevDirection = playerDirection;
+            playerDirection = LEFT;
+            break;
+        case GLUT_KEY_RIGHT:
+            player->set_direction(RIGHT);
+            playerPrevDirection = playerDirection;
+            playerDirection = RIGHT;
+            break;
+    }
+}
+
+static void key_up(unsigned char key, int /*x*/, int /*y*/) {
+    if (gameState == GameState::GameOver)
+        return;
+
+    switch (key) {
+        case ' ':
+            player->set_isShooting(false);
+            break;
+    }
+}
+
+static void special_key_up(int key, int /*x*/, int /*y*/) {
+    if (gameState == GameState::GameOver)
+        return;
+
+    glm::vec3 direction = player->get_direction();
+    switch (key) {
+        case GLUT_KEY_UP:
+            if (playerDirection == UP) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == UP)
+                playerPrevDirection = ZERO;
+            break;
+        case GLUT_KEY_DOWN:
+            if (direction == DOWN) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == DOWN)
+                playerPrevDirection = ZERO;
+            break;
+        case GLUT_KEY_LEFT:
+            if (direction == LEFT) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == LEFT)
+                playerPrevDirection = ZERO;
+            break;
+        case GLUT_KEY_RIGHT:
+            if (direction == RIGHT) {
+                player->set_direction(playerPrevDirection);
+                playerDirection = playerPrevDirection;
+                playerPrevDirection = ZERO;
+            }
+            else if (playerPrevDirection == RIGHT)
+                playerPrevDirection = ZERO;
+            break;
+    }
+}
+
+// Overlay rendering helpers
 static void draw_ending_msg(const char* line1, const char* line2, int w, int h) {
     auto textWidth = [&](const char* s) -> int {
         return glutBitmapLength(GLUT_BITMAP_HELVETICA_18,
@@ -440,6 +436,7 @@ static void draw_game_over(const char* msg) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+// Starfield & bounding box helpers
 static void init_stars() {
     starVertices.clear();
     srand(42);
