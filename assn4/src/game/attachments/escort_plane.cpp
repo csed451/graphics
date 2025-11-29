@@ -35,7 +35,7 @@ EscortPlane::EscortPlane(
         initialParent = _parent;
         set_parent(_parent);
     }
-    set_mesh(load_mesh("assets/paperplane.obj"));
+    set_mesh(load_mesh("assets/models/paperplane.obj"));
 }
 
 void EscortPlane::draw_shape() const {

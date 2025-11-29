@@ -15,7 +15,7 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center) {
-        set_mesh(load_mesh("assets/star.obj"));     
+        set_mesh(load_mesh("assets/models/star.obj"));     
     };
 
     void draw_shape() const override {

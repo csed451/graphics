@@ -14,7 +14,7 @@ public:
         glm::vec3 _size = glm::vec3(1), 
         glm::vec3 _center = ZERO
     ) : Object(_pos, _angle, _axis, _size, _center) {
-        set_mesh(load_mesh("assets/rice.obj"));     
+        set_mesh(load_mesh("assets/models/rice.obj"));     
     };
 
     void draw_shape() const override;

@@ -14,7 +14,7 @@ Healthbar::Healthbar(
     initialSize(_size),
     initialCenter(_center),
     parent(static_cast<Enemy*>(_parent)) { 
-    set_mesh(load_mesh("assets/healthbar_box.obj"));
+    set_mesh(load_mesh("assets/models/healthbar_box.obj"));
     if (_parent) set_parent(_parent);
 }
 

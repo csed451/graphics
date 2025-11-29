@@ -18,7 +18,7 @@ public:
         glm::vec3 _size = glm::vec3(1), 
         glm::vec3 _center = glm::vec3(0, -0.5, 0)
     ) : Object(_pos, _angle, _axis, _size, _center), attackPool(50) {
-        set_mesh(load_mesh("assets/square.obj"));     
+        set_mesh(load_mesh("assets/models/square.obj"));     
     };
 
     void draw_shape() const override;

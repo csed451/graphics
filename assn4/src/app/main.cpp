@@ -135,11 +135,6 @@ static void set_projection_matrix(ProjectionType type) {
         projection = glm::perspective(glm::radians(90.0f), aspect, 0.1f, 500.0f);
         init_camera();
     }
-    else if(type == ProjectionType::Orthographic) {
-        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -10.0f, 10.0f);
-        cameraMatrix = glm::mat4(1.0f);
-        gRenderer.set_view(cameraMatrix);
-    }
     else if(type == ProjectionType::Thirdperson) {
         projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
         cameraTargetObject = player;
@@ -281,7 +276,8 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 break;
             case 'c':
             case 'C':
-                projectionType = static_cast<ProjectionType>((static_cast<int>(projectionType) + 1) % 3);
+                // Cycle only between Perspective (top view) and Thirdperson (close view) per assn4 spec
+                projectionType = (projectionType == ProjectionType::Perspective) ? ProjectionType::Thirdperson : ProjectionType::Perspective;
                 set_projection_matrix(projectionType);
                 break;
             case 27: // ESC
@@ -475,7 +471,7 @@ static void draw_stars() {
 
     gRenderer.draw_raw(starVAO, starVertexCount, GL_POINTS, glm::mat4(1.0f), glm::vec4(1.0f), false);
 
-    auto sunMesh = load_mesh("assets/sphere.obj");
+    auto sunMesh = load_mesh("assets/models/sphere.obj");
     if (sunMesh) {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-60, 620, 20));
         model = glm::scale(model, glm::vec3(100.0f));

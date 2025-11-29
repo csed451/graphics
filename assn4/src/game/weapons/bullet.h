@@ -27,7 +27,7 @@ public:
     ) : Object(_pos, _angle, _axis, _size, _center) { 
         set_hitboxRadius(r + outline);
         init_vertices();        
-        set_mesh(load_mesh("assets/sphere.obj"));
+        set_mesh(load_mesh("assets/models/sphere.obj"));
     };
     
     void draw_shape() const override;

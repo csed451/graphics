@@ -45,7 +45,7 @@ public:
         leftCanon.set_parent(this);
         rightCanon.set_parent(this);
         orbits.reserve(MAX_HEART);
-        set_mesh(load_mesh("assets/jet.obj"));
+        set_mesh(load_mesh("assets/models/jet.obj"));
         for (int i = 1; i <= heart; i++) {
             Orbit & orbit = orbits.emplace_back();
             orbit.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));

@@ -29,7 +29,7 @@ Lower::Lower(
     initialSize(_size),
     initialCenter(_center) {
     if (_parent) set_parent(_parent);
-    set_mesh(load_mesh("assets/lower_arm.obj"));
+    set_mesh(load_mesh("assets/models/lower_arm.obj"));
 }
 
 void Lower::draw_shape() const {

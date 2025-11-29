@@ -31,7 +31,7 @@ Upper::Upper(
     initialSize(_size),
     initialCenter(_center) {
     if (_parent) set_parent(_parent);
-    set_mesh(load_mesh("assets/upper_arm.obj"));
+    set_mesh(load_mesh("assets/models/upper_arm.obj"));
 }
 
 void Upper::draw_shape() const {
