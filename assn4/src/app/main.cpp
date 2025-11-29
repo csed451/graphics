@@ -136,7 +136,7 @@ static void set_projection_matrix(ProjectionType type) {
         init_camera();
     }
     else if(type == ProjectionType::Orthographic) {
-        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -1.0f, 1.0f);
+        projection =  glm::ortho(-MAX_COORD, MAX_COORD, -MAX_COORD, MAX_COORD, -10.0f, 10.0f);
         cameraMatrix = glm::mat4(1.0f);
         gRenderer.set_view(cameraMatrix);
     }
