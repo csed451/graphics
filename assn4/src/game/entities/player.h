@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <GL/glew.h>
+
 #include "core/base/object.h"
 #include "game/weapons/canon.h"
 #include "game/attachments/orbit.h"
@@ -31,6 +33,10 @@ private:
     std::vector<Orbit> orbits;
 
     std::vector<Enemy*> enemies;
+
+    mutable GLuint diffuseTex = 0;
+    mutable GLuint normalTex = 0;
+    mutable bool hasNormalMap = false;
 
 public:
     Player(

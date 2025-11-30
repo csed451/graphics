@@ -1,7 +1,7 @@
 CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -MMD -MP
 INCLUDES := -I. -I../../include
-LIBS := -lGL -lGLEW -lglut
+LIBS := -lGL -lGLEW -lglut -lpng
 BIN := main
 
 .SILENT:
