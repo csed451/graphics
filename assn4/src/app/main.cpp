@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
     }
 
     // initial lights
-    dirLight.direction = glm::normalize(glm::vec3(0.1f, -0.9f, 0.0f));
+    dirLight.direction = glm::normalize(glm::vec3(0.2f, -0.8f, -0.1f));
     dirLight.color = glm::vec3(1.0f);
     dirLight.intensity = 10.0f;
     pointLight.position = player->get_pos() + glm::vec3(POINT_LIGHT_RADIUS, 0.0f, POINT_LIGHT_HEIGHT);
