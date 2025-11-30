@@ -298,7 +298,7 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 break;
             case 'w':
             case 'W':
-                gRenderer.switch_render_style();
+                gRenderer.switch_shading_mode();
                 break;
             case 'c':
             case 'C':

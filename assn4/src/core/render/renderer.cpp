@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "core/render/mesh.h"
+#include "core/render/texture.h"
 
 namespace {
     struct GLRenderState {
@@ -53,88 +54,167 @@ namespace {
 }
 
 bool Renderer::init() {
-    bool loaded = false, valid = false;
-    
-    loaded = program.load_from_files("core/render/shaders/basic.vert", "core/render/shaders/basic.frag");
-    if (!loaded)
+    // Load and cache shader programs per shading mode
+    auto load_set = [&](ShadingMode mode, const char* vert, const char* frag) -> bool {
+        auto& s = shaders[static_cast<int>(mode)];
+        bool loaded = s.program.load_from_files(vert, frag);
+        if (!loaded)
+            return false;
+
+        s.program.bind();
+        s.uModel                = s.program.uniform_location("uModel");
+        s.uView                 = s.program.uniform_location("uView");
+        s.uProj                 = s.program.uniform_location("uProj");
+        s.uColor                = s.program.uniform_location("uColor");
+        s.uNormal               = s.program.uniform_location("uNormalMatrix");
+
+        // related to Lighting uniforms
+        s.uLighting             = s.program.uniform_location("uUseLighting");
+        s.uDirLightDir          = s.program.uniform_location("uDirLight.direction");
+        s.uDirLightColor        = s.program.uniform_location("uDirLight.color");
+        s.uDirLightIntensity    = s.program.uniform_location("uDirLight.intensity");
+        s.uPointLightPos        = s.program.uniform_location("uPointLight.position");
+        s.uPointLightColor      = s.program.uniform_location("uPointLight.color");
+        s.uPointLightIntensity  = s.program.uniform_location("uPointLight.intensity");
+
+        // related to Texture uniforms
+        s.uViewPos              = s.program.uniform_location("uViewPos");
+        s.uUseTexture           = s.program.uniform_location("uUseTexture");
+        s.uDiffuseMap           = s.program.uniform_location("uDiffuseMap");
+        s.uUseNormalMap         = s.program.uniform_location("uUseNormalMap");
+        s.uNormalMap            = s.program.uniform_location("uNormalMap");
+
+        if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
+        if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+        s.program.unbind();
+
+        return s.uModel >= 0 && s.uView >= 0 && s.uProj >= 0 && s.uColor >= 0 && s.uNormal >= 0 && s.uLighting >= 0;
+    };
+
+    bool is_valid = true;
+    is_valid &= load_set(ShadingMode::Gouraud, "core/render/shaders/gouraud.vert", "core/render/shaders/gouraud.frag");
+    is_valid &= load_set(ShadingMode::Phong, "core/render/shaders/phong.vert", "core/render/shaders/phong.frag");
+    is_valid &= load_set(ShadingMode::PhongNormalMap, "core/render/shaders/phong_nm.vert", "core/render/shaders/phong_nm.frag");
+
+    if (!is_valid)
         return false;
 
-    program.bind();
-    uModel = program.uniform_location("uModel");
-    uView = program.uniform_location("uView");
-    uProj = program.uniform_location("uProj");
-    uColor = program.uniform_location("uColor");
-    uNormal = program.uniform_location("uNormalMatrix");
-    uLighting = program.uniform_location("uUseLighting");
-    uDirLightDir = program.uniform_location("uDirLight.direction");
-    uDirLightColor = program.uniform_location("uDirLight.color");
-    uDirLightIntensity = program.uniform_location("uDirLight.intensity");
-    uPointLightPos = program.uniform_location("uPointLight.position");
-    uPointLightColor = program.uniform_location("uPointLight.color");
-    uPointLightIntensity = program.uniform_location("uPointLight.intensity");
-    uViewPos = program.uniform_location("uViewPos");
-    program.unbind();
+    // Tiny 1x1 white fallback texture for untextured draws
+    glGenTextures(1, &whiteTexture);
+    glBindTexture(GL_TEXTURE_2D, whiteTexture);
+    const unsigned char whitePixel[4] = {255, 255, 255, 255};
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, whitePixel);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
-    valid = uModel >= 0 && uView >= 0 && uProj >= 0 && uColor >= 0 && uNormal >= 0 && uLighting >= 0;
-    return valid;
+    currentShading = ShadingMode::Gouraud; // start with Gouraud -> W cycles Phong -> NormalMap
+    apply_render_style();
+    return true;
 }
 
 void Renderer::shutdown() {
-    program.unbind();
+    for (auto& s : shaders)
+        s.program.unbind();
+    for (auto& kv : textureCache) {
+        if (kv.second.id)
+            glDeleteTextures(1, &kv.second.id);
+    }
+    textureCache.clear();
+    if (whiteTexture) {
+        glDeleteTextures(1, &whiteTexture);
+        whiteTexture = 0;
+    }
 }
 
 void Renderer::set_view(const glm::mat4& viewMatrix) {
     view = viewMatrix;
-    program.bind();
-    glUniformMatrix4fv(uView, 1, GL_FALSE, &view[0][0]);
-    program.unbind();
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.uView >= 0)
+            glUniformMatrix4fv(s.uView, 1, GL_FALSE, &view[0][0]);
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
 void Renderer::set_projection(const glm::mat4& projectionMatrix) {
     projection = projectionMatrix;
-    program.bind();
-    glUniformMatrix4fv(uProj, 1, GL_FALSE, &projection[0][0]);
-    program.unbind();
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.uProj >= 0)
+            glUniformMatrix4fv(s.uProj, 1, GL_FALSE, &projection[0][0]);
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
 void Renderer::set_view_position(const glm::vec3& pos) {
     viewPos = pos;
-    program.bind();
-    if (uViewPos >= 0)
-        glUniform3fv(uViewPos, 1, &viewPos[0]);
-    program.unbind();
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.uViewPos >= 0)
+            glUniform3fv(s.uViewPos, 1, &viewPos[0]);
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
 void Renderer::set_lights(const DirectionalLight& dir, const PointLight& point) {
     dirLight = dir;
     pointLight = point;
-    program.bind();
-    if (uDirLightDir >= 0) glUniform3fv(uDirLightDir, 1, &dirLight.direction[0]);
-    if (uDirLightColor >= 0) glUniform3fv(uDirLightColor, 1, &dirLight.color[0]);
-    if (uDirLightIntensity >= 0) glUniform1f(uDirLightIntensity, dirLight.intensity);
-    if (uPointLightPos >= 0) glUniform3fv(uPointLightPos, 1, &pointLight.position[0]);
-    if (uPointLightColor >= 0) glUniform3fv(uPointLightColor, 1, &pointLight.color[0]);
-    if (uPointLightIntensity >= 0) glUniform1f(uPointLightIntensity, pointLight.intensity);
-    program.unbind();
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.uDirLightDir >= 0)         glUniform3fv(s.uDirLightDir, 1, &dirLight.direction[0]);
+        if (s.uDirLightColor >= 0)       glUniform3fv(s.uDirLightColor, 1, &dirLight.color[0]);
+        if (s.uDirLightIntensity >= 0)   glUniform1f(s.uDirLightIntensity, dirLight.intensity);
+        if (s.uPointLightPos >= 0)       glUniform3fv(s.uPointLightPos, 1, &pointLight.position[0]);
+        if (s.uPointLightColor >= 0)     glUniform3fv(s.uPointLightColor, 1, &pointLight.color[0]);
+        if (s.uPointLightIntensity >= 0) glUniform1f(s.uPointLightIntensity, pointLight.intensity);
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
 void Renderer::begin_frame() {
-    program.bind();
+    shaders[static_cast<int>(currentShading)].program.bind();
 }
 
 void Renderer::end_frame() {
-    program.unbind();
+    shaders[static_cast<int>(currentShading)].program.unbind();
 }
 
 void Renderer::draw_mesh(const Mesh& mesh,
                          const glm::mat4& modelMatrix,
                          const glm::vec4& color,
-                         bool lighting) const {
-    glUniformMatrix4fv(uModel, 1, GL_FALSE, &modelMatrix[0][0]);
+                         bool lighting,
+                         GLuint diffuseTex,
+                         GLuint normalTex,
+                         bool useNormalMap) const {
+    const ShaderHandles* shader = &shaders[static_cast<int>(currentShading)];
+    bool needsFallback = currentShading == ShadingMode::PhongNormalMap &&
+                         (!mesh.has_texcoords() || !mesh.has_tangents());
+    if (needsFallback)
+        shader = &shaders[static_cast<int>(ShadingMode::Phong)];
+
+    shader->program.bind();
+
+    if (shader->uModel >= 0) glUniformMatrix4fv(shader->uModel, 1, GL_FALSE, &modelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-    glUniformMatrix3fv(uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
-    glUniform4fv(uColor, 1, &color[0]);
-    glUniform1i(uLighting, lighting ? 1 : 0);
+    if (shader->uNormal >= 0) glUniformMatrix3fv(shader->uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
+    if (shader->uColor >= 0) glUniform4fv(shader->uColor, 1, &color[0]);
+    if (shader->uLighting >= 0) glUniform1i(shader->uLighting, lighting ? 1 : 0);
+
+    if (shader->uUseTexture >= 0) glUniform1i(shader->uUseTexture, diffuseTex ? 1 : 0);
+    if (shader->uDiffuseMap >= 0) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseTex ? diffuseTex : whiteTexture);
+        glUniform1i(shader->uDiffuseMap, 0);
+    }
+
+    bool enableNormal = useNormalMap && !needsFallback && normalTex != 0;
+    if (shader->uUseNormalMap >= 0) glUniform1i(shader->uUseNormalMap, enableNormal ? 1 : 0);
+    if (shader->uNormalMap >= 0) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, enableNormal ? normalTex : whiteTexture);
+        glUniform1i(shader->uNormalMap, 1);
+    }
 
     if (currentStyle != RenderStyle::HiddenLineWireframe) {
         mesh.draw();
@@ -167,11 +247,13 @@ void Renderer::draw_raw(GLuint vao,
                         const glm::mat4& modelMatrix,
                         const glm::vec4& color,
                         bool lighting) const {
-    glUniformMatrix4fv(uModel, 1, GL_FALSE, &modelMatrix[0][0]);
+    const auto& shader = shaders[static_cast<int>(currentShading)];
+    shader.program.bind();
+    if (shader.uModel >= 0) glUniformMatrix4fv(shader.uModel, 1, GL_FALSE, &modelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-    glUniformMatrix3fv(uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
-    glUniform4fv(uColor, 1, &color[0]);
-    glUniform1i(uLighting, lighting ? 1 : 0);
+    if (shader.uNormal >= 0) glUniformMatrix3fv(shader.uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
+    if (shader.uColor >= 0) glUniform4fv(shader.uColor, 1, &color[0]);
+    if (shader.uLighting >= 0) glUniform1i(shader.uLighting, lighting ? 1 : 0);
 
     glBindVertexArray(vao);
 
@@ -224,4 +306,38 @@ void Renderer::apply_render_style() {
 void Renderer::switch_render_style() {
     currentStyle = static_cast<RenderStyle>((static_cast<int>(currentStyle) + 1) % 3);
     apply_render_style();   
+}
+
+void Renderer::set_shading_mode(ShadingMode mode) {
+    currentShading = mode;
+    auto& s = shaders[static_cast<int>(currentShading)];
+    s.program.bind();
+    if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
+    if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+}
+
+void Renderer::switch_shading_mode() {
+    int next = (static_cast<int>(currentShading) + 1) % 3;
+    set_shading_mode(static_cast<ShadingMode>(next));
+}
+
+const char* Renderer::shading_mode_label() const {
+    switch (currentShading) {
+    case ShadingMode::Gouraud: return "Gouraud";
+    case ShadingMode::Phong: return "Phong";
+    case ShadingMode::PhongNormalMap: return "Phong + Normal Map";
+    default: return "Unknown";
+    }
+}
+
+GLuint Renderer::get_or_load_texture(const std::string& path) {
+    if (auto it = textureCache.find(path); it != textureCache.end())
+        return it->second.id;
+
+    Texture2D tex = load_texture_png(path);
+    if (tex.id != 0) {
+        textureCache[path] = tex;
+        return tex.id;
+    }
+    return 0;
 }
