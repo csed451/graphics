@@ -86,7 +86,8 @@ public:
                   GLenum primitive,
                   const glm::mat4& modelMatrix,
                   const glm::vec4& color,
-                  bool lighting = false) const;
+                  bool lighting = false,
+                  GLuint diffuseTex = 0) const;
 
 
     void apply_render_style();

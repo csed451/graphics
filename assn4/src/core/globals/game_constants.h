@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-constexpr float MAX_COORD = 50;
+constexpr float MAX_COORD = 60;
 constexpr int ENEMY_MAX_HEART = 10;
 constexpr int FPS = 60;
 

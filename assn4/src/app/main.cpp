@@ -17,6 +17,7 @@
 #include "core/render/mesh.h"
 #include "game/entities/player.h"
 #include "game/entities/enemy.h"
+#include "app/background.h"
 
 // Constants & simple types
 enum class GameState { Playing, GameOver, Exiting };
@@ -47,6 +48,7 @@ static glm::vec3 playerPrevDirection = ZERO;
 static DirectionalLight dirLight;
 static PointLight pointLight;
 static float pointLightAngle = 0.0f;
+static bool gDayMode = true; // toggle manually for night build
 
 // Forward declarations
 static void set_projection_matrix(ProjectionType type);
@@ -98,6 +100,7 @@ int main(int argc, char** argv) {
 
     init_camera();
     set_projection_matrix(projectionType);
+    background::init(MAX_COORD, gDayMode);
 
     /* connect call back function */
     glutReshapeFunc(reshape);
@@ -157,7 +160,8 @@ static void set_projection_matrix(ProjectionType type) {
     else if(type == ProjectionType::Thirdperson) {
         projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
         cameraTargetObject = player;
-        cameraPos = glm::vec3(0, -20, 10);
+        // cameraPos = glm::vec3(0, -20, 10);
+        cameraPos = glm::vec3(0, -100, 50);
     }
 
     gRenderer.set_projection(projection);
@@ -181,6 +185,7 @@ static void display (void) {
     
     gRenderer.begin_frame();
 
+    background::draw();
     gRenderer.apply_render_style();
     sceneRoot.draw();
     draw_bounding_box();
