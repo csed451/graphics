@@ -133,10 +133,13 @@ void draw() {
     ensure_textures();
     if (floorVAO && texOcean)
         gRenderer.draw_raw(floorVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texOcean);
+    GLboolean cullEnabled = glIsEnabled(GL_CULL_FACE);
+    if (cullEnabled) glDisable(GL_CULL_FACE); // draw sky quads double-sided
     if (wallVAO && texSky)
         gRenderer.draw_raw(wallVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texSky);
     if (wallFrontVAO && texSky)
         gRenderer.draw_raw(wallFrontVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texSky);
+    if (cullEnabled) glEnable(GL_CULL_FACE);
 }
 
 } // namespace background
