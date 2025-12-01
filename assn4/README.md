@@ -1,4 +1,3 @@
-
 # Assn4 Overview
 
 Assignment 4 extends the bullet hell prototype with multiple rendering styles, camera perspectives, and textured environments.
@@ -7,7 +6,7 @@ Assignment 4 extends the bullet hell prototype with multiple rendering styles, c
 
 ### 1. Build & Run
 
-Move to the src directory (`graphics/assn4/src`) and run one of the provided Makefile commands.
+Move to the `src` directory (`graphics/assn4/src`) and run one of the provided Makefile commands.
 
 From `./assn4/src/`:
 
@@ -16,7 +15,7 @@ From `./assn4/src/`:
 - `make clean`: remove `build/` artifacts and `main`.
 
 <details>
-    <summary> If you want, you can compile and execute directly with the command below. </summary>
+  <summary>If you want, you can compile and execute directly with the command below.</summary>
 
 ```bash
 # on graphics/assn4/src
@@ -43,7 +42,6 @@ g++ app/main.cpp \
 
 ./main
 ```
-
 </details>
 
 ---
@@ -52,19 +50,21 @@ g++ app/main.cpp \
 
 Movement: **Arrow keys**
 
-Combat: **Space (hold)** >>  fire
+Combat: **Space (hold)** — fire
 
-Render Style: **W / w**
+Shading Mode: **W / w**
 
-- cycles : opaque → wireframe → ...
+- cycles: Gouraud → Phong → Phong + Normal Map (changes shading only)
 
 Camera Views: **C / c**
 
-- cycles : top-perspective → top-orthographic → third-person → ...
+- cycles: top-perspective ↔ close third-person (no orthographic mode)
+
+Pause/Unpause updates: **T / t** (pauses/resumes game updates and animations)
 
 Day/Night toggle (environment textures): **B / b**
 
-- switches between day and night sky/ocean textures (only affects background)
+- switches between day and night sky/ocean textures (background only)
 
 Game Over:
 
@@ -77,3 +77,4 @@ Game Over:
 
 Ensure OpenGL, GLEW, and GLUT development packages are installed.
 For additional details, refer to the [main project README](../README.md).
+The render-style toggle (wireframe / hidden-line) remains implemented, but key bindings are intentionally left empty.

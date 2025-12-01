@@ -68,23 +68,31 @@ void init(float maxCoord, bool dayMode) {
     float half = maxCoord * bgScale; // larger than gameplay area
     float z = -maxCoord * 0.5f;   // slightly below to avoid z-fighting
 
-    struct V { glm::vec3 p; glm::vec2 uv; };
-    std::vector<V> data = {
-        {{-half, -half, z}, {0,0}}, {{ half, -half, z}, {4,0}}, {{ half,  half, z}, {4,4}},
-        {{-half, -half, z}, {0,0}}, {{ half,  half, z}, {4,4}}, {{-half,  half, z}, {0,4}},
+    struct VFloor { glm::vec3 p; glm::vec2 uv; glm::vec3 n; glm::vec3 t; };
+    glm::vec3 floorNormal(0.0f, 0.0f, 1.0f);
+    glm::vec3 floorTangent(1.0f, 0.0f, 0.0f);
+    std::vector<VFloor> data = {
+        {{-half, -half, z}, {0,0}, floorNormal, floorTangent}, {{ half, -half, z}, {4,0}, floorNormal, floorTangent}, {{ half,  half, z}, {4,4}, floorNormal, floorTangent},
+        {{-half, -half, z}, {0,0}, floorNormal, floorTangent}, {{ half,  half, z}, {4,4}, floorNormal, floorTangent}, {{-half,  half, z}, {0,4}, floorNormal, floorTangent},
     };
 
     glGenVertexArrays(1, &floorVAO);
     glGenBuffers(1, &floorVBO);
     glBindVertexArray(floorVAO);
     glBindBuffer(GL_ARRAY_BUFFER, floorVBO);
-    glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(V), data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.size()*sizeof(VFloor), data.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(V), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VFloor), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VFloor), (void*)offsetof(VFloor, n));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(V), (void*)offsetof(V, uv));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VFloor), (void*)offsetof(VFloor, uv));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VFloor), (void*)offsetof(VFloor, t));
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    struct V { glm::vec3 p; glm::vec2 uv; };
 
     // Single side wall: normal +X, center at (-maxCoord*2, 0, 0)
     {
@@ -186,7 +194,7 @@ static void ensure_textures() {
         texOcean = gRenderer.get_or_load_texture(path);
     }
     if (!texOceanNormal) {
-        texOceanNormal = gRenderer.get_or_load_texture("assets/textures/normal_organic.png");
+        texOceanNormal = gRenderer.get_or_load_texture("assets/textures/normal_ocean.png");
     }
     if (!texSky) {
         const char* path = dayModeFlag ? "assets/textures/diffuse_sky_day.png"
@@ -198,7 +206,7 @@ static void ensure_textures() {
 void draw() {
     ensure_textures();
     if (floorVAO && texOcean)
-        gRenderer.draw_raw(floorVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texOcean, texOceanNormal, true);
+        gRenderer.draw_raw(floorVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), true, texOcean, texOceanNormal, true);
     GLboolean cullEnabled = glIsEnabled(GL_CULL_FACE);
     if (cullEnabled) glDisable(GL_CULL_FACE); // draw sky quads double-sided
     if (wallVAO && texSky)
