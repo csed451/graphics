@@ -19,7 +19,7 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center) {
-        set_mesh(load_mesh("assets/models/star_sharp.obj"));     
+        set_mesh(load_mesh("assets/models/sphere.obj"));     
     };
 
     void draw_shape() const override {
@@ -33,9 +33,9 @@ public:
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
         if (diffuseTex == 0)
-            diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_star.png");
+            diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_primary.png");
         if (normalTex == 0) {
-            normalTex = gRenderer.get_or_load_texture("assets/textures/normal_industrial.png");
+            normalTex = gRenderer.get_or_load_texture("assets/textures/normal_organic.png");
             hasNormalMap = (normalTex != 0);
         }
 

@@ -54,7 +54,7 @@ public:
         set_mesh(load_mesh("assets/models/jet.obj"));
         for (int i = 1; i <= heart; i++) {
             Orbit & orbit = orbits.emplace_back();
-            orbit.init(glm::vec3(5,0,0), 0, UP, glm::vec3(2));
+            orbit.init(glm::vec3(4,0,0), 0, UP, glm::vec3(1.5));
             orbit.rotate_world(360.0f/heart * (i-1), FORWARD);
             orbit.set_parent(this);
         }

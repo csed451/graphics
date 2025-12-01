@@ -87,7 +87,7 @@ void Enemy::draw_shape() const {
     if (diffuseTex == 0)
         diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_starship.png");
     if (normalTex == 0) {
-        normalTex = gRenderer.get_or_load_texture("assets/textures/normal_ocean.png");
+        normalTex = gRenderer.get_or_load_texture("assets/textures/normal_quilt.png");
         hasNormalMap = (normalTex != 0);
     }
 

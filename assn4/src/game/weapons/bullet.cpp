@@ -76,7 +76,7 @@ void Bullet::ensure_sonic_child() const {
     if (sonicDiffuse2 == 0)
         sonicDiffuse2 = gRenderer.get_or_load_texture("assets/textures/diffuse_sonic_2.png");
     if (sonicNormal == 0) {
-        sonicNormal = gRenderer.get_or_load_texture("assets/textures/normal_organic.png");
+        sonicNormal = gRenderer.get_or_load_texture("assets/textures/normal_flat.png");
         sonicHasNormal = (sonicNormal != 0);
     }
 }
