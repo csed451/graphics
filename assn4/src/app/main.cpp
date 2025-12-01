@@ -21,6 +21,7 @@
 
 // Constants & simple types
 enum class GameState { Playing, GameOver, Exiting };
+static bool gPaused = false;
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
 constexpr float POINT_LIGHT_RADIUS = 10.0f;
 constexpr float POINT_LIGHT_SPEED = 2.5f; // rad/sec
@@ -218,6 +219,9 @@ static void update(void) {
     float deltaTime = (curTime - prevTime) / 1000.0f;
     prevTime = curTime;
 
+    if (gPaused)
+        return;
+
     if (gameState == GameState::Exiting) {
         glutLeaveMainLoop(); return;
     }    
@@ -302,6 +306,10 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
         switch (key) {
             case ' ': 
                 player->set_isShooting(true); 
+                break;
+            case 't':
+            case 'T':
+                gPaused = !gPaused;
                 break;
             case 'b':
             case 'B':
