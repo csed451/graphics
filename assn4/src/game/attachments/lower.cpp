@@ -62,7 +62,8 @@ void Lower::update_logic(float deltaTime) {
 void Lower::deactivate() {
     set_isActive(false);
     set_isVisible(false);
-    escortPlane.deactivate();
+    if (!escortPlane.is_detached())
+        escortPlane.deactivate();
 }
 
 void Lower::reset() {

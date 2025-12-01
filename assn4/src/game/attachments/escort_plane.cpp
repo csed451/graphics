@@ -105,6 +105,9 @@ void EscortPlane::detach_to_world() {
 }
 
 void EscortPlane::deactivate() {
+    // If already detached and falling, let update_logic handle lifetime
+    if (isDetached)
+        return;
     set_isActive(false);
     set_isVisible(false);
 }
