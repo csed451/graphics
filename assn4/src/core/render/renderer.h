@@ -87,7 +87,9 @@ public:
                   const glm::mat4& modelMatrix,
                   const glm::vec4& color,
                   bool lighting = false,
-                  GLuint diffuseTex = 0) const;
+                  GLuint diffuseTex = 0,
+                  GLuint normalTex = 0,
+                  bool useNormalMap = false) const;
 
 
     void apply_render_style();

@@ -247,7 +247,9 @@ void Renderer::draw_raw(GLuint vao,
                         const glm::mat4& modelMatrix,
                         const glm::vec4& color,
                         bool lighting,
-                        GLuint diffuseTex) const {
+                        GLuint diffuseTex,
+                        GLuint normalTex,
+                        bool useNormalMap) const {
     const auto& shader = shaders[static_cast<int>(currentShading)];
     shader.program.bind();
     if (shader.uModel >= 0) glUniformMatrix4fv(shader.uModel, 1, GL_FALSE, &modelMatrix[0][0]);
@@ -261,7 +263,13 @@ void Renderer::draw_raw(GLuint vao,
         glBindTexture(GL_TEXTURE_2D, diffuseTex ? diffuseTex : whiteTexture);
         glUniform1i(shader.uDiffuseMap, 0);
     }
-    if (shader.uUseNormalMap >= 0) glUniform1i(shader.uUseNormalMap, 0);
+    bool enableNM = useNormalMap && normalTex;
+    if (shader.uUseNormalMap >= 0) glUniform1i(shader.uUseNormalMap, enableNM ? 1 : 0);
+    if (shader.uNormalMap >= 0) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, enableNM ? normalTex : whiteTexture);
+        glUniform1i(shader.uNormalMap, 1);
+    }
 
     glBindVertexArray(vao);
 

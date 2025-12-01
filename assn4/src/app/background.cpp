@@ -18,6 +18,7 @@ GLuint wallRightVAO = 0;
 GLuint wallRightVBO = 0;
 GLuint wallBackVAO = 0;
 GLuint wallBackVBO = 0;
+GLuint texOceanNormal = 0;
 float cachedMaxCoord = 0.0f;
 bool dayModeFlag = true;
 float bgScale = 4.0f;
@@ -28,6 +29,7 @@ void set_day_mode(bool dayMode) {
     // reload texture on next draw
     texOcean = 0;
     texSky = 0;
+    texOceanNormal = 0;
 }
 
 bool is_day_mode() { return dayModeFlag; }
@@ -52,6 +54,7 @@ void shutdown() {
     wallBackVBO = wallBackVAO = 0;
     texOcean = 0;
     texSky = 0;
+    texOceanNormal = 0;
     cachedMaxCoord = 0.0f;
 }
 
@@ -182,6 +185,9 @@ static void ensure_textures() {
                                        : "assets/textures/diffuse_ocean_night.png";
         texOcean = gRenderer.get_or_load_texture(path);
     }
+    if (!texOceanNormal) {
+        texOceanNormal = gRenderer.get_or_load_texture("assets/textures/normal_organic.png");
+    }
     if (!texSky) {
         const char* path = dayModeFlag ? "assets/textures/diffuse_sky_day.png"
                                        : "assets/textures/diffuse_sky_night.png";
@@ -192,7 +198,7 @@ static void ensure_textures() {
 void draw() {
     ensure_textures();
     if (floorVAO && texOcean)
-        gRenderer.draw_raw(floorVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texOcean);
+        gRenderer.draw_raw(floorVAO, 6, GL_TRIANGLES, glm::mat4(1.0f), glm::vec4(1.0f), false, texOcean, texOceanNormal, true);
     GLboolean cullEnabled = glIsEnabled(GL_CULL_FACE);
     if (cullEnabled) glDisable(GL_CULL_FACE); // draw sky quads double-sided
     if (wallVAO && texSky)
