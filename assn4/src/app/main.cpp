@@ -160,8 +160,8 @@ static void set_projection_matrix(ProjectionType type) {
     else if(type == ProjectionType::Thirdperson) {
         projection = glm::perspective(glm::radians(60.0f), aspect, 0.1f, 500.0f);
         cameraTargetObject = player;
-        // cameraPos = glm::vec3(0, -20, 10);
-        cameraPos = glm::vec3(0, -100, 50);
+        // cameraPos = glm::vec3(0, -100, 50);
+        cameraPos = glm::vec3(0, -20, 10);
     }
 
     gRenderer.set_projection(projection);
@@ -302,6 +302,11 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
         switch (key) {
             case ' ': 
                 player->set_isShooting(true); 
+                break;
+            case 'b':
+            case 'B':
+                gDayMode = !gDayMode;
+                background::set_day_mode(gDayMode);
                 break;
             case 'w':
             case 'W':

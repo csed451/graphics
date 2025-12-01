@@ -1,7 +1,7 @@
 
 # Assn4 Overview
 
-Assignment 4 extends the bullet hell prototype with multiple rendering styles and camera perspectives. The game cycles between wireframe and opaque rendering with `W`, and `C` rotates the camera through top-perspective, top-orthographic, and close third-person views.
+Assignment 4 extends the bullet hell prototype with multiple rendering styles, camera perspectives, and textured environments.
 
 ## End-User Guide
 
@@ -61,6 +61,10 @@ Render Style: **W / w**
 Camera Views: **C / c**
 
 - cycles : top-perspective → top-orthographic → third-person → ...
+
+Day/Night toggle (environment textures): **B / b**
+
+- switches between day and night sky/ocean textures (only affects background)
 
 Game Over:
 
