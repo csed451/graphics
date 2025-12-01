@@ -10,7 +10,8 @@ uniform sampler2D uDiffuseMap;
 out vec4 FragColor;
 
 void main() {
-    vec3 baseColor = (uUseTexture == 1) ? texture(uDiffuseMap, vTexcoord).rgb : uColor.rgb;
+    vec3 texSample = (uUseTexture == 1) ? texture(uDiffuseMap, vTexcoord).rgb : vec3(1.0);
+    vec3 baseColor = texSample * uColor.rgb;
     vec3 finalColor = vLighting * baseColor;
     FragColor = vec4(finalColor, uColor.a);
 }

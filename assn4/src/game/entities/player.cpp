@@ -25,7 +25,7 @@ void Player::draw_shape() const {
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
-    glm::vec4 color(0.0f, 1.0f, 0.0f, isRecovery ? 0.2f : 1.0f);
+    glm::vec4 color(1.0f, 1.0f, 1.0f, isRecovery ? 0.2f : 1.0f);
     if (diffuseTex == 0) {
         diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_jet.png");
     }

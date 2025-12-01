@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <GL/glew.h>
 #include "core/base/object.h"
 
 class Bullet : public Object {
@@ -17,6 +18,13 @@ private:
     mutable bool counter = false; 
     glm::vec3 direction = DOWN;
     float velocity = 20.0f;
+
+    // Visual child (sonic obj)
+    mutable std::shared_ptr<Mesh> sonicMesh;
+    mutable GLuint sonicDiffuse1 = 0;
+    mutable GLuint sonicDiffuse2 = 0;
+    mutable GLuint sonicNormal = 0;
+    mutable bool sonicHasNormal = false;
 public:
     Bullet(
         glm::vec3 _pos=glm::vec3(), 
@@ -35,4 +43,6 @@ public:
 
     void set_direction(glm::vec3 dir) { direction = dir; }
     void set_counter(bool c) { counter = c; }
+
+    void ensure_sonic_child() const;
 };
