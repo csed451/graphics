@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <glm/gtc/constants.hpp>
+#include <GL/glew.h>
 #include "core/base/object.h"
 #include "core/base/object_pool.h"
 #include "game/ui/healthbar.h"
@@ -36,6 +37,11 @@ private:
 
     Player* player = nullptr;
 
+    // Textures for the main starship body
+    mutable GLuint diffuseTex = 0;
+    mutable GLuint normalTex = 0;
+    mutable bool hasNormalMap = false;
+
 public:
     Enemy(
         glm::vec3 _pos=ZERO, 
@@ -46,9 +52,9 @@ public:
     ) : Object(_pos, _angle, _axis, _size, _center), 
         bulletPool(200),
         spawnPosition(_pos),
-        healthBar(glm::vec3(0, 2.5f, 0), 0, UP, glm::vec3(1), ZERO, this),
-        rightUpperArm(glm::vec3(2.0f, 0, 0), -90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>(), false),
-        leftUpperArm(glm::vec3(-2.0f, 0, 0), 90, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f, true) {
+        healthBar(glm::vec3(0, 3.5f, 0), 0, UP, glm::vec3(1), ZERO, this),
+        rightUpperArm(glm::vec3(3.7f, 1.0f, 0), -120, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, glm::pi<float>(), 28.0f, 1.7f, glm::pi<float>(), false),
+        leftUpperArm(glm::vec3(-3.7f, 1.0f, 0), 120, FORWARD, glm::vec3(1), ZERO, this, 18.0f, 1.1f, 0.0f, 28.0f, 1.7f, 0.5f, true) {
         set_hitboxRadius(outerR);
         init_vertices();        
         set_mesh(load_mesh("assets/models/starship.obj"));

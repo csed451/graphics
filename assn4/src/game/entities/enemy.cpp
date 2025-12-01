@@ -84,12 +84,19 @@ void Enemy::draw_shape() const {
     if (!mesh)
         return;
 
+    if (diffuseTex == 0)
+        diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_starship.png");
+    if (normalTex == 0) {
+        normalTex = gRenderer.get_or_load_texture("assets/textures/normal_ocean.png");
+        hasNormalMap = (normalTex != 0);
+    }
+
     glm::mat4 model = get_finalMatrix();
     model = glm::scale(model, glm::vec3(5.0f));
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.85f, 0.15f, 0.15f, 0.7f));
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f, 1.0f, 1.0f, 0.9f), true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void Enemy::shoot(){

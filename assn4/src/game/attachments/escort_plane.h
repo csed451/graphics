@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GL/glew.h>
 #include "core/base/object.h"
 
 class EscortPlane : public Object {
@@ -11,8 +12,11 @@ private:
     float phaseOffset;
     float pulseAmplitude;
     bool isLeftPlane;
+    mutable GLuint diffuseTex = 0;
+    mutable GLuint normalTex = 0;
+    mutable bool hasNormalMap = false;
 
-    const float travelSpeed = 5.0f;
+    const float travelSpeed = 50.0f;
     bool isDetached = false;
     glm::vec3 travelDirection = glm::vec3(0.0f);
     glm::mat4 detachedWorldMatrix = glm::mat4(1.0f);

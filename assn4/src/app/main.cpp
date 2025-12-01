@@ -122,11 +122,13 @@ int main(int argc, char** argv) {
     }
 
     // initial lights
-    dirLight.direction = glm::normalize(glm::vec3(0.2f, -0.8f, -0.1f));
+    dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.8f, -0.1f));
+    // dirLight.direction = glm::normalize(glm::vec3(0.2f, -0.8f, -0.1f));
     dirLight.color = glm::vec3(1.0f);
-    dirLight.intensity = 10.0f;
+    dirLight.intensity = 1.5f;
     pointLight.position = player->get_pos() + glm::vec3(POINT_LIGHT_RADIUS, 0.0f, POINT_LIGHT_HEIGHT);
-    pointLight.color = glm::vec3(1.0f, 0.0f, 0.0f);
+    pointLight.color = glm::vec3(1.0f);
+    // pointLight.color = glm::vec3(1.0f, 0.0f, 0.0f);
     pointLight.intensity = 10.0f;
     gRenderer.set_lights(dirLight, pointLight);
     gRenderer.set_view_position(cameraPos);

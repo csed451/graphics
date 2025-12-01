@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GL/glew.h>
 #include "core/base/object.h"
 #include "core/render/renderer.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,6 +8,9 @@
 class Orbit : public Object {
 private:
     float velocity = 90.0f;
+    mutable GLuint diffuseTex = 0;
+    mutable GLuint normalTex = 0;
+    mutable bool hasNormalMap = false;
 public:
     Orbit(
         glm::vec3 _pos=ZERO, 
@@ -15,7 +19,7 @@ public:
         glm::vec3 _size=glm::vec3(1), 
         glm::vec3 _center=ZERO
     ) : Object(_pos, _angle, _axis, _size, _center) {
-        set_mesh(load_mesh("assets/models/star.obj"));     
+        set_mesh(load_mesh("assets/models/star_sharp.obj"));     
     };
 
     void draw_shape() const override {
@@ -28,7 +32,15 @@ public:
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
-        gRenderer.draw_mesh(*mesh, model, glm::vec4(0.85f, 0.15f, 0.15f, 1.0f));
+        if (diffuseTex == 0)
+            diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_star.png");
+        if (normalTex == 0) {
+            normalTex = gRenderer.get_or_load_texture("assets/textures/normal_industrial.png");
+            hasNormalMap = (normalTex != 0);
+        }
+
+        // Use white tint so texture shows its original colors
+        gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
     }
 
     void update_logic(float deltaTime) override {

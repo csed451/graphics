@@ -18,7 +18,7 @@ Lower::Lower(
     float _planePhaseOffset,
     bool _isLeftPlane
 ) : Object(_pos, _angle, _axis, _size, _center),
-    escortPlane(glm::vec3(0, 3.5f, 0), 0, FORWARD, glm::vec3(2), ZERO, this,
+    escortPlane(glm::vec3(0, 3.5f, 0), 0, FORWARD, glm::vec3(0.2), ZERO, this,
                 _swingAmplitude * 1.15f, _swingFrequency * 1.4f, _planePhaseOffset, 0.25f, _isLeftPlane),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
@@ -38,7 +38,8 @@ void Lower::draw_shape() const {
         return;
 
     glm::mat4 model = get_finalMatrix();
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+    // Match starship diffuse palette average (approx. 0.15, 0.42, 0.43)
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.15f, 0.42f, 0.43f, 1.0f));
 }
 
 void Lower::update_logic(float deltaTime) {

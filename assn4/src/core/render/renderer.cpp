@@ -254,6 +254,9 @@ void Renderer::draw_raw(GLuint vao,
     if (shader.uNormal >= 0) glUniformMatrix3fv(shader.uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
     if (shader.uColor >= 0) glUniform4fv(shader.uColor, 1, &color[0]);
     if (shader.uLighting >= 0) glUniform1i(shader.uLighting, lighting ? 1 : 0);
+    // force untextured for raw draws to avoid stale state from textured meshes
+    if (shader.uUseTexture >= 0) glUniform1i(shader.uUseTexture, 0);
+    if (shader.uUseNormalMap >= 0) glUniform1i(shader.uUseNormalMap, 0);
 
     glBindVertexArray(vao);
 

@@ -20,7 +20,9 @@ Upper::Upper(
     float _lowerPhaseOffset,
     bool _isLeftPlane
 ) : Object(_pos, _angle, _axis, _size, _center),
-    lowerArm(glm::vec3(0, 3.5f, 0), 0, FORWARD, _size, ZERO, this,
+    lowerArm(glm::vec3(0, 3.5f, 0),
+             _isLeftPlane ? -30.0f : 30.0f,
+             FORWARD, _size, ZERO, this,
              _lowerSwingAmplitude, _lowerSwingFrequency, _lowerPhaseOffset, _lowerPhaseOffset * 1.1f, _isLeftPlane),
     swingAmplitude(_swingAmplitude),
     swingFrequency(_swingFrequency),
@@ -40,7 +42,8 @@ void Upper::draw_shape() const {
         return;
 
     glm::mat4 model = get_finalMatrix();
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+    // Match starship diffuse palette average (approx. 0.15, 0.42, 0.43)
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.15f, 0.42f, 0.43f, 1.0f));
 }
 
 void Upper::update_logic(float deltaTime) {

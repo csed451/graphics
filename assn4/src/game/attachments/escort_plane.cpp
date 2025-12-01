@@ -35,7 +35,7 @@ EscortPlane::EscortPlane(
         initialParent = _parent;
         set_parent(_parent);
     }
-    set_mesh(load_mesh("assets/models/paperplane.obj"));
+    set_mesh(load_mesh("assets/models/starship.obj"));
 }
 
 void EscortPlane::draw_shape() const {
@@ -45,11 +45,19 @@ void EscortPlane::draw_shape() const {
 
     glm::mat4 model = get_finalMatrix();
     model = glm::scale(model, glm::vec3(10.0f));
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 0, 1));
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1, 0, 0));
     if (isLeftPlane)
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
 
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.9f, 0.9f, 0.9f, 1.0f));
+    if (diffuseTex == 0)
+        diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_starship.png");
+    if (normalTex == 0) {
+        normalTex = gRenderer.get_or_load_texture("assets/textures/normal_quilt.png");
+        hasNormalMap = (normalTex != 0);
+    }
+
+    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void EscortPlane::update_logic(float deltaTime) {
@@ -66,10 +74,10 @@ void EscortPlane::update_logic(float deltaTime) {
         return;
     }
 
-    float pulse = 1.0f + pulseAmplitude * (0.5f * (std::sin(animationTime * swingFrequency * 1.5f + phaseOffset) + 1.0f));
-    float scaleFactor = pulse / currentScale;
-    scale_local(glm::vec3(scaleFactor, scaleFactor, 1.0f));
-    currentScale = pulse;
+    // float pulse = 1.0f + pulseAmplitude * (0.5f * (std::sin(animationTime * swingFrequency * 1.5f + phaseOffset) + 1.0f));
+    // float scaleFactor = pulse / currentScale;
+    // scale_local(glm::vec3(scaleFactor, scaleFactor, 1.0f));
+    // currentScale = pulse;
 }
 
 void EscortPlane::apply_parent_rotation_correction(float deltaDegrees) {
