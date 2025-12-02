@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 #include "core/render/mesh.h"
@@ -93,17 +95,24 @@ bool Renderer::init() {
         s.uUseNormalMap         = s.program.uniform_location("uUseNormalMap");
         s.uNormalMap            = s.program.uniform_location("uNormalMap");
 
+        // related to shadow mapping (depth only)
+        s.uLightSpaceMatrix     = s.program.uniform_location("uLightSpaceMatrix");
+        s.uShadowMap            = s.program.uniform_location("uShadowMap");
+
         if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
         if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
         s.program.unbind();
 
-        return s.uModel >= 0 && s.uView >= 0 && s.uProj >= 0 && s.uColor >= 0 && s.uNormal >= 0 && s.uLighting >= 0;
+        return s.uModel >= 0 && s.uView >= 0 && s.uProj >= 0 && s.uColor >= 0 && s.uNormal >= 0 && s.uLighting >= 0 
+        || s.uModel >= 0 && s.uLightSpaceMatrix >= 0;
     };
 
     bool is_valid = true;
     is_valid &= load_set(ShadingMode::Gouraud, "core/render/shaders/gouraud.vert", "core/render/shaders/gouraud.frag");
     is_valid &= load_set(ShadingMode::Phong, "core/render/shaders/phong.vert", "core/render/shaders/phong.frag");
     is_valid &= load_set(ShadingMode::PhongNormalMap, "core/render/shaders/phong_nm.vert", "core/render/shaders/phong_nm.frag");
+    is_valid &= load_set(ShadingMode::DepthOnly, "core/render/shaders/depth.vert", "core/render/shaders/depth.frag");
+
 
     if (!is_valid)
         return false;
@@ -190,6 +199,55 @@ void Renderer::set_lights(const DirectionalLight& dir, const std::vector<PointLi
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
+void Renderer::set_light_space_matrix() {
+    // ...
+    // 광원 시야 영역 정의 (장면에 맞게 크기 조절 필요)
+    // 월드 크기 100x100에 맞게 범위 확장: [-60, 60] (여유 공간 확보)
+    float near_plane = 1.0f, far_plane = 100.0f; // 깊이 범위도 충분히 확장 (예: 100.0f)
+    glm::mat4 lightProjection = glm::ortho(-60.0f, 60.0f, -60.0f, 60.0f, near_plane, far_plane);
+
+    // 2. 뷰 행렬 (View Matrix) - 광원 시점
+    // 타겟 위치를 여전히 씬 중앙(0, 0, 0)으로 설정한다고 가정합니다.
+    // 카메라 위치도 씬 크기에 맞게 멀리 설정하는 것이 좋습니다.
+    // 현재 dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.0f, -0.1f)); 이므로,
+    // 빛이 Z축을 따라옵니다. 이 경우 * 2.0f 대신 * 50.0f 등으로 더 멀리 설정해야
+    // lightView가 씬 전체를 포괄할 가능성이 높아집니다.
+    glm::mat4 lightView = glm::lookAt(-dirLight.direction * 10.0f, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    
+    // lightProjection과 lightView 행렬을 결합하여 광원 공간 행렬 생성
+    glm::mat4 mat = lightProjection * lightView;
+
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.uLightSpaceMatrix >= 0)
+            glUniformMatrix4fv(s.uLightSpaceMatrix, 1, GL_FALSE, glm::value_ptr(mat));
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
+}
+
+void Renderer::set_shadow_map(GLuint depthMapTexture) {
+    // 1. 섀도우 맵을 사용할 텍스처 유닛 활성화 (GL_TEXTURE2, 즉 인덱스 2 사용)
+    glActiveTexture(GL_TEXTURE2); 
+    
+    // 2. 섀도우 맵 텍스처 바인딩
+    // depthMapTexture는 함수 외부에서 생성된 FBO의 깊이 텍스처 ID입니다.
+    glBindTexture(GL_TEXTURE_2D, depthMapTexture); 
+    
+    // 3. 셰이더 유니폼 변수 uShadowMap에 텍스처 유닛 인덱스 (2) 전달
+    for (auto& s : shaders) {
+        // 셰이더가 활성화되어 있는 동안 해당 셰이더의 유니폼에 값을 설정합니다.
+        // 이 함수가 호출되는 시점에 gRenderer.apply_render_style()을 통해
+        // 최종 셰이더(phong.frag)가 바인딩되어 있어야 합니다.
+        s.program.bind();
+        if (s.uShadowMap >= 0) {
+            // ⭐ 수정: 텍스처 유닛 인덱스 2 전달
+            glUniform1i(s.uShadowMap, 2); 
+        }
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
+}
+
 void Renderer::begin_frame() {
     shaders[static_cast<int>(currentShading)].program.bind();
 }
@@ -206,6 +264,16 @@ void Renderer::draw_mesh(const Mesh& mesh,
                          GLuint normalTex,
                          bool useNormalMap) const {
     const ShaderHandles* shader = &shaders[static_cast<int>(currentShading)];
+    
+    if (currentShading == ShadingMode::DepthOnly) {
+        shader->program.bind();
+        if (shader->uModel >= 0) glUniformMatrix4fv(shader->uModel, 1, GL_FALSE, &modelMatrix[0][0]);
+
+        mesh.draw();
+        return;
+    }
+
+
     bool needsFallback = currentShading == ShadingMode::PhongNormalMap &&
                          (!mesh.has_texcoords() || !mesh.has_tangents());
     if (needsFallback)
@@ -269,6 +337,8 @@ void Renderer::draw_raw(GLuint vao,
                         GLuint normalTex,
                         bool useNormalMap) const {
     const auto& shader = shaders[static_cast<int>(currentShading)];
+
+
     shader.program.bind();
     if (shader.uModel >= 0) glUniformMatrix4fv(shader.uModel, 1, GL_FALSE, &modelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
@@ -360,6 +430,7 @@ const char* Renderer::shading_mode_label() const {
     case ShadingMode::Gouraud: return "Gouraud";
     case ShadingMode::Phong: return "Phong";
     case ShadingMode::PhongNormalMap: return "Phong + Normal Map";
+    case ShadingMode::DepthOnly: return "Depth Only";
     default: return "Unknown";
     }
 }

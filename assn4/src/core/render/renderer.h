@@ -12,7 +12,7 @@
 class Mesh;
 
 enum class RenderStyle { Opaque, Wireframe, HiddenLineWireframe };
-enum class ShadingMode { Gouraud = 0, Phong = 1, PhongNormalMap = 2 };
+enum class ShadingMode { Gouraud = 0, Phong = 1, PhongNormalMap = 2, DepthOnly = 3 };
 
 struct DirectionalLight {
     glm::vec3 direction = glm::vec3(-0.4f, 0.7f, 0.5f);
@@ -58,14 +58,17 @@ private:
         GLint uDiffuseMap = -1;
         GLint uUseNormalMap = -1;
         GLint uNormalMap = -1;
+        GLint uLightSpaceMatrix = -1;
+        GLint uShadowMap = -1;
     };
 
-    ShaderHandles shaders[3]; // per-shading-mode shader + uniform handles
+    ShaderHandles shaders[4]; // per-shading-mode shader + uniform handles
     GLuint whiteTexture = 0;  // 1x1 fallback texture
     std::unordered_map<std::string, Texture2D> textureCache; // lazy-loaded texture cache
 
     RenderStyle currentStyle = RenderStyle::Opaque;
     ShadingMode currentShading = ShadingMode::Gouraud;
+
 
 public:
     bool init();
@@ -75,6 +78,8 @@ public:
     void set_projection(const glm::mat4& projectionMatrix);
     void set_view_position(const glm::vec3& pos);
     void set_lights(const DirectionalLight& dir, const std::vector<PointLight>& points);
+    void set_light_space_matrix();
+    void set_shadow_map(GLuint depthMapTexture);
 
     void begin_frame();
     void end_frame();

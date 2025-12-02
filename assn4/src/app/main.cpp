@@ -53,6 +53,14 @@ static PointLight enemyLight;
 static float playerLightAngle = 0.0f;
 static bool gDayMode = true; // toggle manually for night build
 
+// 섀도우 맵 해상도 정의
+const unsigned int SHADOW_WIDTH = 1024;
+const unsigned int SHADOW_HEIGHT = 1024;
+
+// 섀도우 맵 저장에 사용될 FBO (Frame Buffer Object) 및 텍스처 ID
+GLuint depthMapFBO = 0;
+GLuint depthMapTexture = 0;
+
 // Forward declarations
 static void set_projection_matrix(ProjectionType type);
 static void reshape (int w, int h);
@@ -128,17 +136,17 @@ int main(int argc, char** argv) {
     }
 
     // initial lights
-    dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.8f, -0.1f));
+    dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.0f, -0.1f));
     dirLight.color = glm::vec3(1.0f);
     dirLight.intensity = 1.5f;
     // Player-following point light (orbits around player)
     playerLight.position = player->get_pos() + glm::vec3(PLAYER_LIGHT_RADIUS, 0.0f, PLAYER_LIGHT_HEIGHT);
     playerLight.color = glm::vec3(1.0f);
-    playerLight.intensity = 6.0f;
+    playerLight.intensity = 0.0f;
 
     // Enemy accent light
     enemyLight.color = glm::vec3(0.5f, 0.5f, 1.0f);
-    enemyLight.intensity = 6.0f;
+    enemyLight.intensity = 0.0f;
     if (!enemies.empty())
         enemyLight.position = enemies.front()->get_pos() + glm::vec3(0.0f, 0.0f, ENEMY_LIGHT_HEIGHT);
 
@@ -155,6 +163,44 @@ int main(int argc, char** argv) {
     }
     gRenderer.set_lights(dirLight, initialLights);
     gRenderer.set_view_position(cameraPos);
+
+    // 1. FBO 생성
+    glGenFramebuffers(1, &depthMapFBO);
+    
+    // 2. 깊이 텍스처 (섀도우 맵) 생성
+    glGenTextures(1, &depthMapTexture);
+    glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+    
+    // 깊이 컴포넌트만 저장할 텍스처 설정
+    // GL_DEPTH_COMPONENT는 텍스처의 포맷, GL_FLOAT는 내부 포맷
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    
+    // 텍스처 필터링 설정 (MIPMAP은 필요 없음)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    // 텍스처 경계 조건 설정 (그림자 밖은 1.0으로 설정하여 그림자를 투사하지 않도록 함)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    
+    // 3. FBO에 깊이 텍스처 연결
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+    
+    // 4. 색상 버퍼에 대한 렌더링 비활성화 (깊이만 필요함)
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    
+    // 5. FBO 상태 확인
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "Framebuffer not complete!" << std::endl;
+    }
+    
+    // 6. 기본 프레임버퍼로 다시 바인딩
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glutMainLoop();
     
@@ -201,12 +247,39 @@ static void display (void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     update_camera();
     glm::vec3 eye = cameraTargetObject ? (cameraTargetObject->get_pos() + cameraPos) : cameraPos;
-    gRenderer.set_view_position(eye);
+    gRenderer.set_view_position(eye); 
+
+    ShadingMode prevShading = gRenderer.get_shading_mode();
+    gRenderer.set_shading_mode(ShadingMode::DepthOnly);
+
+    gRenderer.set_light_space_matrix();
+
+    // 2. 뷰포트 설정 (섀도우 맵 해상도에 맞춤)
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    
+    // 3. FBO 바인딩 (여기에 깊이가 렌더링됨)
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    
+    // 4. 깊이 버퍼 클리어
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+
+    sceneRoot.draw();
+    glCullFace(GL_BACK);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glViewport(0, 0, windowWidth, windowHeight);
+    gRenderer.set_shading_mode(prevShading);
+
+    
     
     gRenderer.begin_frame();
 
-    background::draw();
     gRenderer.apply_render_style();
+
+    gRenderer.set_shadow_map(depthMapTexture);
+
+    background::draw();
     sceneRoot.draw();
     draw_bounding_box();
     bool showOverlay = (gameState == GameState::GameOver);
