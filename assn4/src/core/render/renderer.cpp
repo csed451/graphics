@@ -1,5 +1,6 @@
 #include "core/render/renderer.h"
 
+#include <algorithm>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <iostream>
 
@@ -73,9 +74,17 @@ bool Renderer::init() {
         s.uDirLightDir          = s.program.uniform_location("uDirLight.direction");
         s.uDirLightColor        = s.program.uniform_location("uDirLight.color");
         s.uDirLightIntensity    = s.program.uniform_location("uDirLight.intensity");
-        s.uPointLightPos        = s.program.uniform_location("uPointLight.position");
-        s.uPointLightColor      = s.program.uniform_location("uPointLight.color");
-        s.uPointLightIntensity  = s.program.uniform_location("uPointLight.intensity");
+
+        s.uPointLightCount = s.program.uniform_location("uPointLightCount");
+        s.uPointLightPos.fill(-1);
+        s.uPointLightColor.fill(-1);
+        s.uPointLightIntensity.fill(-1);
+        for (int i = 0; i < MAX_POINT_LIGHTS; ++i) {
+            std::string idx = std::to_string(i);
+            s.uPointLightPos[i]       = s.program.uniform_location(("uPointLights[" + idx + "].position").c_str());
+            s.uPointLightColor[i]     = s.program.uniform_location(("uPointLights[" + idx + "].color").c_str());
+            s.uPointLightIntensity[i] = s.program.uniform_location(("uPointLights[" + idx + "].intensity").c_str());
+        }
 
         // related to Texture uniforms
         s.uViewPos              = s.program.uniform_location("uViewPos");
@@ -157,17 +166,26 @@ void Renderer::set_view_position(const glm::vec3& pos) {
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 
-void Renderer::set_lights(const DirectionalLight& dir, const PointLight& point) {
+void Renderer::set_lights(const DirectionalLight& dir, const std::vector<PointLight>& points) {
     dirLight = dir;
-    pointLight = point;
+    pointLightCount = std::min(static_cast<int>(points.size()), MAX_POINT_LIGHTS);
+    for (int i = 0; i < pointLightCount; ++i)
+        pointLights[i] = points[i];
+
     for (auto& s : shaders) {
         s.program.bind();
         if (s.uDirLightDir >= 0)         glUniform3fv(s.uDirLightDir, 1, &dirLight.direction[0]);
         if (s.uDirLightColor >= 0)       glUniform3fv(s.uDirLightColor, 1, &dirLight.color[0]);
         if (s.uDirLightIntensity >= 0)   glUniform1f(s.uDirLightIntensity, dirLight.intensity);
-        if (s.uPointLightPos >= 0)       glUniform3fv(s.uPointLightPos, 1, &pointLight.position[0]);
-        if (s.uPointLightColor >= 0)     glUniform3fv(s.uPointLightColor, 1, &pointLight.color[0]);
-        if (s.uPointLightIntensity >= 0) glUniform1f(s.uPointLightIntensity, pointLight.intensity);
+
+        if (s.uPointLightCount >= 0)
+            glUniform1i(s.uPointLightCount, pointLightCount);
+
+        for (int i = 0; i < pointLightCount; ++i) {
+            if (s.uPointLightPos[i] >= 0)       glUniform3fv(s.uPointLightPos[i], 1, &pointLights[i].position[0]);
+            if (s.uPointLightColor[i] >= 0)     glUniform3fv(s.uPointLightColor[i], 1, &pointLights[i].color[0]);
+            if (s.uPointLightIntensity[i] >= 0) glUniform1f(s.uPointLightIntensity[i], pointLights[i].intensity);
+        }
     }
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }

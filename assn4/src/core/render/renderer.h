@@ -1,8 +1,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <array>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "core/render/shader_program.h"
 #include "core/render/texture.h"
@@ -24,6 +26,8 @@ struct PointLight {
     float intensity = 1.0f;
 };
 
+constexpr int MAX_POINT_LIGHTS = 4;
+
 class Renderer {
 private:
     ShaderProgram program; // legacy single program (kept for minimal impact, unused now)
@@ -31,7 +35,8 @@ private:
     glm::mat4 projection = glm::mat4(1.0f);
     glm::vec3 viewPos = glm::vec3(0.0f);
     DirectionalLight dirLight;
-    PointLight pointLight;
+    std::array<PointLight, MAX_POINT_LIGHTS> pointLights{};
+    int pointLightCount = 0;
 
     struct ShaderHandles {
         ShaderProgram program;
@@ -44,9 +49,10 @@ private:
         GLint uDirLightDir = -1;
         GLint uDirLightColor = -1;
         GLint uDirLightIntensity = -1;
-        GLint uPointLightPos = -1;
-        GLint uPointLightColor = -1;
-        GLint uPointLightIntensity = -1;
+        GLint uPointLightCount = -1;
+        std::array<GLint, MAX_POINT_LIGHTS> uPointLightPos{};
+        std::array<GLint, MAX_POINT_LIGHTS> uPointLightColor{};
+        std::array<GLint, MAX_POINT_LIGHTS> uPointLightIntensity{};
         GLint uViewPos = -1;
         GLint uUseTexture = -1;
         GLint uDiffuseMap = -1;
@@ -68,7 +74,7 @@ public:
     void set_view(const glm::mat4& viewMatrix);
     void set_projection(const glm::mat4& projectionMatrix);
     void set_view_position(const glm::vec3& pos);
-    void set_lights(const DirectionalLight& dir, const PointLight& point);
+    void set_lights(const DirectionalLight& dir, const std::vector<PointLight>& points);
 
     void begin_frame();
     void end_frame();

@@ -23,9 +23,10 @@
 enum class GameState { Playing, GameOver, Exiting };
 static bool gPaused = false;
 constexpr float PLAYER_INITIAL_SPEED = 0.01f;
-constexpr float POINT_LIGHT_RADIUS = 10.0f;
-constexpr float POINT_LIGHT_SPEED = 2.5f; // rad/sec
-constexpr float POINT_LIGHT_HEIGHT = 0.0f;
+constexpr float PLAYER_LIGHT_RADIUS = 10.0f;
+constexpr float PLAYER_LIGHT_SPEED = 2.5f; // rad/sec
+constexpr float PLAYER_LIGHT_HEIGHT = 0.0f;
+constexpr float ENEMY_LIGHT_HEIGHT = 5.0f;
 
 // Global state (local TU scope)
 static GameState gameState = GameState::Playing;
@@ -47,8 +48,9 @@ static float playerSpeed = PLAYER_INITIAL_SPEED;
 static glm::vec3 playerDirection = ZERO;
 static glm::vec3 playerPrevDirection = ZERO;
 static DirectionalLight dirLight;
-static PointLight pointLight;
-static float pointLightAngle = 0.0f;
+static PointLight playerLight;
+static PointLight enemyLight;
+static float playerLightAngle = 0.0f;
 static bool gDayMode = true; // toggle manually for night build
 
 // Forward declarations
@@ -127,14 +129,31 @@ int main(int argc, char** argv) {
 
     // initial lights
     dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.8f, -0.1f));
-    // dirLight.direction = glm::normalize(glm::vec3(0.2f, -0.8f, -0.1f));
     dirLight.color = glm::vec3(1.0f);
     dirLight.intensity = 1.5f;
-    pointLight.position = player->get_pos() + glm::vec3(POINT_LIGHT_RADIUS, 0.0f, POINT_LIGHT_HEIGHT);
-    pointLight.color = glm::vec3(1.0f);
-    // pointLight.color = glm::vec3(1.0f, 0.0f, 0.0f);
-    pointLight.intensity = 10.0f;
-    gRenderer.set_lights(dirLight, pointLight);
+    // Player-following point light (orbits around player)
+    playerLight.position = player->get_pos() + glm::vec3(PLAYER_LIGHT_RADIUS, 0.0f, PLAYER_LIGHT_HEIGHT);
+    playerLight.color = glm::vec3(1.0f);
+    playerLight.intensity = 6.0f;
+
+    // Enemy accent light
+    enemyLight.color = glm::vec3(0.5f, 0.5f, 1.0f);
+    enemyLight.intensity = 6.0f;
+    if (!enemies.empty())
+        enemyLight.position = enemies.front()->get_pos() + glm::vec3(0.0f, 0.0f, ENEMY_LIGHT_HEIGHT);
+
+    std::vector<PointLight> initialLights;
+    initialLights.reserve(MAX_POINT_LIGHTS);
+    initialLights.push_back(playerLight); // slot 0 = player light
+    for (auto enemy : enemies) {
+        if (!enemy)
+            continue;
+        enemyLight.position = enemy->get_pos() + glm::vec3(0.0f, 0.0f, ENEMY_LIGHT_HEIGHT);
+        initialLights.push_back(enemyLight); // copy with per-enemy position
+        if (static_cast<int>(initialLights.size()) >= MAX_POINT_LIGHTS)
+            break;
+    }
+    gRenderer.set_lights(dirLight, initialLights);
     gRenderer.set_view_position(cameraPos);
 
     glutMainLoop();
@@ -234,12 +253,26 @@ static void update(void) {
         return;
     }
     
-    // animate point light around player
-    pointLightAngle += deltaTime * POINT_LIGHT_SPEED;
-    pointLight.position = player->get_pos() + glm::vec3(std::cos(pointLightAngle) * POINT_LIGHT_RADIUS,
-                                                        std::sin(pointLightAngle) * POINT_LIGHT_RADIUS,
-                                                        POINT_LIGHT_HEIGHT);
-    gRenderer.set_lights(dirLight, pointLight);
+    // animate player-follow point light (orbit)
+    playerLightAngle += deltaTime * PLAYER_LIGHT_SPEED;
+    playerLight.position = player->get_pos() + glm::vec3(std::cos(playerLightAngle) * PLAYER_LIGHT_RADIUS,
+                                                         std::sin(playerLightAngle) * PLAYER_LIGHT_RADIUS,
+                                                         PLAYER_LIGHT_HEIGHT);
+
+    std::vector<PointLight> pointLights;
+    pointLights.reserve(MAX_POINT_LIGHTS);
+    pointLights.push_back(playerLight); // slot 0 = orbiting player light
+
+    for (auto enemy : enemies) {
+        if (!(enemy && enemy->get_isActive() && !enemy->is_destroyed()))
+            continue;
+        enemyLight.position = enemy->get_pos() + glm::vec3(0.0f, 0.0f, ENEMY_LIGHT_HEIGHT);
+        pointLights.push_back(enemyLight); // one light per active enemy (up to MAX_POINT_LIGHTS)
+        if (static_cast<int>(pointLights.size()) >= MAX_POINT_LIGHTS)
+            break;
+    }
+
+    gRenderer.set_lights(dirLight, pointLights);
 
     sceneRoot.update(deltaTime);
     check_and_handle_game_over();

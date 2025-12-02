@@ -18,6 +18,7 @@ const float shininess = 32.0;  // specular exponent
 const float attC1 = 1.0;       // attenuation constant term
 const float attC2 = 0.08;      // attenuation linear term
 const float attC3 = 0.032;     // attenuation quadratic term
+const int   MAX_POINT_LIGHTS = 4;
 
 struct DirLight {
     vec3 direction;
@@ -31,7 +32,8 @@ struct PointLight {
 };
 
 uniform DirLight uDirLight;
-uniform PointLight uPointLight;
+uniform PointLight uPointLights[MAX_POINT_LIGHTS];
+uniform int uPointLightCount;
 
 out vec4 FragColor;
 
@@ -44,13 +46,16 @@ vec3 apply_light(vec3 baseColor, vec3 N, vec3 viewDir) {
     float specD = pow(max(dot(N, halfwayD), 0.0), shininess);
     colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD);
 
-    vec3 Lp = normalize(uPointLight.position - vWorldPos);
-    float diffP = max(dot(N, Lp), 0.0);
-    vec3 halfwayP = normalize(Lp + viewDir);
-    float specP = pow(max(dot(N, halfwayP), 0.0), shininess);
-    float dist = length(uPointLight.position - vWorldPos);
-    float atten = 1.0 / (attC1 + attC2 * dist + attC3 * dist * dist);
-    colorAccum += (uPointLight.color * uPointLight.intensity) * (kD * diffP * baseColor + kS * specP) * atten;
+    for (int i = 0; i < uPointLightCount; ++i) {
+        PointLight pl = uPointLights[i];
+        vec3 Lp = normalize(pl.position - vWorldPos);
+        float diffP = max(dot(N, Lp), 0.0);
+        vec3 halfwayP = normalize(Lp + viewDir);
+        float specP = pow(max(dot(N, halfwayP), 0.0), shininess);
+        float dist = length(pl.position - vWorldPos);
+        float atten = 1.0 / (attC1 + attC2 * dist + attC3 * dist * dist);
+        colorAccum += (pl.color * pl.intensity) * (kD * diffP * baseColor + kS * specP) * atten;
+    }
 
     return colorAccum;
 }
