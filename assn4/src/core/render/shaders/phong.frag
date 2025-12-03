@@ -13,6 +13,7 @@ uniform sampler2D uDiffuseMap;
 
 // shadowmap texture
 uniform sampler2D uShadowMap;
+const float bias = 0.005;
 
 // Lighting constants (matches lecture notation)
 const float kA = 0.2;          // ambient coefficient
@@ -43,53 +44,31 @@ out vec4 FragColor;
 
 float calculate_shadow()
 {
-    // 1. 투영 나누기 및 텍스처 좌표 변환 (NDC -> [0, 1] 범위)
-    
-    // ⭐ W 나누기 전 W가 0이 아닌지, Z 테스트를 위해 W를 양수로 가정할 수 있는지 확인
-    // W=0이면 무한대, W<0이면 카메라 뒤쪽입니다.
     if (vFragPosLightSpace.w <= 0.0) return 1.0; 
 
     vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
-    
-    // ⭐ 중요: W 나누기 후 Z가 [-1, 1] NDC 범위를 벗어나는지 확인
-    // 특히 Z < -1.0 이거나 Z > 1.0 이면 광원의 뷰 프러스텀 밖입니다.
-    if (abs(projCoords.z) > 1.0) 
-        return 1.0; 
 
     projCoords = projCoords * 0.5 + 0.5;
 
-    // 뷰 프러스텀 경계 밖이면 그림자 없음 (빛을 받는 것으로 간주)
-    // projCoords.x, y가 [0, 1] 범위를 벗어나는지 추가 확인 (선택적)
     if (projCoords.x > 1.0 || projCoords.x < 0.0 || 
-        projCoords.y > 1.0 || projCoords.y < 0.0) 
+        projCoords.y > 1.0 || projCoords.y < 0.0 ||
+        projCoords.z > 1.0 || projCoords.z < 0.0) 
         return 1.0;
-        
-    // (기존 코드: projCoords.z > 1.0만 체크)
-    // projCoords.z가 [0, 1] 범위 밖인지 확인. (NDC 변환 후의 Z값이므로)
-    if (projCoords.z > 1.0)
-        return 1.0;
-
-    // ... (나머지 코드 유지) ...
-    float closestDepth = texture(uShadowMap, projCoords.xy).r; 
-    float currentDepth = projCoords.z;
-    float bias = 0.005;
-
-    float shadowFactor = currentDepth > closestDepth + bias ? 0.0 : 1.0;
     
-    return shadowFactor;
+    if (projCoords.z > texture(uShadowMap, projCoords.xy).r + bias)
+        return 0.0;
+    
+    return 1.0;
 }
 
 vec3 apply_light(vec3 baseColor, vec3 N, vec3 viewDir) {
-    float shadowFactor = 1.0;
-    shadowFactor = calculate_shadow();
-
     vec3 colorAccum = kA * baseColor; // ambient
 
     vec3 Ld = normalize(-uDirLight.direction);
     float diffD = max(dot(N, Ld), 0.0);
     vec3 halfwayD = normalize(Ld + viewDir);
     float specD = pow(max(dot(N, halfwayD), 0.0), shininess);
-    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD) * shadowFactor;
+    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD) * calculate_shadow();
 
     for (int i = 0; i < uPointLightCount; ++i) {
         PointLight pl = uPointLights[i];
