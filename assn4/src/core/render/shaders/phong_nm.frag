@@ -4,6 +4,7 @@ in vec3 vWorldPos;
 in vec3 vNormal;
 in vec3 vTangent;
 in vec2 vTexcoord;
+in vec4 vFragPosLightSpace;
 
 uniform vec4 uColor;
 uniform int uUseLighting;
@@ -12,6 +13,11 @@ uniform sampler2D uDiffuseMap;
 uniform int uUseNormalMap;
 uniform sampler2D uNormalMap;
 uniform vec3 uViewPos;
+
+// shadowmap texture
+uniform sampler2D uShadowMap;
+uniform int uUseShadow;
+const float bias = 0.005;
 
 // Lighting constants (matches lecture notation)
 const float kA = 0.2;          // ambient coefficient
@@ -31,14 +37,35 @@ uniform int uPointLightCount;
 
 out vec4 FragColor;
 
+float calculate_shadow()
+{
+    if (vFragPosLightSpace.w <= 0.0) return 1.0; 
+
+    vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
+
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.x > 1.0 || projCoords.x < 0.0 || 
+        projCoords.y > 1.0 || projCoords.y < 0.0 ||
+        projCoords.z > 1.0 || projCoords.z < 0.0) 
+        return 1.0;
+    
+    if (projCoords.z > texture(uShadowMap, projCoords.xy).r + bias)
+        return 0.0;
+    
+    return 1.0;
+}
+
 vec3 apply_light(vec3 baseColor, vec3 N, vec3 viewDir) {
+    float shadowFactor = uUseShadow == 1 ? calculate_shadow() : 1.0;
+
     vec3 colorAccum = kA * baseColor; // ambient
 
     vec3 Ld = normalize(-uDirLight.direction);
     float diffD = max(dot(N, Ld), 0.0);
     vec3 halfwayD = normalize(Ld + viewDir);
     float specD = pow(max(dot(N, halfwayD), 0.0), shininess);
-    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD);
+    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD) * shadowFactor;
 
     for (int i = 0; i < uPointLightCount; ++i) {
         PointLight pl = uPointLights[i];
