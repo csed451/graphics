@@ -60,6 +60,7 @@ private:
         GLint uNormalMap = -1;
         GLint uLightSpaceMatrix = -1;
         GLint uShadowMap = -1;
+        GLint uUseShadow = -1;
     };
 
     ShaderHandles shaders[4]; // per-shading-mode shader + uniform handles

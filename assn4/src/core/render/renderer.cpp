@@ -99,6 +99,7 @@ bool Renderer::init() {
         // related to shadow mapping (depth only)
         s.uLightSpaceMatrix     = s.program.uniform_location("uLightSpaceMatrix");
         s.uShadowMap            = s.program.uniform_location("uShadowMap");
+        s.uUseShadow            = s.program.uniform_location("uUseShadow");
 
         if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
         if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
@@ -216,12 +217,24 @@ void Renderer::set_light_space_matrix() {
 void Renderer::set_shadow_map(GLuint depthMapTexture) {
     glActiveTexture(GL_TEXTURE2); 
     glBindTexture(GL_TEXTURE_2D, depthMapTexture); 
-
-    for (auto& s : shaders) {
-        s.program.bind();
-        if (s.uShadowMap >= 0)
-            glUniform1i(s.uShadowMap, 2); 
+    if (depthMapTexture == 0) {
+        // unbind shadow map
+        for (auto& s : shaders) {
+            s.program.bind();
+            if (s.uUseShadow >= 0) 
+                glUniform1i(s.uUseShadow, 0);
+        }
     }
+    else {
+        for (auto& s : shaders) {
+            s.program.bind();
+            if (s.uUseShadow >= 0) 
+                glUniform1i(s.uUseShadow, 1);
+            if (s.uShadowMap >= 0)
+                glUniform1i(s.uShadowMap, 2); 
+        }
+    }
+
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
 

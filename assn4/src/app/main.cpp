@@ -27,6 +27,10 @@ constexpr float PLAYER_LIGHT_RADIUS = 10.0f;
 constexpr float PLAYER_LIGHT_SPEED = 2.5f; // rad/sec
 constexpr float PLAYER_LIGHT_HEIGHT = 0.0f;
 constexpr float ENEMY_LIGHT_HEIGHT = 5.0f;
+// for shadow map
+const unsigned int SHADOW_WIDTH = 1024;
+const unsigned int SHADOW_HEIGHT = 1024;
+static bool gShadowOn = false;
 
 // Global state (local TU scope)
 static GameState gameState = GameState::Playing;
@@ -54,8 +58,6 @@ static float playerLightAngle = 0.0f;
 static bool gDayMode = true; // toggle manually for night build
 
 // for shadow map
-const unsigned int SHADOW_WIDTH = 1024;
-const unsigned int SHADOW_HEIGHT = 1024;
 GLuint depthMapFBO = 0;
 GLuint depthMapTexture = 0;
 
@@ -236,7 +238,10 @@ static void display (void) {
     gRenderer.begin_frame();
     gRenderer.apply_render_style();
 
-    gRenderer.set_shadow_map(depthMapTexture);
+    if (gShadowOn)
+        gRenderer.set_shadow_map(depthMapTexture);
+    else
+        gRenderer.set_shadow_map(0);
 
     background::draw();
     sceneRoot.draw();
@@ -390,6 +395,10 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
                 // Cycle only between Perspective (top view) and Thirdperson (close view) per assn4 spec
                 projectionType = (projectionType == ProjectionType::Perspective) ? ProjectionType::Thirdperson : ProjectionType::Perspective;
                 set_projection_matrix(projectionType);
+                break;
+            case 's':
+            case 'S':
+                gShadowOn = !gShadowOn;
                 break;
             case 27: // ESC
                 gameState = GameState::Exiting;

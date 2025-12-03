@@ -13,6 +13,7 @@ uniform sampler2D uDiffuseMap;
 
 // shadowmap texture
 uniform sampler2D uShadowMap;
+uniform int uUseShadow;
 const float bias = 0.005;
 
 // Lighting constants (matches lecture notation)
@@ -62,13 +63,15 @@ float calculate_shadow()
 }
 
 vec3 apply_light(vec3 baseColor, vec3 N, vec3 viewDir) {
+    float shadowFactor = uUseShadow == 1 ? calculate_shadow() : 1.0;
+
     vec3 colorAccum = kA * baseColor; // ambient
 
     vec3 Ld = normalize(-uDirLight.direction);
     float diffD = max(dot(N, Ld), 0.0);
     vec3 halfwayD = normalize(Ld + viewDir);
     float specD = pow(max(dot(N, halfwayD), 0.0), shininess);
-    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD) * calculate_shadow();
+    colorAccum += (uDirLight.color * uDirLight.intensity) * (kD * diffD * baseColor + kS * specD) * shadowFactor;
 
     for (int i = 0; i < uPointLightCount; ++i) {
         PointLight pl = uPointLights[i];
