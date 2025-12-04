@@ -61,7 +61,7 @@ private:
         GLint uLightSpaceMatrix = -1;
         GLint uShadowMap = -1;
         GLint uUseShadow = -1;
-        GLint screenTexture = -1;
+        GLint colorTexture = -1;
         GLint velocityTexture = -1;
         GLint uPrevModel = -1;
         GLint uPrevView = -1;   

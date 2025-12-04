@@ -3,6 +3,7 @@
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 FragVelocity;
 
+// for motion blur
 in vec4 vClipPos; 
 in vec4 vPrevClipPos;
 
@@ -105,16 +106,9 @@ void main() {
     vec3 lit = apply_light(baseColor, N, viewDir);
     FragColor = vec4(lit, uColor.a);
 
-    // (1) Perspective Divide: Clip Space -> NDC (-1 ~ 1)
     vec2 ndcPos = vClipPos.xy / vClipPos.w;
     vec2 ndcPrevPos = vPrevClipPos.xy / vPrevClipPos.w;
-
-    // (2) Remap to Texture Space: NDC -> UV (0 ~ 1)
     vec2 screenPos = ndcPos * 0.5 + 0.5;
     vec2 screenPrevPos = ndcPrevPos * 0.5 + 0.5;
-
-    // (3) Velocity Vector = Current - Previous
-    vec2 velocity = screenPos - screenPrevPos;
-    FragVelocity = vec4(velocity.x, velocity.y, 0.0, 1);
-
+    FragVelocity = vec4(screenPos - screenPrevPos, 0.0, 1);
 }

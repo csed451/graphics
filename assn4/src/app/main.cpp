@@ -60,12 +60,14 @@ static float playerLightAngle = 0.0f;
 static bool gDayMode = true; // toggle manually for night build
 
 // for shadow map
-GLuint depthMapFBO = 0;
-GLuint depthMapTexture = 0;
+static GLuint depthMapFBO = 0;
+static GLuint depthMapTexture = 0;
 // for scene map
-GLuint sceneFBO = 0;
-GLuint colorTexture = 0;
-GLuint velocityTexture = 0;
+static GLuint sceneFBO = 0;
+static GLuint colorTexture = 0;
+static GLuint velocityTexture = 0;
+static GLuint quadVAO = 0;
+static GLuint quadVBO = 0;
 
 // Forward declarations
 static void set_projection_matrix(ProjectionType type);
@@ -93,52 +95,8 @@ static void draw_bounding_box();
 
 static void init_shadow_map();
 static void init_scene_map();
+void draw_screen_quad();
 
-// 전역 변수나 정적 변수로 VAO, VBO 핸들을 저장해둡니다.
-static GLuint quadVAO = 0;
-static GLuint quadVBO = 0;
-
-void draw_screen_quad() {
-    // 1. 만약 VAO가 0이라면(아직 안 만들어졌다면) 생성합니다. (최초 1회 실행)
-    if (quadVAO == 0) {
-        float quadVertices[] = {
-            // 위치(Pos)       // 텍스처 좌표(TexCoords)
-            // x,     y,       u,    v
-            -1.0f,  1.0f,     0.0f, 1.0f, // 왼쪽 위
-            -1.0f, -1.0f,     0.0f, 0.0f, // 왼쪽 아래
-             1.0f, -1.0f,     1.0f, 0.0f, // 오른쪽 아래
-
-            -1.0f,  1.0f,     0.0f, 1.0f, // 왼쪽 위
-             1.0f, -1.0f,     1.0f, 0.0f, // 오른쪽 아래
-             1.0f,  1.0f,     1.0f, 1.0f  // 오른쪽 위
-        };
-
-        // VAO, VBO 생성
-        glGenVertexArrays(1, &quadVAO);
-        glGenBuffers(1, &quadVBO);
-
-        glBindVertexArray(quadVAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-
-        // 속성 0: 위치 (vec2)
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-
-        // 속성 1: 텍스처 좌표 (vec2)
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-        
-        // 바인딩 해제 (안전장치)
-        glBindVertexArray(0);
-    }
-
-    // 2. VAO 바인딩 후 그리기
-    glBindVertexArray(quadVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 6); // 정점 6개로 삼각형 2개 그리기
-    glBindVertexArray(0);
-}
 
 // Entry point
 int main(int argc, char** argv) {
@@ -152,15 +110,10 @@ int main(int argc, char** argv) {
     // Initialize GLEW and Renderer
     glewExperimental = GL_TRUE;
     glewInit();
-    // init shadow map (init FBO and depth texture)
+    // init shadow map (init depthFBO and depth texture) and scene map (init sceneFBO and color/velocity texture)
     init_shadow_map();
     init_scene_map();
     gRenderer.init();
-
-    const GLubyte* renderer = glGetString(GL_RENDERER);
-    if (renderer) {
-        std::cout << "🖥️ Renderer: " << renderer << std::endl;
-    }
 
     // OpenGL states configuration
     glEnable(GL_BLEND);
@@ -201,15 +154,15 @@ int main(int argc, char** argv) {
     // initial lights
     dirLight.direction = glm::normalize(glm::vec3(0.0f, 0.1f, -0.4f));
     dirLight.color = glm::vec3(1.0f);
-    dirLight.intensity = 1.5f;
+    dirLight.intensity = 1.0f;
     // Player-following point light (orbits around player)
     playerLight.position = player->get_pos() + glm::vec3(PLAYER_LIGHT_RADIUS, 0.0f, PLAYER_LIGHT_HEIGHT);
     playerLight.color = glm::vec3(1.0f);
-    playerLight.intensity = 0.0f;
+    playerLight.intensity = 10.0f;
 
     // Enemy accent light
     enemyLight.color = glm::vec3(0.5f, 0.5f, 1.0f);
-    enemyLight.intensity = 0.0f;
+    enemyLight.intensity = 10.0f;
     if (!enemies.empty())
         enemyLight.position = enemies.front()->get_pos() + glm::vec3(0.0f, 0.0f, ENEMY_LIGHT_HEIGHT);
 
@@ -274,20 +227,17 @@ static void display (void) {
     update_camera();
     glm::vec3 eye = cameraTargetObject ? (cameraTargetObject->get_pos() + cameraPos) : cameraPos;
     gRenderer.set_view_position(eye); 
+    ShadingMode prevShading = gRenderer.get_shading_mode();
 
     // 1. Depth pass (generate shadow map)
-    ShadingMode prevShading = gRenderer.get_shading_mode();
     gRenderer.set_shading_mode(ShadingMode::DepthOnly);
     gRenderer.set_light_space_matrix();
 
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
-    // glCullFace(GL_FRONT);
 
     sceneRoot.draw();
-
-    // glCullFace(GL_BACK);
     
     // 2. Lighting pass (regular rendering with shadows)
     gRenderer.set_shading_mode(prevShading);
@@ -296,33 +246,28 @@ static void display (void) {
     
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    if (gShadowOn)
-        gRenderer.set_shadow_map(depthMapTexture);
-    else
-        gRenderer.set_shadow_map(0);
+    gRenderer.set_shadow_map(gShadowOn ? depthMapTexture : 0);
 
     background::draw();
     sceneRoot.draw();
     draw_bounding_box();
     
-    // 3. Blur pass
+    // 3. Motion Blur pass
     gRenderer.set_shading_mode(ShadingMode::MotionBlur);
     gRenderer.set_motion_blur(motionBlurOn);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT); // 깊이는 필요 없음 (Quad만 그릴 거라)
+    glClear(GL_COLOR_BUFFER_BIT);
 
-    // 아까 2번 단계에서 FBO에 저장해둔 텍스처들을 가져옴
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, colorTexture); // 2번의 결과물 (색상)
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, velocityTexture); // 2번의 결과물 (속도)
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
 
-    // 화면 전체를 덮는 사각형(Quad) 하나만 딱 그림
     draw_screen_quad();
     glEnable(GL_DEPTH_TEST);
 
+    // return to original shading mode
     gRenderer.set_shading_mode(prevShading);
     
     bool showOverlay = (gameState == GameState::GameOver);
@@ -778,60 +723,96 @@ static void init_shadow_map() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
 static void init_scene_map() {
-    // 1. FBO 생성
+    // 1. Create the Framebuffer Object (FBO)
     glGenFramebuffers(1, &sceneFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
     
-    // 2. Color Texture 생성 (일반 화면용: RGB)
+    // 2. Create the Color Texture (Standard screen output: RGB)
     glGenTextures(1, &colorTexture);
     glBindTexture(GL_TEXTURE_2D, colorTexture);
+    // Allocate storage for a 4-channel 16-bit floating point texture (RGBA16F)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
     
-    // [필수] 필터링 설정 (이게 없으면 텍스처가 검게 나옴)
+    // [Mandatory] Set filtering parameters (Texture would appear black otherwise)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
-    // FBO에 부착 (0번 슬롯)
+    // Attach to FBO (Attachment slot 0)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
     
-    // 3. Velocity Texture 생성 (속도 저장용: RG16F - 정밀도 필요)
+    // 3. Create the Velocity Texture (To store motion vectors: RGBA16F for precision)
     glGenTextures(1, &velocityTexture);
     glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    // Allocate storage for a 4-channel 16-bit floating point texture (RGBA16F)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 
     
-    // [필수] 필터링 설정 (속도 정보는 보간되면 안 되므로 NEAREST 추천, 하지만 부드러움을 위해 LINEAR도 가능)
+    // [Mandatory] Set filtering parameters (NEAREST is recommended for velocity data to prevent interpolation, 
+    // but LINEAR is also possible for smoothness)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // FBO에 부착 (1번 슬롯)
+    // Attach to FBO (Attachment slot 1)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);
 
-    // 4. 깊이 버퍼 (RBO) 생성
-    // FBO에 깊이 버퍼가 없으면 Depth Test가 작동하지 않아 물체 순서가 엉망이 됨
+    // 4. Create the Depth Buffer (Render Buffer Object - RBO)
+    // Depth Test will not work without a depth buffer attached to the FBO, leading to incorrect object drawing order.
     GLuint rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    // 깊이 컴포넌트 저장소 할당
+    // Allocate storage for the depth component
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
-    // FBO에 부착
+    // Attach to FBO
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
-    // 5. Draw Buffers 설정 (MRT 핵심)
+    // 5. Set Draw Buffers (Multi-Render Target - MRT setup)
     GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
 
-    // 6. 상태 확인
+    // 6. Check status
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "ERROR::FRAMEBUFFER:: Scene Framebuffer is not complete!" << std::endl;
     }
 
-    // 설정 끝났으니 기본 프레임버퍼로 복귀
+    // Return to the default framebuffer after setup is complete
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void draw_screen_quad() {
+    if (quadVAO == 0) {
+        float quadVertices[] = {
+            -1.0f,  1.0f,     0.0f, 1.0f,
+            -1.0f, -1.0f,     0.0f, 0.0f, 
+             1.0f, -1.0f,     1.0f, 0.0f, 
+
+            -1.0f,  1.0f,     0.0f, 1.0f, 
+             1.0f, -1.0f,     1.0f, 0.0f, 
+             1.0f,  1.0f,     1.0f, 1.0f  
+        };
+
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+
+        glBindVertexArray(quadVAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        
+        glBindVertexArray(0);
+    }
+
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
 }
