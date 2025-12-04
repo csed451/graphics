@@ -4,6 +4,13 @@ Assignment 4 extends the bullet hell prototype with multiple rendering styles, c
 
 ## End-User Guide
 
+### 0. Additional Setting
+You have to install one additional library for assn4.
+
+```bash
+sudo apt-get install libpng-dev
+```
+
 ### 1. Build & Run
 
 Move to the `src` directory (`graphics/assn4/src`) and run one of the provided Makefile commands.
@@ -65,6 +72,14 @@ Pause/Unpause updates: **T / t** (pauses/resumes game updates and animations)
 Day/Night toggle (environment textures): **B / b**
 
 - switches between day and night sky/ocean textures (background only)
+
+Shadow toggle: **S / s**
+
+- generate shadows made by directional light (Phong & Phong Normal only)
+
+Motion blur toggle: **M / m**
+
+- apply a motion blur effect to objects in motion.
 
 Game Over:
 
