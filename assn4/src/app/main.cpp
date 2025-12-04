@@ -291,7 +291,7 @@ static void display (void) {
     gRenderer.set_shading_mode(prevShading);
     glViewport(0, 0, windowWidth, windowHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT0 };
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -777,20 +777,6 @@ static void init_scene_map() {
     // 1. FBO 생성
     glGenFramebuffers(1, &sceneFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-    // 3. Velocity Texture 생성 (속도 저장용: RG16F - 정밀도 필요)
-    glGenTextures(1, &velocityTexture);
-    glBindTexture(GL_TEXTURE_2D, velocityTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
-
-    
-    // [필수] 필터링 설정 (속도 정보는 보간되면 안 되므로 NEAREST 추천, 하지만 부드러움을 위해 LINEAR도 가능)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // FBO에 부착 (1번 슬롯)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocityTexture, 0);
     
     // 2. Color Texture 생성 (일반 화면용: RGB)
     glGenTextures(1, &colorTexture);
@@ -804,8 +790,22 @@ static void init_scene_map() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
     // FBO에 부착 (0번 슬롯)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+    
+    // 3. Velocity Texture 생성 (속도 저장용: RG16F - 정밀도 필요)
+    glGenTextures(1, &velocityTexture);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
 
+    
+    // [필수] 필터링 설정 (속도 정보는 보간되면 안 되므로 NEAREST 추천, 하지만 부드러움을 위해 LINEAR도 가능)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // FBO에 부착 (1번 슬롯)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);
 
     // 4. 깊이 버퍼 (RBO) 생성
     // FBO에 깊이 버퍼가 없으면 Depth Test가 작동하지 않아 물체 순서가 엉망이 됨
@@ -818,7 +818,7 @@ static void init_scene_map() {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
     // 5. Draw Buffers 설정 (MRT 핵심)
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT0 };
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
     glDrawBuffers(2, attachments);
 
     // 6. 상태 확인

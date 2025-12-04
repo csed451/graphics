@@ -53,5 +53,4 @@ void main()
     
     // 5. 최종 출력
     FragColor = vec4(finalColor, 1.0);
-    FragColor = texture(velocityTexture, TexCoords);
 }
