@@ -66,7 +66,6 @@ private:
         GLint uPrevModel = -1;
         GLint uPrevView = -1;   
         GLint uPrevProj = -1;
-        GLint uUseVelocity = -1;
     };
 
     ShaderHandles shaders[5]; // per-shading-mode shader + uniform handles

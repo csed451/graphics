@@ -150,7 +150,15 @@ int main(int argc, char** argv) {
     // Initialize GLEW and Renderer
     glewExperimental = GL_TRUE;
     glewInit();
+    // init shadow map (init FBO and depth texture)
+    init_shadow_map();
+    init_scene_map();
     gRenderer.init();
+
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    if (renderer) {
+        std::cout << "🖥️ Renderer: " << renderer << std::endl;
+    }
 
     // OpenGL states configuration
     glEnable(GL_BLEND);
@@ -217,9 +225,6 @@ int main(int argc, char** argv) {
     gRenderer.set_lights(dirLight, initialLights);
     gRenderer.set_view_position(cameraPos);
 
-    // init shadow map (init FBO and depth texture)
-    init_shadow_map();
-    init_scene_map();
 
     glutMainLoop();
     
@@ -281,33 +286,30 @@ static void display (void) {
     sceneRoot.draw();
 
     // glCullFace(GL_BACK);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, windowWidth, windowHeight);
-    gRenderer.set_shading_mode(prevShading);
-
     
     // 2. Lighting pass (regular rendering with shadows)
-    gRenderer.begin_frame();
-    gRenderer.apply_render_style();
+    gRenderer.set_shading_mode(prevShading);
+    glViewport(0, 0, windowWidth, windowHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(2, attachments);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (gShadowOn)
-        gRenderer.set_shadow_map(depthMapTexture);
-    else
-        gRenderer.set_shadow_map(0);
+    // if (gShadowOn)
+    //     gRenderer.set_shadow_map(depthMapTexture);
+    // else
+    //     gRenderer.set_shadow_map(0);
 
     background::draw();
     sceneRoot.draw();
     draw_bounding_box();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
-    glClear(GL_COLOR_BUFFER_BIT); // 깊이는 필요 없음 (Quad만 그릴 거라)
-
+    
     // 3. Blur pass
-    glDisable(GL_DEPTH_TEST);
     gRenderer.set_shading_mode(ShadingMode::MotionBlur);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT); // 깊이는 필요 없음 (Quad만 그릴 거라)
 
     // 아까 2번 단계에서 FBO에 저장해둔 텍스처들을 가져옴
     glActiveTexture(GL_TEXTURE0);
@@ -319,6 +321,8 @@ static void display (void) {
     draw_screen_quad();
     glEnable(GL_DEPTH_TEST);
 
+    gRenderer.set_shading_mode(prevShading);
+    
     bool showOverlay = (gameState == GameState::GameOver);
     const char* overlayMsg = nullptr;
     if (showOverlay) {
@@ -329,7 +333,7 @@ static void display (void) {
     }
 
     gRenderer.end_frame();
-
+    
     if (showOverlay && overlayMsg)
         draw_game_over(overlayMsg);
     
@@ -768,29 +772,16 @@ static void init_shadow_map() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+
 static void init_scene_map() {
     // 1. FBO 생성
     glGenFramebuffers(1, &sceneFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-
-    // 2. Color Texture 생성 (일반 화면용: RGB)
-    glGenTextures(1, &colorTexture);
-    glBindTexture(GL_TEXTURE_2D, colorTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    
-    // [필수] 필터링 설정 (이게 없으면 텍스처가 검게 나옴)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    
-    // FBO에 부착 (0번 슬롯)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
-
     // 3. Velocity Texture 생성 (속도 저장용: RG16F - 정밀도 필요)
     glGenTextures(1, &velocityTexture);
     glBindTexture(GL_TEXTURE_2D, velocityTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, windowWidth, windowHeight, 0, GL_RG, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+
     
     // [필수] 필터링 설정 (속도 정보는 보간되면 안 되므로 NEAREST 추천, 하지만 부드러움을 위해 LINEAR도 가능)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -799,7 +790,22 @@ static void init_scene_map() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // FBO에 부착 (1번 슬롯)
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocityTexture, 0);
+    
+    // 2. Color Texture 생성 (일반 화면용: RGB)
+    glGenTextures(1, &colorTexture);
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, NULL);
+    
+    // [필수] 필터링 설정 (이게 없으면 텍스처가 검게 나옴)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    // FBO에 부착 (0번 슬롯)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorTexture, 0);
+
 
     // 4. 깊이 버퍼 (RBO) 생성
     // FBO에 깊이 버퍼가 없으면 Depth Test가 작동하지 않아 물체 순서가 엉망이 됨
@@ -812,7 +818,7 @@ static void init_scene_map() {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
     // 5. Draw Buffers 설정 (MRT 핵심)
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(2, attachments);
 
     // 6. 상태 확인

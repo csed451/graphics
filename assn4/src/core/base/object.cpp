@@ -125,11 +125,11 @@ void Object::scale_world(glm::vec3 v) {
 void Object::update(float deltaTime) { 
     if (!get_isActive())
         return;
+    
+    prevModelMatrix = get_finalMatrix();
     update_logic(deltaTime);
     for (auto child : children) 
         if (child) child->update(deltaTime); 
-
-    prevModelMatrix = get_finalMatrix();
 };
 
 void Object::draw() const {

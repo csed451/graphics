@@ -107,17 +107,26 @@ bool Renderer::init() {
         s.uPrevModel            = s.program.uniform_location("uPrevModel");
         s.uPrevView             = s.program.uniform_location("uPrevView");
         s.uPrevProj             = s.program.uniform_location("uPrevProj");
-        s.uUseVelocity          = s.program.uniform_location("uUseVelocity");
 
-        if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
-        if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
-        if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
-        if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
+        if (mode == ShadingMode::MotionBlur) {
+            if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
+            if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
+        }
+        else {
+            if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
+            if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+        }
         s.program.unbind();
+
+        bool f = s.screenTexture >= 0 && s.velocityTexture >= 0;
+
+        if (f) {
+            std::cout << "complete" << std::endl;
+        }
 
         return s.uModel >= 0 && s.uView >= 0 && s.uProj >= 0 && s.uColor >= 0 && s.uNormal >= 0 && s.uLighting >= 0 
         || s.uModel >= 0 && s.uLightSpaceMatrix >= 0
-        || s.screenTexture >= 0 && s.velocityTexture >= 0;
+        || s.screenTexture >= 0 && s.velocityTexture >= 0 && s.uDiffuseMap < 0 && s.uNormalMap < 0;
     };
 
     bool is_valid = true;
@@ -295,25 +304,28 @@ void Renderer::draw_mesh(const Mesh& mesh,
 
     if (shader->uModel >= 0) glUniformMatrix4fv(shader->uModel, 1, GL_FALSE, &modelMatrix[0][0]);
     if (shader->uPrevModel >= 0) glUniformMatrix4fv(shader->uPrevModel, 1, GL_FALSE, &prevModelMatrix[0][0]);
-    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-    if (shader->uNormal >= 0) glUniformMatrix3fv(shader->uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
-    if (shader->uColor >= 0) glUniform4fv(shader->uColor, 1, &color[0]);
-    if (shader->uLighting >= 0) glUniform1i(shader->uLighting, lighting ? 1 : 0);
+    if (currentShading != ShadingMode::MotionBlur) {
 
-
-    if (shader->uUseTexture >= 0) glUniform1i(shader->uUseTexture, diffuseTex ? 1 : 0);
-    if (shader->uDiffuseMap >= 0) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseTex ? diffuseTex : whiteTexture);
-        glUniform1i(shader->uDiffuseMap, 0);
-    }
-
-    bool enableNormal = useNormalMap && !needsFallback && normalTex != 0;
-    if (shader->uUseNormalMap >= 0) glUniform1i(shader->uUseNormalMap, enableNormal ? 1 : 0);
-    if (shader->uNormalMap >= 0) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, enableNormal ? normalTex : whiteTexture);
-        glUniform1i(shader->uNormalMap, 1);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
+        if (shader->uNormal >= 0) glUniformMatrix3fv(shader->uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
+        if (shader->uColor >= 0) glUniform4fv(shader->uColor, 1, &color[0]);
+        if (shader->uLighting >= 0) glUniform1i(shader->uLighting, lighting ? 1 : 0);
+    
+    
+        if (shader->uUseTexture >= 0) glUniform1i(shader->uUseTexture, diffuseTex ? 1 : 0);
+        if (shader->uDiffuseMap >= 0) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, diffuseTex ? diffuseTex : whiteTexture);
+            glUniform1i(shader->uDiffuseMap, 0);
+        }
+    
+        bool enableNormal = useNormalMap && !needsFallback && normalTex != 0;
+        if (shader->uUseNormalMap >= 0) glUniform1i(shader->uUseNormalMap, enableNormal ? 1 : 0);
+        if (shader->uNormalMap >= 0) {
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, enableNormal ? normalTex : whiteTexture);
+            glUniform1i(shader->uNormalMap, 1);
+        }
     }
 
     if (currentStyle != RenderStyle::HiddenLineWireframe) {
@@ -441,10 +453,14 @@ void Renderer::set_shading_mode(ShadingMode mode) {
     currentShading = mode;
     auto& s = shaders[static_cast<int>(currentShading)];
     s.program.bind();
-    if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
-    if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
-    if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
-    if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
+    if (mode == ShadingMode::MotionBlur) {
+        if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
+        if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
+    }
+    else {
+        if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
+        if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+    }
 }
 
 void Renderer::switch_shading_mode() {
