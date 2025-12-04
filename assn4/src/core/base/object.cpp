@@ -3,7 +3,8 @@
 #include <algorithm>
 
 Object::Object(glm::vec3 _pos, GLfloat _angle, glm::vec3 _axis, glm::vec3 _size, glm::vec3 _center)
-: modelMatrix(glm::mat4(1.0f)),
+: modelMatrix(glm::mat4(1.0f)), 
+  prevModelMatrix(glm::mat4(1.0f)),
   center(_center),
   parent(nullptr),
   isLocal(true) {
@@ -127,6 +128,8 @@ void Object::update(float deltaTime) {
     update_logic(deltaTime);
     for (auto child : children) 
         if (child) child->update(deltaTime); 
+
+    prevModelMatrix = get_finalMatrix();
 };
 
 void Object::draw() const {

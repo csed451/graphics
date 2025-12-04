@@ -57,7 +57,7 @@ void EscortPlane::draw_shape() const {
         hasNormalMap = (normalTex != 0);
     }
 
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void EscortPlane::update_logic(float deltaTime) {

@@ -12,7 +12,7 @@
 class Mesh;
 
 enum class RenderStyle { Opaque, Wireframe, HiddenLineWireframe };
-enum class ShadingMode { Gouraud = 0, Phong = 1, PhongNormalMap = 2, DepthOnly = 3 };
+enum class ShadingMode { Gouraud = 0, Phong = 1, PhongNormalMap = 2, DepthOnly = 3, MotionBlur = 4 };
 
 struct DirectionalLight {
     glm::vec3 direction = glm::vec3(-0.4f, 0.7f, 0.5f);
@@ -61,9 +61,15 @@ private:
         GLint uLightSpaceMatrix = -1;
         GLint uShadowMap = -1;
         GLint uUseShadow = -1;
+        GLint screenTexture = -1;
+        GLint velocityTexture = -1;
+        GLint uPrevModel = -1;
+        GLint uPrevView = -1;   
+        GLint uPrevProj = -1;
+        GLint uUseVelocity = -1;
     };
 
-    ShaderHandles shaders[4]; // per-shading-mode shader + uniform handles
+    ShaderHandles shaders[5]; // per-shading-mode shader + uniform handles
     GLuint whiteTexture = 0;  // 1x1 fallback texture
     std::unordered_map<std::string, Texture2D> textureCache; // lazy-loaded texture cache
 
@@ -87,6 +93,7 @@ public:
 
     void draw_mesh(const Mesh& mesh,
                    const glm::mat4& modelMatrix,
+                   const glm::mat4& prevModelMatrix,
                    const glm::vec4& color,
                    bool lighting = true,
                    GLuint diffuseTex = 0,

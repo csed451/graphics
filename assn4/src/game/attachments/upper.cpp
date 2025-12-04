@@ -43,7 +43,7 @@ void Upper::draw_shape() const {
 
     glm::mat4 model = get_finalMatrix();
     // Match starship diffuse palette average (approx. 0.15, 0.42, 0.43)
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.15f, 0.42f, 0.43f, 1.0f));
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(0.15f, 0.42f, 0.43f, 1.0f));
 }
 
 void Upper::update_logic(float deltaTime) {

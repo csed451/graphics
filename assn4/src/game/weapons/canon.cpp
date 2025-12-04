@@ -11,7 +11,7 @@ void Canon::draw_shape() const {
 
     glm::mat4 model = get_finalMatrix();
     model = glm::scale(model, glm::vec3(0.3f));
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 }
 
 void Canon::update_logic(float deltaTime) {

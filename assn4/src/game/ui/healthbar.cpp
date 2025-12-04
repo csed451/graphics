@@ -42,7 +42,7 @@ void Healthbar::draw_shape() const {
     glm::mat4 base = get_finalMatrix();
     glm::mat4 bgModel = glm::translate(base, glm::vec3(center_x, center_y, -bg_depth * 0.5f));
     bgModel = glm::scale(bgModel, glm::vec3(bg_width, bg_height, bg_depth));
-    gRenderer.draw_mesh(*mesh, bgModel, glm::vec4(0.3f, 0.3f, 0.3f, 1.0f), false);
+    gRenderer.draw_mesh(*mesh, bgModel, bgModel, glm::vec4(0.3f, 0.3f, 0.3f, 1.0f), false);
 
     if (health_ratio <= 0.0f)
         return;
@@ -50,7 +50,7 @@ void Healthbar::draw_shape() const {
     const float fill_width = bar_width * health_ratio;
     glm::mat4 fillModel = glm::translate(base, glm::vec3(start_x + fill_width * 0.5f, center_y, fill_depth * 0.5f));
     fillModel = glm::scale(fillModel, glm::vec3(fill_width, bar_height, fill_depth));
-    gRenderer.draw_mesh(*mesh, fillModel, glm::vec4(1.0f, health_ratio, 0.0f, 1.0f), false);
+    gRenderer.draw_mesh(*mesh, fillModel, fillModel, glm::vec4(1.0f, health_ratio, 0.0f, 1.0f), false);
 }
 
 void Healthbar::deactivate() {

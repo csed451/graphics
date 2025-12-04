@@ -18,6 +18,7 @@
 class Object {
 private:
     glm::mat4 modelMatrix;
+    glm::mat4 prevModelMatrix;
     glm::vec3 center;
 
     Object* parent;
@@ -39,6 +40,7 @@ public:
     
     /* getter */
     glm::mat4 get_modelMatrix() const { return modelMatrix; }
+    glm::mat4 get_prevModelMatrix() const { return prevModelMatrix; }
     glm::vec3 get_center() const { return center; }
     Object* get_parent() const { return parent; }
     bool get_isLocal() const { return isLocal; }
@@ -56,6 +58,7 @@ public:
 
     /* setter */
     void set_modelMatrix(glm::mat4 m) { modelMatrix = m; }
+    void set_prevModelMatrix(glm::mat4 m) { prevModelMatrix = m; }
     void set_center(glm::vec3 v) { center = v; }
     void set_parent(Object* _parent, bool fix=false);
     void set_isLocal(bool b) { isLocal = b; }

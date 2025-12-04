@@ -96,7 +96,7 @@ void Enemy::draw_shape() const {
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f, 1.0f, 1.0f, 0.9f), true, diffuseTex, normalTex, hasNormalMap);
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(1.0f, 1.0f, 1.0f, 0.9f), true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void Enemy::shoot(){

@@ -40,7 +40,7 @@ public:
         }
 
         // Use white tint so texture shows its original colors
-        gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
+        gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
     }
 
     void update_logic(float deltaTime) override {

@@ -60,6 +60,10 @@ static bool gDayMode = true; // toggle manually for night build
 // for shadow map
 GLuint depthMapFBO = 0;
 GLuint depthMapTexture = 0;
+// for scene map
+GLuint sceneFBO = 0;
+GLuint colorTexture = 0;
+GLuint velocityTexture = 0;
 
 // Forward declarations
 static void set_projection_matrix(ProjectionType type);
@@ -86,6 +90,53 @@ static void init_bounding_box();
 static void draw_bounding_box();
 
 static void init_shadow_map();
+static void init_scene_map();
+
+// 전역 변수나 정적 변수로 VAO, VBO 핸들을 저장해둡니다.
+static GLuint quadVAO = 0;
+static GLuint quadVBO = 0;
+
+void draw_screen_quad() {
+    // 1. 만약 VAO가 0이라면(아직 안 만들어졌다면) 생성합니다. (최초 1회 실행)
+    if (quadVAO == 0) {
+        float quadVertices[] = {
+            // 위치(Pos)       // 텍스처 좌표(TexCoords)
+            // x,     y,       u,    v
+            -1.0f,  1.0f,     0.0f, 1.0f, // 왼쪽 위
+            -1.0f, -1.0f,     0.0f, 0.0f, // 왼쪽 아래
+             1.0f, -1.0f,     1.0f, 0.0f, // 오른쪽 아래
+
+            -1.0f,  1.0f,     0.0f, 1.0f, // 왼쪽 위
+             1.0f, -1.0f,     1.0f, 0.0f, // 오른쪽 아래
+             1.0f,  1.0f,     1.0f, 1.0f  // 오른쪽 위
+        };
+
+        // VAO, VBO 생성
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+
+        glBindVertexArray(quadVAO);
+
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+
+        // 속성 0: 위치 (vec2)
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+        // 속성 1: 텍스처 좌표 (vec2)
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        
+        // 바인딩 해제 (안전장치)
+        glBindVertexArray(0);
+    }
+
+    // 2. VAO 바인딩 후 그리기
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6); // 정점 6개로 삼각형 2개 그리기
+    glBindVertexArray(0);
+}
 
 // Entry point
 int main(int argc, char** argv) {
@@ -168,6 +219,7 @@ int main(int argc, char** argv) {
 
     // init shadow map (init FBO and depth texture)
     init_shadow_map();
+    init_scene_map();
 
     glutMainLoop();
     
@@ -237,6 +289,9 @@ static void display (void) {
     // 2. Lighting pass (regular rendering with shadows)
     gRenderer.begin_frame();
     gRenderer.apply_render_style();
+    glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (gShadowOn)
         gRenderer.set_shadow_map(depthMapTexture);
@@ -246,6 +301,24 @@ static void display (void) {
     background::draw();
     sceneRoot.draw();
     draw_bounding_box();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); 
+    glClear(GL_COLOR_BUFFER_BIT); // 깊이는 필요 없음 (Quad만 그릴 거라)
+
+    // 3. Blur pass
+    glDisable(GL_DEPTH_TEST);
+    gRenderer.set_shading_mode(ShadingMode::MotionBlur);
+
+    // 아까 2번 단계에서 FBO에 저장해둔 텍스처들을 가져옴
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, colorTexture); // 2번의 결과물 (색상)
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture); // 2번의 결과물 (속도)
+
+    // 화면 전체를 덮는 사각형(Quad) 하나만 딱 그림
+    draw_screen_quad();
+    glEnable(GL_DEPTH_TEST);
+
     bool showOverlay = (gameState == GameState::GameOver);
     const char* overlayMsg = nullptr;
     if (showOverlay) {
@@ -595,7 +668,7 @@ static void draw_stars() {
     if (sunMesh) {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-60, 620, 20));
         model = glm::scale(model, glm::vec3(100.0f));
-        gRenderer.draw_mesh(*sunMesh, model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        gRenderer.draw_mesh(*sunMesh, model, model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
     }
 }
 
@@ -692,5 +765,61 @@ static void init_shadow_map() {
     glReadBuffer(GL_NONE);
     
     // Unbind the framebuffer (Switch back to default)
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+static void init_scene_map() {
+    // 1. FBO 생성
+    glGenFramebuffers(1, &sceneFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+
+    // 2. Color Texture 생성 (일반 화면용: RGB)
+    glGenTextures(1, &colorTexture);
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowWidth, windowHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    
+    // [필수] 필터링 설정 (이게 없으면 텍스처가 검게 나옴)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    // FBO에 부착 (0번 슬롯)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+
+    // 3. Velocity Texture 생성 (속도 저장용: RG16F - 정밀도 필요)
+    glGenTextures(1, &velocityTexture);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, windowWidth, windowHeight, 0, GL_RG, GL_FLOAT, NULL);
+    
+    // [필수] 필터링 설정 (속도 정보는 보간되면 안 되므로 NEAREST 추천, 하지만 부드러움을 위해 LINEAR도 가능)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // FBO에 부착 (1번 슬롯)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);
+
+    // 4. 깊이 버퍼 (RBO) 생성
+    // FBO에 깊이 버퍼가 없으면 Depth Test가 작동하지 않아 물체 순서가 엉망이 됨
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    // 깊이 컴포넌트 저장소 할당
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
+    // FBO에 부착
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+    // 5. Draw Buffers 설정 (MRT 핵심)
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    // 6. 상태 확인
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR::FRAMEBUFFER:: Scene Framebuffer is not complete!" << std::endl;
+    }
+
+    // 설정 끝났으니 기본 프레임버퍼로 복귀
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

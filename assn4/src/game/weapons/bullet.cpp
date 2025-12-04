@@ -35,7 +35,7 @@ void Bullet::draw_shape() const {
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
-    gRenderer.draw_mesh(*mesh, model, glm::vec4(1.0f)); // bullet always white
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(1.0f)); // bullet always white
 
     if (sonicMesh) {
         glm::vec3 forward = glm::length(direction) > 1e-5f ? glm::normalize(direction) : glm::vec3(0, 0, 1);
@@ -59,7 +59,7 @@ void Bullet::draw_shape() const {
         GLuint sonicTex = counter ? sonicDiffuse2 : sonicDiffuse1;
         if (sonicTex == 0) // fallback if one texture failed to load
             sonicTex = counter ? sonicDiffuse1 : sonicDiffuse2;
-        gRenderer.draw_mesh(*sonicMesh, childModel, glm::vec4(1.0f), true, sonicTex, sonicNormal, sonicHasNormal);
+        gRenderer.draw_mesh(*sonicMesh, childModel, get_prevModelMatrix(), glm::vec4(1.0f), true, sonicTex, sonicNormal, sonicHasNormal);
     }
 }
 

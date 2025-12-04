@@ -22,6 +22,13 @@ uniform vec4 uColor;
 uniform int uUseLighting;
 uniform vec3 uViewPos;
 
+// for motion blur
+uniform mat4 uPrevModel;
+uniform mat4 uPrevView;
+uniform mat4 uPrevProj;
+out vec4 vClipPos;
+out vec4 vPrevClipPos;
+
 struct DirLight { vec3 direction; vec3 color; float intensity; };
 struct PointLight { vec3 position; vec3 color; float intensity; };
 uniform DirLight uDirLight;
@@ -62,4 +69,9 @@ void main() {
     vec3 N = normalize(uNormalMatrix * aNormal);
     vLighting = (uUseLighting == 0) ? vec3(1.0) : apply_light(N, worldPos.xyz);
     vTexcoord = aTexcoord;
+
+    vClipPos = gl_Position;
+    vec4 prevWorldPos = uPrevModel * vec4(aPosition, 1.0);
+    vPrevClipPos = uPrevProj * uPrevView * prevWorldPos;
+    vPrevClipPos = gl_Position;
 }

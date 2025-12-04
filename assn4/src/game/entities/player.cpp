@@ -34,7 +34,7 @@ void Player::draw_shape() const {
         hasNormalMap = (normalTex != 0);
     }
 
-    gRenderer.draw_mesh(*mesh, model, color, true, diffuseTex, normalTex, hasNormalMap);
+    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), color, true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void Player::update_logic(float deltaTime) {

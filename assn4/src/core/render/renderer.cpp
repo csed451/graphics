@@ -101,12 +101,23 @@ bool Renderer::init() {
         s.uShadowMap            = s.program.uniform_location("uShadowMap");
         s.uUseShadow            = s.program.uniform_location("uUseShadow");
 
+        // related to motion blur
+        s.screenTexture         = s.program.uniform_location("screenTexture");
+        s.velocityTexture       = s.program.uniform_location("velocityTexture");
+        s.uPrevModel            = s.program.uniform_location("uPrevModel");
+        s.uPrevView             = s.program.uniform_location("uPrevView");
+        s.uPrevProj             = s.program.uniform_location("uPrevProj");
+        s.uUseVelocity          = s.program.uniform_location("uUseVelocity");
+
         if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
         if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+        if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
+        if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
         s.program.unbind();
 
         return s.uModel >= 0 && s.uView >= 0 && s.uProj >= 0 && s.uColor >= 0 && s.uNormal >= 0 && s.uLighting >= 0 
-        || s.uModel >= 0 && s.uLightSpaceMatrix >= 0;
+        || s.uModel >= 0 && s.uLightSpaceMatrix >= 0
+        || s.screenTexture >= 0 && s.velocityTexture >= 0;
     };
 
     bool is_valid = true;
@@ -114,10 +125,16 @@ bool Renderer::init() {
     is_valid &= load_set(ShadingMode::Phong, "core/render/shaders/phong.vert", "core/render/shaders/phong.frag");
     is_valid &= load_set(ShadingMode::PhongNormalMap, "core/render/shaders/phong_nm.vert", "core/render/shaders/phong_nm.frag");
     is_valid &= load_set(ShadingMode::DepthOnly, "core/render/shaders/depth.vert", "core/render/shaders/depth.frag");
+    is_valid &= load_set(ShadingMode::MotionBlur, "core/render/shaders/blur.vert", "core/render/shaders/blur.frag");
 
 
-    if (!is_valid)
+    if (!is_valid) {
+        std::cout << "Renderer: Loaded all shader programs unsuccessfully." << std::endl;
+
         return false;
+    }
+
+    std::cout << "Renderer: Loaded all shader programs successfully." << std::endl;
 
     // Tiny 1x1 white fallback texture for untextured draws
     glGenTextures(1, &whiteTexture);
@@ -153,6 +170,8 @@ void Renderer::set_view(const glm::mat4& viewMatrix) {
         s.program.bind();
         if (s.uView >= 0)
             glUniformMatrix4fv(s.uView, 1, GL_FALSE, &view[0][0]);
+        if (s.uPrevView >= 0)
+            glUniformMatrix4fv(s.uPrevView, 1, GL_FALSE, &view[0][0]);
     }
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
@@ -162,7 +181,9 @@ void Renderer::set_projection(const glm::mat4& projectionMatrix) {
     for (auto& s : shaders) {
         s.program.bind();
         if (s.uProj >= 0)
-            glUniformMatrix4fv(s.uProj, 1, GL_FALSE, &projection[0][0]);
+            glUniformMatrix4fv(s.uProj, 1, GL_FALSE, &projection[0][0]);    
+        if (s.uPrevProj >= 0 )
+            glUniformMatrix4fv(s.uPrevProj, 1, GL_FALSE, &projection[0][0]);
     }
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
@@ -248,6 +269,7 @@ void Renderer::end_frame() {
 
 void Renderer::draw_mesh(const Mesh& mesh,
                          const glm::mat4& modelMatrix,
+                         const glm::mat4& prevModelMatrix,
                          const glm::vec4& color,
                          bool lighting,
                          GLuint diffuseTex,
@@ -272,10 +294,12 @@ void Renderer::draw_mesh(const Mesh& mesh,
     shader->program.bind();
 
     if (shader->uModel >= 0) glUniformMatrix4fv(shader->uModel, 1, GL_FALSE, &modelMatrix[0][0]);
+    if (shader->uPrevModel >= 0) glUniformMatrix4fv(shader->uPrevModel, 1, GL_FALSE, &prevModelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
     if (shader->uNormal >= 0) glUniformMatrix3fv(shader->uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
     if (shader->uColor >= 0) glUniform4fv(shader->uColor, 1, &color[0]);
     if (shader->uLighting >= 0) glUniform1i(shader->uLighting, lighting ? 1 : 0);
+
 
     if (shader->uUseTexture >= 0) glUniform1i(shader->uUseTexture, diffuseTex ? 1 : 0);
     if (shader->uDiffuseMap >= 0) {
@@ -341,6 +365,7 @@ void Renderer::draw_raw(GLuint vao,
 
     shader.program.bind();
     if (shader.uModel >= 0) glUniformMatrix4fv(shader.uModel, 1, GL_FALSE, &modelMatrix[0][0]);
+    if (shader.uPrevModel >= 0) glUniformMatrix4fv(shader.uPrevModel, 1, GL_FALSE, &modelMatrix[0][0]);
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
     if (shader.uNormal >= 0) glUniformMatrix3fv(shader.uNormal, 1, GL_FALSE, &normalMatrix[0][0]);
     if (shader.uColor >= 0) glUniform4fv(shader.uColor, 1, &color[0]);
@@ -418,6 +443,8 @@ void Renderer::set_shading_mode(ShadingMode mode) {
     s.program.bind();
     if (s.uDiffuseMap >= 0) glUniform1i(s.uDiffuseMap, 0);
     if (s.uNormalMap >= 0) glUniform1i(s.uNormalMap, 1);
+    if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
+    if (s.velocityTexture >= 0) glUniform1i(s.velocityTexture, 1);
 }
 
 void Renderer::switch_shading_mode() {
