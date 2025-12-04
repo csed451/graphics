@@ -6,12 +6,32 @@
 #include "core/render/renderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+float calculate_matrix_difference(const glm::mat4& model, const glm::mat4& prevModel) {
+    // 1. 차이 행렬 D 계산
+    glm::mat4 diff = model - prevModel;
+
+    // 2. 프로베니우스 노름을 계산합니다 (모든 원소의 제곱 합의 제곱근).
+    float sum_sq = 0.0f;
+
+    // GLM mat4는 4개의 vec4(컬럼 벡터)로 구성됩니다.
+    for (int i = 0; i < 4; ++i) {
+        // glm::dot(vec, vec)는 벡터의 길이 제곱(L2 Norm Squared)을 반환합니다.
+        // 이는 D 행렬의 i번째 컬럼에 있는 원소들의 제곱 합과 같습니다.
+        sum_sq += glm::dot(diff[i], diff[i]);
+    }
+
+    // 3. 최종 스칼라 차이 (제곱근 취하기)
+    return std::sqrt(sum_sq); 
+}
+
 void Player::draw_shape() const {
     const auto mesh = get_mesh();
     if (!mesh)
         return;
 
     glm::mat4 model = get_finalMatrix();
+    glm::mat4 prevModel = get_prevModelMatrix();
+
     if (direction == UP)
         model = glm::rotate(model, glm::radians(-20.0f), glm::vec3(1, 0, 0));
     else if (direction == DOWN)
@@ -25,6 +45,10 @@ void Player::draw_shape() const {
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1, 0, 0));
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 0, 1));
 
+    prevModel = glm::scale(prevModel, glm::vec3(0.3f));
+    prevModel = glm::rotate(prevModel, glm::radians(-90.0f), glm::vec3(1, 0, 0));
+    prevModel = glm::rotate(prevModel, glm::radians(180.0f), glm::vec3(0, 0, 1));
+
     glm::vec4 color(1.0f, 1.0f, 1.0f, isRecovery ? 0.2f : 1.0f);
     if (diffuseTex == 0) {
         diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_jet.png");
@@ -34,7 +58,7 @@ void Player::draw_shape() const {
         hasNormalMap = (normalTex != 0);
     }
 
-    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), color, true, diffuseTex, normalTex, hasNormalMap);
+    gRenderer.draw_mesh(*mesh, model, prevModel, color, true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void Player::update_logic(float deltaTime) {

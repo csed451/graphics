@@ -17,6 +17,13 @@ out vec3 vTangent;
 out vec2 vTexcoord;
 out vec4 vFragPosLightSpace;
 
+// for motion blur
+uniform mat4 uPrevModel;
+uniform mat4 uPrevView;
+uniform mat4 uPrevProj;
+out vec4 vClipPos;
+out vec4 vPrevClipPos;
+
 void main() {
     vec4 worldPos = uModel * vec4(aPosition, 1.0);
     gl_Position = uProj * uView * worldPos;
@@ -26,4 +33,8 @@ void main() {
     vTexcoord = aTexcoord;
 
     vFragPosLightSpace = uLightSpaceMatrix * worldPos;
+
+    vClipPos = gl_Position;
+    vec4 prevWorldPos = uPrevModel * vec4(aPosition, 1.0);
+    vPrevClipPos = uPrevProj * uPrevView * prevWorldPos;
 }

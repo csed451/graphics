@@ -44,11 +44,18 @@ void EscortPlane::draw_shape() const {
         return;
 
     glm::mat4 model = get_finalMatrix();
+    glm::mat4 prevModel = get_prevModelMatrix();
+
     model = glm::scale(model, glm::vec3(10.0f));
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 0, 1));
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1, 0, 0));
-    if (isLeftPlane)
+    prevModel = glm::scale(prevModel, glm::vec3(10.0f));
+    prevModel = glm::rotate(prevModel, glm::radians(-90.0f), glm::vec3(0, 0, 1));
+    prevModel = glm::rotate(prevModel, glm::radians(90.0f), glm::vec3(1, 0, 0));
+    if (isLeftPlane) {
         model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
+        prevModel = glm::rotate(prevModel, glm::radians(180.0f), glm::vec3(0, 1, 0));
+    }
 
     if (diffuseTex == 0)
         diffuseTex = gRenderer.get_or_load_texture("assets/textures/diffuse_starship.png");
@@ -57,7 +64,7 @@ void EscortPlane::draw_shape() const {
         hasNormalMap = (normalTex != 0);
     }
 
-    gRenderer.draw_mesh(*mesh, model, get_prevModelMatrix(), glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
+    gRenderer.draw_mesh(*mesh, model, prevModel, glm::vec4(1.0f), true, diffuseTex, normalTex, hasNormalMap);
 }
 
 void EscortPlane::update_logic(float deltaTime) {

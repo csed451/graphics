@@ -291,15 +291,14 @@ static void display (void) {
     gRenderer.set_shading_mode(prevShading);
     glViewport(0, 0, windowWidth, windowHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
-    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    glDrawBuffers(2, attachments);
+    
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // if (gShadowOn)
-    //     gRenderer.set_shadow_map(depthMapTexture);
-    // else
-    //     gRenderer.set_shadow_map(0);
+    if (gShadowOn)
+        gRenderer.set_shadow_map(depthMapTexture);
+    else
+        gRenderer.set_shadow_map(0);
 
     background::draw();
     sceneRoot.draw();
