@@ -107,6 +107,7 @@ bool Renderer::init() {
         s.uPrevModel            = s.program.uniform_location("uPrevModel");
         s.uPrevView             = s.program.uniform_location("uPrevView");
         s.uPrevProj             = s.program.uniform_location("uPrevProj");
+        s.useVelocity           = s.program.uniform_location("useVelocity");
 
         if (mode == ShadingMode::MotionBlur) {
             if (s.screenTexture >= 0) glUniform1i(s.screenTexture, 0); // for motion blur
@@ -267,6 +268,16 @@ void Renderer::set_shadow_map(GLuint depthMapTexture) {
 
     shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
 }
+
+void Renderer::set_motion_blur(bool b) {
+    for (auto& s : shaders) {
+        s.program.bind();
+        if (s.useVelocity >= 0)
+            glUniform1i(s.useVelocity, b);
+    }
+    shaders[static_cast<int>(currentShading)].program.bind(); // keep active shader bound
+}
+
 
 void Renderer::begin_frame() {
     shaders[static_cast<int>(currentShading)].program.bind();

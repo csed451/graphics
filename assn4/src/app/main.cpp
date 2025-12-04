@@ -31,6 +31,8 @@ constexpr float ENEMY_LIGHT_HEIGHT = 5.0f;
 const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;
 static bool gShadowOn = false;
+// for motion blur
+static bool motionBlurOn = false;
 
 // Global state (local TU scope)
 static GameState gameState = GameState::Playing;
@@ -306,6 +308,7 @@ static void display (void) {
     
     // 3. Blur pass
     gRenderer.set_shading_mode(ShadingMode::MotionBlur);
+    gRenderer.set_motion_blur(motionBlurOn);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT); // 깊이는 필요 없음 (Quad만 그릴 거라)
@@ -475,6 +478,10 @@ static void key_down(unsigned char key, int /*x*/, int /*y*/) {
             case 's':
             case 'S':
                 gShadowOn = !gShadowOn;
+                break;
+            case 'm':
+            case 'M':
+                motionBlurOn = !motionBlurOn;
                 break;
             case 27: // ESC
                 gameState = GameState::Exiting;

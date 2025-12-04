@@ -66,6 +66,7 @@ private:
         GLint uPrevModel = -1;
         GLint uPrevView = -1;   
         GLint uPrevProj = -1;
+        GLint useVelocity = -1;
     };
 
     ShaderHandles shaders[5]; // per-shading-mode shader + uniform handles
@@ -86,6 +87,7 @@ public:
     void set_lights(const DirectionalLight& dir, const std::vector<PointLight>& points);
     void set_light_space_matrix();
     void set_shadow_map(GLuint depthMapTexture);
+    void set_motion_blur(bool b);
 
     void begin_frame();
     void end_frame();

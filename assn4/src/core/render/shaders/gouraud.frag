@@ -28,6 +28,6 @@ void main() {
 
     // (3) Velocity Vector = Current - Previous
     vec2 velocity = screenPos - screenPrevPos;
-    FragVelocity = vec4(velocity.x, velocity.y, 0.0, 0.5);
+    FragVelocity = vec4(velocity.x, velocity.y, 0.0, 1);
 
 }
