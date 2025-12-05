@@ -55,17 +55,23 @@ void Bullet::draw_shape() const {
         basis[1] = glm::vec4(up,    0.0f);
         basis[2] = glm::vec4(forward, 0.0f);
 
-        glm::mat4 childModel = get_finalMatrix();
-        childModel = childModel * basis;
-        childModel = glm::translate(childModel, glm::vec3(0.0f, 0.0f, 2.0f));
-        childModel = glm::rotate(childModel, glm::radians(90.0f), glm::vec3(0, 0, 1));
-        childModel = glm::scale(childModel, glm::vec3(0.7f));
+    glm::mat4 childModel = get_finalMatrix();
+    childModel = childModel * basis;
+    childModel = glm::translate(childModel, glm::vec3(0.0f, 0.0f, 2.0f));
+    childModel = glm::rotate(childModel, glm::radians(90.0f), glm::vec3(0, 0, 1));
+    childModel = glm::scale(childModel, glm::vec3(0.7f));
+    // 자식 메쉬도 직전 프레임 변환을 동일하게 적용해줘야 모션 벡터가 맞는다.
+    glm::mat4 prevChildModel = get_prevModelMatrix();
+    prevChildModel = prevChildModel * basis;
+    prevChildModel = glm::translate(prevChildModel, glm::vec3(0.0f, 0.0f, 2.0f));
+    prevChildModel = glm::rotate(prevChildModel, glm::radians(90.0f), glm::vec3(0, 0, 1));
+    prevChildModel = glm::scale(prevChildModel, glm::vec3(0.7f));
 
-        GLuint sonicTex = counter ? sonicDiffuse2 : sonicDiffuse1;
-        if (sonicTex == 0) // fallback if one texture failed to load
-            sonicTex = counter ? sonicDiffuse1 : sonicDiffuse2;
-        gRenderer.draw_mesh(*sonicMesh, childModel, get_prevModelMatrix(), glm::vec4(1.0f), true, sonicTex, sonicNormal, sonicHasNormal);
-    }
+    GLuint sonicTex = counter ? sonicDiffuse2 : sonicDiffuse1;
+    if (sonicTex == 0) // fallback if one texture failed to load
+        sonicTex = counter ? sonicDiffuse1 : sonicDiffuse2;
+    gRenderer.draw_mesh(*sonicMesh, childModel, prevChildModel, glm::vec4(1.0f), true, sonicTex, sonicNormal, sonicHasNormal);
+}
 }
 
 void Bullet::update_logic(float deltaTime) {
