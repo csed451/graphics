@@ -66,6 +66,7 @@ static GLuint depthMapTexture = 0;
 static GLuint sceneFBO = 0;
 static GLuint colorTexture = 0;
 static GLuint velocityTexture = 0;
+static GLuint sceneDepthRBO = 0; // 리사이즈 시 다시 만들어야 하므로 보관
 static GLuint quadVAO = 0;
 static GLuint quadVBO = 0;
 
@@ -95,6 +96,7 @@ static void draw_bounding_box();
 
 static void init_shadow_map();
 static void init_scene_map();
+static void resize_scene_map(int w, int h);
 void draw_screen_quad();
 
 
@@ -219,6 +221,8 @@ static void reshape (int w, int h) {
     windowHeight = h;
     glViewport (0, 0, w, h);
     set_projection_matrix(projectionType);
+    // 창 크기 변경 시 모션 블러용 컬러/속도/깊이버퍼를 새 해상도로 다시 할당해야 깨짐을 방지한다.
+    resize_scene_map(w, h);
 }
 
 static void display (void) {
@@ -230,17 +234,19 @@ static void display (void) {
     ShadingMode prevShading = gRenderer.get_shading_mode();
 
     // 1. Depth pass (generate shadow map)
-    gRenderer.set_shading_mode(ShadingMode::DepthOnly);
-    gRenderer.set_light_space_matrix();
+    if (gShadowOn) {
+        gRenderer.set_shading_mode(ShadingMode::DepthOnly);
+        gRenderer.set_light_space_matrix();
 
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-    sceneRoot.draw();
+        sceneRoot.draw();
+        gRenderer.set_shading_mode(prevShading);
+    }
     
     // 2. Lighting pass (regular rendering with shadows)
-    gRenderer.set_shading_mode(prevShading);
     glViewport(0, 0, windowWidth, windowHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
     
@@ -762,13 +768,12 @@ static void init_scene_map() {
 
     // 4. Create the Depth Buffer (Render Buffer Object - RBO)
     // Depth Test will not work without a depth buffer attached to the FBO, leading to incorrect object drawing order.
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glGenRenderbuffers(1, &sceneDepthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
     // Allocate storage for the depth component
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
     // Attach to FBO
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sceneDepthRBO);
 
     // 5. Set Draw Buffers (Multi-Render Target - MRT setup)
     GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -780,6 +785,56 @@ static void init_scene_map() {
     }
 
     // Return to the default framebuffer after setup is complete
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+static void resize_scene_map(int w, int h) {
+    if (sceneFBO == 0) {
+        // 처음 호출 시 FBO가 없으면 초기화부터 수행
+        init_scene_map();
+        return;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+
+    // 기존 텍스처/렌더버퍼를 삭제하고 새 크기로 재할당 (리사이즈 후 블러 깨짐 방지)
+    if (colorTexture) { glDeleteTextures(1, &colorTexture); colorTexture = 0; }
+    if (velocityTexture) { glDeleteTextures(1, &velocityTexture); velocityTexture = 0; }
+    if (sceneDepthRBO) { glDeleteRenderbuffers(1, &sceneDepthRBO); sceneDepthRBO = 0; }
+
+    // Color texture
+    glGenTextures(1, &colorTexture);
+    glBindTexture(GL_TEXTURE_2D, colorTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+
+    // Velocity texture
+    glGenTextures(1, &velocityTexture);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, w, h, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);
+
+    // Depth buffer
+    glGenRenderbuffers(1, &sceneDepthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, sceneDepthRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, w, h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sceneDepthRBO);
+
+    GLenum attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, attachments);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "ERROR::FRAMEBUFFER:: Scene Framebuffer resize failed!" << std::endl;
+    }
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
