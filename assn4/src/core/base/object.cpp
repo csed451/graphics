@@ -126,7 +126,11 @@ void Object::update(float deltaTime) {
     if (!get_isActive())
         return;
     
-    prevModelMatrix = get_finalMatrix();
+    // 부모의 직전 월드 행렬을 사용해 내 직전 월드 행렬을 기록해야 모션 벡터가 올바르게 계산된다.
+    if (parent && isLocal)
+        prevModelMatrix = parent->get_prevModelMatrix() * modelMatrix;
+    else
+        prevModelMatrix = get_finalMatrix();
     update_logic(deltaTime);
     for (auto child : children) 
         if (child) child->update(deltaTime); 
